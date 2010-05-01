@@ -15,6 +15,8 @@
 #import "NetworkList.h"
 #import "SettingsPush.h"
 #import "LoginPanel.h"
+#import "YMWebService.h"
+#import "YMNetworksViewController.h"
 
 @implementation YammerAppDelegate
 
@@ -68,19 +70,34 @@
 	UIWindow* window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
 	window.backgroundColor = [UIColor whiteColor];
 	UIImageView *image = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"Default.png"]];
+  UIActivityIndicatorView *act = [[[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge] autorelease];
+  act.frame = CGRectMake((320 / 2) - (act.frame.size.width / 2), 
+                         360, act.frame.size.width, act.frame.size.height);
 	image.frame = CGRectMake(0, 0, 320, 480);
+  [image addSubview:act];
+  [act startAnimating];
 	[window addSubview:image];
 	[image release];
 	[window makeKeyAndVisible];
+  [self setupNavigator];
+//  if (![[[YMWebService sharedWebService] loggedInUsers] count]) {
+    // go to networks list if no logged in users exist or there was no
+    // previous view controller
+    [[TTNavigator navigator] openURL:@"yammer://networks" animated:YES];
+//  } else {
+//    [self enterAppWithAccess];
+//  }
+
 	
-  if ([LocalStorage getAccessToken]) {		
-    [NSThread detachNewThreadSelector:@selector(getNetworksThread) toTarget:self withObject:nil];  
-  }
-  else {
-		[self setupNavigator];
-		TTNavigator* navigator = [TTNavigator navigator];
-		[navigator openURL:@"yammer://login" animated:NO];
-	}
+//  if ([LocalStorage getAccessToken]) {		
+//    [NSThread detachNewThreadSelector:@selector(getNetworksThread) toTarget:self withObject:nil];  
+//  }
+//  else {
+//		[self setupNavigator];
+//		TTNavigator* navigator = [TTNavigator navigator];
+//		[navigator openURL:@"yammer://login" animated:NO];
+//	}
+  
 }
 
 - (void)setupNavigator {
@@ -91,12 +108,13 @@
   TTURLMap* map = navigator.URLMap;
 	
   [map from:@"*" toViewController:[TTWebController class]];
-  [map from:@"yammer://login" toViewController:[LoginPanel class]];
+//  [map from:@"yammer://login" toViewController:[LoginPanel class]];
   [map from:@"yammer://user" toViewController:[UserProfile class]];
   [map from:@"yammer://time" toViewController:[SettingsTimeChooser class]];
   [map from:@"yammer://push" toViewController:[SettingsPush class]];
-  [map from:@"yammer://networks" toViewController:[NetworkList class]];
+//  [map from:@"yammer://networks" toViewController:[NetworkList class]];
   [map from:@"yammer://tabs" toViewController:[MainTabBar class]];
+  [map from:@"yammer://networks" toViewController:[YMNetworksViewController class]];
 	
   [[[navigator visibleViewController] navigationController] setDelegate:self];	
 }

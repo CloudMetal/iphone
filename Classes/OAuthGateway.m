@@ -130,6 +130,7 @@ static NSString *ERROR_OUT_OF_RANGE = @"Network out of range.";
   NSMutableURLRequest* request = [[NSMutableURLRequest alloc] initWithURL:url];
   [OAuthGateway addAccessAuthHeader:request];
   request.HTTPShouldHandleCookies = NO;
+//  NSLog(@"\n\nrequest %@ headers %@\n\n", request, [request allHTTPHeaderFields]);
   
   return [OAuthGateway handleConnection:request style:style];  
 }
@@ -140,6 +141,7 @@ static NSString *ERROR_OUT_OF_RANGE = @"Network out of range.";
   NSMutableURLRequest* request = [[NSMutableURLRequest alloc] initWithURL:url];
   [OAuthGateway addAccessAuthHeader:request];
   request.HTTPShouldHandleCookies = NO;
+//  NSLog(@"\n\nrequest %@ headers %@\n\n", request, [request allHTTPHeaderFields]);
   
   NSHTTPURLResponse *response;
   NSError *error;

@@ -5,6 +5,8 @@
 #import "OAuthGateway.h"
 #import "LocalStorage.h"
 #import "APIGateway.h"
+#import "YMWebService.h"
+#import "YMUserAccount.h"
 
 @interface TransparentTextItem : TTTableTextItem;
 @end
@@ -228,7 +230,16 @@ static UITextField* thePassword = nil;
 + (void)handleLogin {	
 	if ([theEmail.text length] < 1 || [thePassword.text length] < 1)
 		return;
-
+  
+  ///
+  YMUserAccount *acct = [YMUserAccount new];
+  acct.username = theEmail.text;
+  acct.password = thePassword.text;
+  [[[YMWebService sharedWebService] loginUserAccount:acct]
+   addBoth:[DKCallback fromSelector:@selector(gotLoginCredentials:) target:self]];
+  ///
+  
+  
   TTNavigator* navigator = [TTNavigator navigator];
 	LoginPanel* panel = (LoginPanel*)[navigator visibleViewController];
 	panel.dataSource = nil;
@@ -236,6 +247,18 @@ static UITextField* thePassword = nil;
 	[panel showModel:YES];
 	
 	[NSThread detachNewThreadSelector:@selector(startLoginThread) toTarget:panel withObject:nil];	
+}
+
+- (id)gotLoginCredentials:(id)loggedInUser {
+  NSLog(@"gotLoginCredentials %@", loggedInUser);
+  return [[[YMWebService sharedWebService] 
+           networksForUserAccount:loggedInUser] 
+          addBoth:callbackTS(self, gotNetworks:)];
+}
+
+- (id)gotNetworks:(id)listOfNetworks {
+  NSLog(@"gotNetworks %@", listOfNetworks);
+  return listOfNetworks;
 }
 
 - (void)startLoginThread {

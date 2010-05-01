@@ -10,6 +10,7 @@
 #import "YMUserAccount.h"
 #import "YMNetwork.h"
 #import "NSString+URLEncoding.h"
+#import "SQLiteInstanceManager.h"
 
 static YMWebService *__sharedWebService;
 
@@ -26,12 +27,13 @@ static YMWebService *__sharedWebService;
  every key will be a string and every value a string unless multiple values
  exist for that key, in which case it'll be an nsarray with all keys
  */
-id __decodeURLEncodedParams(id strOrData) {
+id __decodeURLEncodedParams(id strOrData) 
+{
   id str = ([strOrData isKindOfClass:[NSData class]]
     ? [[[NSString alloc] initWithData:strOrData 
        encoding:NSUTF8StringEncoding] autorelease]
     : strOrData);
-  NSLog(@"__decodeURLEncodedParams str %@", str);
+//  NSLog(@"__decodeURLEncodedParams str %@", str);
   NSArray *components = [str componentsSeparatedByString:@"&"];
   NSMutableDictionary *d = [NSMutableDictionary dictionary];
   for (NSString *cmp in components) {
@@ -56,10 +58,11 @@ id __decodeURLEncodedParams(id strOrData) {
   return d;
 }
 
-id __decodeJSON(id results) {
+id __decodeJSON(id results) 
+{
   if (results && ! (results == [NSNull null])) {
     NSString *objstr = [[NSString alloc] initWithData:results encoding:NSUTF8StringEncoding];
-    NSLog(@"__decodeJson results %@", objstr);
+//    NSLog(@"__decodeJson results %@", objstr);
     NSError *error = nil;
     id ret = [[[SBJSON alloc] init]
               objectWithString:objstr error:&error];
@@ -81,7 +84,8 @@ id __decodeJSON(id results) {
 /// constructors
 ///
 
-+ (id)sharedWebService {
++ (id)sharedWebService 
+{
   @synchronized(self) {
     if (!__sharedWebService || __sharedWebService == nil) {
       __sharedWebService = [[[self alloc] init] retain];
@@ -93,59 +97,9 @@ id __decodeJSON(id results) {
   return __sharedWebService;
 }
 
-
-///
-/// private stuff (mostly utility)
-/// 
-
-- (id)mutableRequestWithMethod:(id)method 
-                       account:(YMUserAccount *)acct 
-                      defaults:(NSDictionary *)defaults {
-  NSMutableString *params = [NSMutableString string];
-  if (defaults && [[defaults allKeys] count]) {
-    [params setString:@"?"];
-    for (NSString *k in [defaults allKeys]) {
-      [params appendFormat:@"%@=%@&", [k encodedURLParameterString], 
-       [[defaults objectForKey:k] encodedURLParameterString]];
-    }
-    if ([params length] > 1)
-      [params replaceCharactersInRange:
-       NSMakeRange([params length] - 2, 1) withString:@""];
-  }
-  
-  NSMutableURLRequest *req = 
-    [NSMutableURLRequest requestWithURL:
-     [NSURL URLWithString:[[WS_MOUNTPOINT description] 
-                           stringByAppendingFormat:@"/%@%@", method, params]]
-     cachePolicy:NSURLRequestUseProtocolCachePolicy
-                       timeoutInterval:20.0];
-  NSString *tok = @"", *sec = @"", *verifier = @"";
-  NSString *sig = [NSString stringWithFormat:@"%@%%26", self.appSecret];
-  if (acct.activeNetworkPK) {
-    YMNetwork *network = (YMNetwork *)[YMNetwork findByPK:intv(acct.activeNetworkPK)];
-    tok = network.token;
-    sec = network.secret;
-  } else {
-    if (acct.wrapSecret && acct.wrapToken) {
-      tok = acct.wrapToken;
-      sec = acct.wrapSecret;
-    }
-  }
-  if (tok) {
-    tok = [NSString stringWithFormat:@"oauth_token=\"%@\", ", tok];
-    sig = [NSString stringWithFormat:@"%@%@", sig, sec];
-  }
-  NSTimeInterval ts = [[NSDate date] timeIntervalSince1970];
-  NSString *header = [NSString stringWithFormat:
-                      @"OAuth realm=\"\", oauth_consumer_key=\"%@\", %@"
-                      @"oauth_signature_method=\"PLAINTEXT\", "
-                      @"oauth_signature=\"%@\", oauth_timestamp=\"%f\", "
-                      @"oauth_nounce=\"%f\", %@oauth_version=\"1.0\"",
-                      self.appKey, tok, sig, ts, ts, verifier];
-  NSLog(@"otauth header %@", header);
-  [req setValue:header forHTTPHeaderField:@"Authorization"];
-  req.HTTPShouldHandleCookies = NO;
-  return req;
+- (NSArray *)loggedInUsers 
+{
+  return [YMUserAccount findByCriteria:@"WHERE logged_in=1"];
 }
 
 /**
@@ -157,7 +111,8 @@ id __decodeJSON(id results) {
  methods, and automatically persist those values to the model. It'll also
  update all user information for this user account.
  */
-- (DKDeferred *) loginUserAccount:(YMUserAccount *)acct {
+- (DKDeferred *) loginUserAccount:(YMUserAccount *)acct 
+{
   /// build login request
   NSMutableURLRequest *req = 
     [NSMutableURLRequest requestWithURL:
@@ -183,15 +138,23 @@ id __decodeJSON(id results) {
                         :callbackTS(self, _failedGetAccessToken:)];
 }
 
-- (id)_gotAccessToken:(YMUserAccount *)acct :(id)result {
+- (id)_gotAccessToken:(YMUserAccount *)acct :(id)result 
+{
   NSLog(@"_gotAccessToken: %@", result);
+  
+  if (![[result allKeys] count])
+    return [NSError errorWithDomain:@"YMWebService" code:403 
+            userInfo:dict_(@"Invalid Login Credentials", @"message")];
+  
   acct.wrapToken = [result objectForKey:@"wrap_access_token"];
   acct.wrapSecret = [result objectForKey:@"wrap_refresh_token"];
+  acct.loggedIn = nsni(1);
   [acct save];
   return acct;
 }
 
-- (id)_failedGetAccessToken:(NSError *)err {
+- (id)_failedGetAccessToken:(NSError *)err 
+{
   NSLog(@"_failedGetAccessToken: %@ %@", err, [err userInfo]);
   return err;
 }
@@ -202,7 +165,8 @@ id __decodeJSON(id results) {
  
  Will callback with an array of YMNetwork objects.
  */
-- (DKDeferred *)networksForUserAccount:(YMUserAccount *)acct {
+- (DKDeferred *)networksForUserAccount:(YMUserAccount *)acct 
+{
   if (!(acct.wrapToken && acct.wrapSecret))
     return [DKDeferred fail:
             [NSError errorWithDomain:@"" code:403 userInfo:
@@ -222,14 +186,104 @@ id __decodeJSON(id results) {
                         :callbackTS(self, _failedGetNetworksAndTokens:)];
 }
 
-- (id)_gotNetworksAndTokens:(YMUserAccount *)acct :(id)results {
-  NSLog(@"_gotNetorksAndTokens: %@", results);
-  return results;
+- (id)_gotNetworksAndTokens:(YMUserAccount *)acct :(id)results
+{
+  NSMutableArray *networks = [NSMutableArray array];
+  if ([results count] == 2) {
+    // remove existing networks and their associated data
+    int i;
+    if ([[SQLiteInstanceManager sharedManager] 
+         tableExists:[YMNetwork tableName]]) {
+      NSString *q = [NSString stringWithFormat:
+                     @"DELETE FROM %@ WHERE user_account_p_k=%i", 
+                     [YMNetwork tableName], acct.pk];
+      [[SQLiteInstanceManager sharedManager] executeUpdateSQL:q];
+    }
+    // create networks from request, saving auth info
+    for (NSDictionary *d in [results objectAtIndex:0]) {
+      // get the auth stuff from the tokens array
+      i = 0;
+      NSDictionary *ad = [[results objectAtIndex:1] objectAtIndex:i];
+      while (![[ad objectForKey:@"network_id"] isEqual:[d objectForKey:@"id"]]) 
+        ad = [[results objectAtIndex:1] objectAtIndex:i++];
+      
+      // create and save the network object
+      YMNetwork *n = [YMNetwork new];
+      n.userAccountPK = nsni(acct.pk);
+      n.url = [d objectForKey:@"web_url"];
+      n.permalink = [d objectForKey:@"permalink"];
+      n.name = [d objectForKey:@"name"];
+      n.networkID = [d objectForKey:@"id"];
+      n.unseenMessageCount = [d objectForKey:@"unseen_message_count"];
+      n.token = [ad objectForKey:@"token"];
+      n.secret = [ad objectForKey:@"secret"];
+      [n save];
+      [networks addObject:n];
+    }
+  }
+  return networks;
 }
 
-- (id)_failedGetNetworksAndTokens:(NSError *)error {
+- (id)_failedGetNetworksAndTokens:(NSError *)error
+{
   NSLog(@"_failedGetNetowrksAndTokens: %@ %@", error, [error userInfo]);
   return error;
+}
+
+/**
+ Builds a new NSMutableURLRequest with the proper headers for OAuth 1.0
+ If the supplied YMUserAccount has an active network (IE: one they want
+ to look at currently, the OAuth token/secret for that network will be
+ used.
+ */
+- (id)mutableRequestWithMethod:(id)method 
+                       account:(YMUserAccount *)acct 
+                      defaults:(NSDictionary *)defaults
+{
+  NSMutableString *params = [NSMutableString string];
+  if (defaults && [[defaults allKeys] count]) {
+    [params setString:@"?"];
+    for (NSString *k in [defaults allKeys]) {
+      [params appendFormat:@"%@=%@&", [k encodedURLParameterString], 
+       [[defaults objectForKey:k] encodedURLParameterString]];
+    }
+    if ([params length] > 1)
+      [params replaceCharactersInRange:
+       NSMakeRange([params length] - 2, 1) withString:@""];
+  }
+  
+  NSMutableURLRequest *req = 
+  [NSMutableURLRequest requestWithURL:
+   [NSURL URLWithString:[[WS_MOUNTPOINT description] 
+                         stringByAppendingFormat:@"/%@%@", method, params]]
+                          cachePolicy:NSURLRequestUseProtocolCachePolicy
+                      timeoutInterval:20.0];
+  NSString *tok = @"", *sec = @"", *verifier = @"";
+  NSString *sig = [NSString stringWithFormat:@"%@%%26", self.appSecret];
+  if (acct.activeNetworkPK) {
+    YMNetwork *network = (YMNetwork *)[YMNetwork findByPK:intv(acct.activeNetworkPK)];
+    tok = network.token;
+    sec = network.secret;
+  } else {
+    if (acct.wrapSecret && acct.wrapToken) {
+      tok = acct.wrapToken;
+      sec = acct.wrapSecret;
+    }
+  }
+  if (tok) {
+    tok = [NSString stringWithFormat:@"oauth_token=\"%@\", ", tok];
+    sig = [NSString stringWithFormat:@"%@%@", sig, sec];
+  }
+  NSTimeInterval ts = [[NSDate date] timeIntervalSince1970];
+  NSString *header = [NSString stringWithFormat:
+                      @"OAuth realm=\"\", oauth_consumer_key=\"%@\", %@"
+                      @"oauth_signature_method=\"PLAINTEXT\", "
+                      @"oauth_signature=\"%@\", oauth_timestamp=\"%f\", "
+                      @"oauth_nounce=\"%f\", %@oauth_version=\"1.0\"",
+                      self.appKey, tok, sig, ts, ts, verifier];
+  [req setValue:header forHTTPHeaderField:@"Authorization"];
+  req.HTTPShouldHandleCookies = NO;
+  return req;
 }
 
 @end

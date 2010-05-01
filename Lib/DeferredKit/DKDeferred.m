@@ -753,7 +753,7 @@ static NSInteger __urlConnectionCount;
                      connectionWithRequest:request
                      delegate:self] retain];
       __urlConnectionCount += 1;
-      NSLog(@"loading %@ : %@ %@", self.started, url, [request allHTTPHeaderFields]);
+//      NSLog(@"loading %@ : %@ %@", self.started, url, [request allHTTPHeaderFields]);
       if (!connection) {
         __urlConnectionCount -= 1;
         NSLog(@"error:???");
@@ -789,7 +789,7 @@ static NSInteger __urlConnectionCount;
 - (void)connection:(NSURLConnection *)aConnection 
 didReceiveResponse:(NSURLResponse *)response {
   expectedContentLength = [response expectedContentLength];
-  NSLog(@" - didreceiveresponse - %@", [(NSHTTPURLResponse *)response allHeaderFields]);
+//  NSLog(@" - didreceiveresponse - %@", [(NSHTTPURLResponse *)response allHeaderFields]);
   percentComplete = 0.0f;
   [_data setLength:0];
   [self _cbProgressUpdate];
@@ -852,7 +852,7 @@ didReceiveResponse:(NSURLResponse *)response {
 }
 
 - (id)_cbStartLoading:(id)result {
-  NSLog(@"connection: %@ : %@ %@", self.started, url, [request allHTTPHeaderFields]);
+//  NSLog(@"connection: %@ : %@ %@", self.started, url, [request allHTTPHeaderFields]);
   connection = [[NSURLConnection connectionWithRequest:request delegate:self] retain];
   if (connection) {
     __urlConnectionCount += 1;

@@ -11,15 +11,18 @@
 
 @class YMNetwork;
 
-@interface YMUserAccount : SQLitePersistentObject {
+@interface YMUserAccount : SQLitePersistentObject
+{
   NSNumber *activeNetworkPK;
   NSString *username, *password;
   NSString *wrapToken, *wrapSecret;
+  NSNumber *loggedIn;
 }
 
 @property (copy) NSNumber *activeNetworkPK;
 // for login
 @property (copy) NSString *username, *password;
+@property (copy) NSNumber *loggedIn;
 // to get network/user lists from server
 @property (copy) NSString *wrapSecret, *wrapToken;
 

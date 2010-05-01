@@ -38,6 +38,7 @@
                                                               value:[params objectForKey:[keys objectAtIndex:i]]]];
   
   [request setParameters:oauthParams];
+  NSLog(@"url %@ %@ %@", url, request, [request allHTTPHeaderFields]);
       
   return [OAuthGateway handleConnection:request style:style];
 }

@@ -9,4 +9,8 @@
 + (void)handleLogin;
 - (void)createDataSource;
 
+- (id)gotLoginCredentials:(id)loggedInUser;
+- (id)gotNetworks:(id)listOfNetworks;
+
+
 @end

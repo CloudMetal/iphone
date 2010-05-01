@@ -10,7 +10,8 @@
 #import "SQLitePersistentObject.h"
 
 
-@interface YMNetwork : SQLitePersistentObject {
+@interface YMNetwork : SQLitePersistentObject
+{
   NSString *token, *secret;
   NSNumber *networkID;
   NSNumber *userAccountPK;
@@ -20,7 +21,7 @@
 }
 
 @property (copy) NSNumber *userAccountPK;
-@property (copy) NSNumber *networkID, unseenMessageCount;
+@property (copy) NSNumber *networkID, *unseenMessageCount;
 @property (copy) NSString *permalink, *url, *name;
 @property (copy) NSString *token, *secret;
 
