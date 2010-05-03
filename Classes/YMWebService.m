@@ -78,6 +78,7 @@ id __decodeJSON(id results)
 @implementation YMWebService
 
 @synthesize mountPoint, appKey, appSecret;
+@synthesize shouldUpdateBadgeIcon;
 
 
 ///
@@ -92,6 +93,7 @@ id __decodeJSON(id results)
       __sharedWebService.mountPoint = WS_MOUNTPOINT;
       __sharedWebService.appKey = WS_APPKEY;
       __sharedWebService.appSecret = WS_APPSECRET;
+      __sharedWebService.shouldUpdateBadgeIcon = NO;
     }
   }
   return __sharedWebService;
@@ -191,7 +193,7 @@ id __decodeJSON(id results)
   NSMutableArray *networks = [NSMutableArray array];
   if ([results count] == 2) {
     // remove existing networks and their associated data
-    int i;
+    int i, totalUnseen = 0;
     if ([[SQLiteInstanceManager sharedManager] 
          tableExists:[YMNetwork tableName]]) {
       NSString *q = [NSString stringWithFormat:
@@ -219,6 +221,12 @@ id __decodeJSON(id results)
       n.secret = [ad objectForKey:@"secret"];
       [n save];
       [networks addObject:n];
+      totalUnseen += [[d objectForKey:@"unseen_message_count"] intValue];
+    }
+    
+    if (self.shouldUpdateBadgeIcon) {
+      id app = [NSClassFromString(@"UIApplication") sharedApplication];
+      [app setApplicationIconBadgeNumber:totalUnseen];
     }
   }
   return networks;
