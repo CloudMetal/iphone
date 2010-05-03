@@ -80,10 +80,13 @@
 	[image release];
 	[window makeKeyAndVisible];
   [self setupNavigator];
+  [[YMWebService sharedWebService] setShouldUpdateBadgeIcon:YES];
+  [[TTNavigator navigator] openURL:@"yammer://networks" animated:YES];
+  
 //  if (![[[YMWebService sharedWebService] loggedInUsers] count]) {
     // go to networks list if no logged in users exist or there was no
     // previous view controller
-    [[TTNavigator navigator] openURL:@"yammer://networks" animated:YES];
+    
 //  } else {
 //    [self enterAppWithAccess];
 //  }
@@ -138,7 +141,7 @@
     
     if ([[controller viewControllers] count] == 2 ) {
       MainTabBar* mainView = (MainTabBar*)[[controller viewControllers] objectAtIndex:1];
-      if ([mainView selectedIndex] == 3) {
+      if ([mainView respondsToSelector:@selector(selectedIndex)] && [mainView selectedIndex] == 3) {
         DirectoryList* list = (DirectoryList*)[navigator visibleViewController];
         [list typeAheadThreadUpdate];
       }
@@ -174,10 +177,10 @@
     last_in = @"network";
   if ([last_in isEqualToString:@"network"]) {
     
-    UINavigationController* controller = [[navigator visibleViewController] navigationController];
-    NetworkList* networkList = (NetworkList*)[[controller viewControllers] objectAtIndex:0];
-    [networkList clearBadgeForNetwork:self.network_id];
-    [NetworkList subtractFromBadgeCount:network_dict];
+//    UINavigationController* controller = [[navigator visibleViewController] navigationController];
+//    NetworkList* networkList = (NetworkList*)[[controller viewControllers] objectAtIndex:0];
+//    [networkList clearBadgeForNetwork:self.network_id];
+//    [NetworkList subtractFromBadgeCount:network_dict];
 
     self.dateOfSelection = [[NSDate date] description];
     [navigator openURL:@"yammer://tabs" animated:NO];
