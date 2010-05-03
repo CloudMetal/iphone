@@ -9,6 +9,7 @@
 #import <UIKit/UIKit.h>
 
 @class YMWebService;
+@class YMNetwork;
 
 
 @interface YMNetworksViewController : UITableViewController
@@ -19,5 +20,6 @@
 @property (nonatomic, readonly) YMWebService *web;
 
 - (void)refreshNetworks;
+- (id)_legacyEnterAppWithNetwork:(YMNetwork *)network;
 
 @end
