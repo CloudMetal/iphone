@@ -38,9 +38,6 @@
                     CGRectMake(0, 0, 320, 460) style:UITableViewStylePlain];
   self.tableView.delegate = self;
   self.tableView.dataSource = self;
-//  self.tableView.backgroundColor = [UIColor colorWithHexString:@"044ebd"];
-//  self.tableView.separatorStyle = UITableViewCellSeparatorStyleSingleLine;
-//  self.tableView.separatorColor = [UIColor colorWithHexString:@"044ebd"];
   self.title = @"Networks";
   self.navigationItem.rightBarButtonItem = 
     [[[UIBarButtonItem alloc]
@@ -52,6 +49,8 @@
 
 - (void) viewDidAppear:(BOOL)animated
 {
+  self.navigationController.navigationBar.tintColor 
+    = [UIColor colorWithRed:0.27 green:0.34 blue:0.39 alpha:1.0];
   if (![[self.web loggedInUsers] count])
     [self.navigationController pushViewController:
      [[[YMAccountsViewController alloc] init] autorelease] animated:YES];
