@@ -11,10 +11,10 @@
 #import "YMAccountsViewController.h"
 #import "UIColor+Extensions.h"
 #import "YMNetworkTableViewCell.h"
-#import "LocalStorage.h"
-#import "APIGateway.h"
-#import "YammerAppDelegate.h"
 #import "CFPrettyView.h"
+
+#import "YMLegacyShim.h"
+#import "YammerAppDelegate.h"
 
 
 @implementation YMNetworksViewController
@@ -100,7 +100,8 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath
                         objectAtIndex:0];
   
   DKDeferred *d = [DKDeferred deferInThread:
-                   callbackTS(self, _legacyEnterAppWithNetwork:) withObject:network];
+                   callbackTS([YMLegacyShim sharedShim], 
+                              _legacyEnterAppWithNetwork:) withObject:network];
   [d addCallback:callbackTS(self, _legacyBootstrapDone:)];
   
   CFPrettyView *hud = [[[CFPrettyView alloc] initWithFrame:CGRectZero] autorelease];
@@ -112,41 +113,6 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
   [(id)[[UIApplication sharedApplication] delegate] enterAppWithAccess];
   return r;
-}
-
-- (id)_legacyEnterAppWithNetwork:(YMNetwork *)network
-{  
-  YMUserAccount *acct = (YMUserAccount *)[YMUserAccount findByPK:intv(network.userAccountPK)];
-  
-  NSString *pushSettingsJSON = [LocalStorage getFile:[APIGateway push_file_with_id:intv(network.networkID)]];
-  
-  [LocalStorage saveAccessToken:
-   [NSString stringWithFormat:@"oauth_token=%@&oauth_token_secret=%@",
-    acct.wrapToken, acct.wrapSecret]];
-  
-  [APIGateway usersCurrent:@"silent"];
-  [APIGateway networksCurrent:@"silent"];
-  
-  YammerAppDelegate *del = (YammerAppDelegate *)[[UIApplication sharedApplication] delegate];
-  del.network_id = network.networkID;
-  del.dateOfSelection = [[NSDate date] description];
-  del.network_name = network.name;
-  [LocalStorage saveAccessToken:[NSString stringWithFormat:
-                                 @"oauth_token=%@&oauth_token_secret=%@",
-                                 network.token, network.secret]];
-  [LocalStorage saveSetting:@"current_network_id" value:network.networkID];
-  [LocalStorage saveSetting:@"last_in" value:@"network"];
-  
-  if (del.pushToken && [APIGateway sendPushToken:del.pushToken] && pushSettingsJSON != nil) {
-    NSMutableDictionary *pushSettings = [pushSettingsJSON JSONValue];
-    NSMutableDictionary *existingPushSettings = [APIGateway pushSettings:@"silent"];
-    if (existingPushSettings) {
-      [APIGateway updatePushSettingsInBulk:[existingPushSettings objectForKey:@"id"] pushSettings:pushSettings];
-    }
-    [LocalStorage removeFile:[APIGateway push_file]];
-  }
-  
-  return network;
 }
 
 - (void)didReceiveMemoryWarning

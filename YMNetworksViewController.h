@@ -20,6 +20,5 @@
 @property (nonatomic, readonly) YMWebService *web;
 
 - (void)refreshNetworks;
-- (id)_legacyEnterAppWithNetwork:(YMNetwork *)network;
 
 @end
