@@ -98,6 +98,7 @@ commitEditingStyle:(UITableViewCellEditingStyle)editingStyle
     YMUserAccount *acct = [[YMUserAccount findByCriteria:
                             @"ORDER BY username, pk ASC LIMIT 1 OFFSET %i", 
                             indexPath.row] objectAtIndex:0];
+    [[YMLegacyShim sharedShim] _cleanupBeforeLoggingOutAccount:acct];
     [acct deleteObjectCascade:YES];
     [self.tableView reloadData];
     [self.tableView setEditing:YES animated:YES];

@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
-@class YMNetwork;
+@class YMNetwork, YMUserAccount;
 
 @interface YMLegacyShim : NSObject {
 
@@ -16,5 +16,6 @@
 
 + (id)sharedShim;
 - (id)_legacyEnterAppWithNetwork:(YMNetwork *)network;
+- (id)_cleanupBeforeLoggingOutAccount:(YMUserAccount *)acct;
 
 @end

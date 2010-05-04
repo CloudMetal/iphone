@@ -12,6 +12,7 @@
 #import "APIGateway.h"
 #import "YammerAppDelegate.h"
 #import "YMUserAccount.h"
+#import "NSString-SQLiteColumnName.h"
 
 YMLegacyShim *__sharedLegacyShim = nil;
 
@@ -58,6 +59,35 @@ YMLegacyShim *__sharedLegacyShim = nil;
   }
   
   return network;
+}
+
+- (id)_cleanupBeforeLoggingOutAccount:(YMUserAccount *)acct
+{
+  NSNumber *curNetworkID = (NSNumber *)[LocalStorage getSetting:@"current_network_id"];
+  if (curNetworkID != nil) {
+    NSArray *networks = [YMNetwork findByCriteria:@"WHERE %@=%i", 
+                         [@"userAccountPK" stringAsSQLColumnName], acct.pk];
+    YMNetwork *network;
+    BOOL broken = NO;
+    for (network in networks) {
+      if ([network.networkID isEqualToNumber:curNetworkID]) {
+        broken = YES;
+        break;
+      }
+    }
+    if (broken) {
+      [LocalStorage removeFile:[APIGateway push_file]];
+      [LocalStorage removeFile:SETTINGS];
+//      [LocalStorage saveSetting:@"current_network_id" value:nil];
+//      [LocalStorage saveSetting:@"last_in" value:nil];
+      [LocalStorage deleteAccountInfo];
+      YammerAppDelegate *del = (YammerAppDelegate *)[[UIApplication sharedApplication] delegate];
+      del.network_id = nil;
+      del.dateOfSelection = nil;
+      del.network_name = nil;
+    }
+  }
+  return acct;
 }
 
 @end
