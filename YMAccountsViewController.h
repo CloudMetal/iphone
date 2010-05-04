@@ -17,4 +17,6 @@
 
 @property (nonatomic, readonly) YMWebService *web;
 
+- (IBAction)addAccount:(UIControl *)sender;
+
 @end

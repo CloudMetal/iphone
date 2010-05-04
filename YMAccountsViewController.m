@@ -9,6 +9,7 @@
 #import "YMAccountsViewController.h"
 #import "YMWebService.h"
 #import "YMLoginViewController.h"
+#import "YMLegacyShim.h"
 
 @implementation YMAccountsViewController
 
@@ -34,9 +35,15 @@
   if (!web) web = [YMWebService sharedWebService];
 }
 
+- (void)viewWillAppear:(BOOL)animated
+{
+  [self.tableView setEditing:YES];
+  [super viewWillAppear:animated];
+}
 
 - (void) viewDidAppear:(BOOL)animated
 {
+  [super viewDidAppear:animated];
   if (![[self.web loggedInUsers] count]) {
     [self.navigationController pushViewController:
      [[YMLoginViewController alloc] init] animated:YES];
@@ -102,6 +109,9 @@ commitEditingStyle:(UITableViewCellEditingStyle)editingStyle
     [acct deleteObjectCascade:YES];
     [self.tableView reloadData];
     [self.tableView setEditing:YES animated:YES];
+    if (![YMUserAccount count]) {
+      [self addAccount:nil];
+    }
   }
 }
 
