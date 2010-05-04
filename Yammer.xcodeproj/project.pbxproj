@@ -114,6 +114,8 @@
 		1D60589B0D05DD56006BFB54 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 29B97316FDCFA39411CA2CEA /* main.m */; };
 		1D60589F0D05DD5A006BFB54 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1D30AB110D05D00D00671497 /* Foundation.framework */; };
 		1DF5F4E00D08C38300B7A737 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1DF5F4DF0D08C38300B7A737 /* UIKit.framework */; };
+		22235CA91190E533007F2255 /* StatusBarNotifier.m in Sources */ = {isa = PBXBuildFile; fileRef = 22235CA81190E533007F2255 /* StatusBarNotifier.m */; };
+		22235CCD1190E578007F2255 /* errorstatusbarbg.png in Resources */ = {isa = PBXBuildFile; fileRef = 22235CCC1190E578007F2255 /* errorstatusbarbg.png */; };
 		229FEFDE1180F9A500E10000 /* YMNetworksViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 229FEFDD1180F9A500E10000 /* YMNetworksViewController.m */; };
 		22A3B0CD1177CA27006337B5 /* DKCallback.m in Sources */ = {isa = PBXBuildFile; fileRef = 22A3B05A1177CA27006337B5 /* DKCallback.m */; };
 		22A3B0CE1177CA27006337B5 /* DKDeferred+CoreLocation.m in Sources */ = {isa = PBXBuildFile; fileRef = 22A3B05C1177CA27006337B5 /* DKDeferred+CoreLocation.m */; };
@@ -379,6 +381,9 @@
 		1D3623250D0F684500981E51 /* YammerAppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = YammerAppDelegate.m; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objc; };
 		1D6058910D05DD3D006BFB54 /* Yammer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Yammer.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		1DF5F4DF0D08C38300B7A737 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
+		22235CA71190E533007F2255 /* StatusBarNotifier.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StatusBarNotifier.h; sourceTree = "<group>"; };
+		22235CA81190E533007F2255 /* StatusBarNotifier.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = StatusBarNotifier.m; sourceTree = "<group>"; };
+		22235CCC1190E578007F2255 /* errorstatusbarbg.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = errorstatusbarbg.png; sourceTree = "<group>"; };
 		229FEFDC1180F9A500E10000 /* YMNetworksViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YMNetworksViewController.h; sourceTree = "<group>"; };
 		229FEFDD1180F9A500E10000 /* YMNetworksViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = YMNetworksViewController.m; sourceTree = "<group>"; };
 		22A3B0581177CA27006337B5 /* DeferredKit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DeferredKit.h; sourceTree = "<group>"; };
@@ -1053,6 +1058,8 @@
 				22FD1D20118B9B7D008170E0 /* UIColor+Extensions.m */,
 				22FD1D1A118B9B59008170E0 /* CFPrettyView.h */,
 				22FD1D1B118B9B59008170E0 /* CFPrettyView.m */,
+				22235CA71190E533007F2255 /* StatusBarNotifier.h */,
+				22235CA81190E533007F2255 /* StatusBarNotifier.m */,
 				00901E3810445EB9008E7C7D /* Three20.bundle */,
 				00901E1A10445E72008E7C7D /* Three20.xcodeproj */,
 				22A3B0571177CA27006337B5 /* DeferredKit */,
@@ -1071,6 +1078,7 @@
 		29B97317FDCFA39411CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				22235CCC1190E578007F2255 /* errorstatusbarbg.png */,
 				22FD1D2E118B9D7F008170E0 /* hud-overlay.png */,
 				00C08545104861CB00331BF5 /* dist.plist */,
 				00E6CDBC1046F7FC0042BD9E /* ComposeMessage.xib */,
@@ -1203,6 +1211,7 @@
 				00236A4310FCF445008B007E /* pdf.png in Resources */,
 				00B7093F11137E8A00ACA083 /* login.png in Resources */,
 				22FD1D2F118B9D7F008170E0 /* hud-overlay.png in Resources */,
+				22235CCD1190E578007F2255 /* errorstatusbarbg.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1340,6 +1349,7 @@
 				22FD1D81118BA983008170E0 /* YMAccountsViewController.m in Sources */,
 				22CDE911118F7A8B00323FA1 /* YMNetworkTableViewCell.m in Sources */,
 				22CDE991118F99A000323FA1 /* YMLegacyShim.m in Sources */,
+				22235CA91190E533007F2255 /* StatusBarNotifier.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
