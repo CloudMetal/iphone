@@ -12,6 +12,7 @@
 #import "UIColor+Extensions.h"
 #import "YMNetworkTableViewCell.h"
 #import "CFPrettyView.h"
+#import "StatusBarNotifier.h"
 
 #import "YMLegacyShim.h"
 #import "YammerAppDelegate.h"
@@ -30,6 +31,22 @@
 - (void)refreshNetworks
 {
   [self.tableView reloadData];
+  
+  NSArray *accounts = [YMUserAccount allObjects];
+  NSMutableArray *ops = [NSMutableArray array];
+  for (YMUserAccount *acct in accounts) {
+    [ops addObject:[web networksForUserAccount:acct]];
+  }
+  [[StatusBarNotifier sharedNotifier] 
+   flashLoading:@"Updating Networks..."
+   deferred:[[DKDeferred gatherResults:ops]
+             addCallback:callbackTS(self, doneUpdatingAccounts:)]];
+}
+
+- (id)doneUpdatingAccounts:(id)r
+{
+  [self.tableView reloadData];
+  return r;
 }
 
 - (void)loadView
@@ -85,8 +102,13 @@ cellForRowAtIndexPath:(NSIndexPath *)indexPath
              initWithStyle:UITableViewCellStyleDefault
              reuseIdentifier:ident] autorelease];
   
+  [cell.unreadLabel setHidden:NO];
+  
   cell.textLabel.text = network.name;
-  cell.unreadLabel.text = [network.unseenMessageCount description];
+  if (!intv(network.unseenMessageCount))
+    [cell.unreadLabel setHidden:YES];
+  else
+    cell.unreadLabel.text = [network.unseenMessageCount description];
   
   return cell;
 }
@@ -97,6 +119,12 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath
   YMNetwork *network = [[YMNetwork findByCriteria:
      @"ORDER BY name, pk ASC LIMIT 1 OFFSET %i", indexPath.row]
                         objectAtIndex:0];
+  network.unseenMessageCount = nsni(0);
+  [network save];
+  
+  [table deselectRowAtIndexPath:indexPath animated:YES];
+  [table reloadRowsAtIndexPaths:array_(indexPath) 
+               withRowAnimation:UITableViewRowAnimationNone];
   
   DKDeferred *d = [DKDeferred deferInThread:
                    callbackTS([YMLegacyShim sharedShim], 
