@@ -10,6 +10,10 @@
 #import "YMWebService.h"
 #import "CFPrettyView.h"
 
+#import "LocalStorage.h"
+#import "YMLegacyShim.h"
+#import "YammerAppDelegate.h"
+
 
 #define LOGIN_USERNAME_TAG 34343
 #define LOGIN_PASSWORD_TAG 34443
@@ -173,7 +177,21 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath
   if (isDeferred(result))
     return [result addCallbacks:callbackTS(self, _cbGetNetworksSucceeded:) 
                                :callbackTS(self, _cbGetNetworksFailed:)];
-  [self.navigationController popViewControllerAnimated:YES];
+  if ([LocalStorage getSetting:@"current_network_id"]) {
+    [self.navigationController popViewControllerAnimated:YES];
+  } else {
+    if ([result isKindOfClass:[NSArray class]] && [result count]) {
+      DKDeferred *d = [DKDeferred deferInThread:
+                       callbackTS([YMLegacyShim sharedShim], 
+                                   _legacyEnterAppWithNetwork:) withObject:[result objectAtIndex:0]];
+      [d addCallback:callbackTS(self, _legacyBootstrapDone:)];
+      
+      CFPrettyView *hud = [[[CFPrettyView alloc] initWithFrame:CGRectZero] autorelease];
+      [hud showAsLoadingHUDWithDeferred:d inView:
+       [[UIApplication sharedApplication] keyWindow]];
+    }
+  }
+  
   return result;
 }
 
@@ -186,6 +204,13 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath
    autorelease] show];
   NSLog(@"_cbGetNetworksFailed: %@ %@", error, [error userInfo]);
   return error;
+}
+
+- (id)_legacyBootstrapDone:(id)r
+{
+  [self.navigationController popToRootViewControllerAnimated:NO];
+  [(id)[[UIApplication sharedApplication] delegate] enterAppWithAccess];
+  return r;
 }
 
 - (void)didReceiveMemoryWarning

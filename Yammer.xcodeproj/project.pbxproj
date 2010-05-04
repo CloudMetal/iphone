@@ -173,6 +173,7 @@
 		22A3B15D1177CB62006337B5 /* YMUserAccount.m in Sources */ = {isa = PBXBuildFile; fileRef = 22A3B1581177CB62006337B5 /* YMUserAccount.m */; };
 		22A3B15E1177CB62006337B5 /* YMWebService.m in Sources */ = {isa = PBXBuildFile; fileRef = 22A3B15B1177CB62006337B5 /* YMWebService.m */; };
 		22CDE911118F7A8B00323FA1 /* YMNetworkTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 22CDE910118F7A8B00323FA1 /* YMNetworkTableViewCell.m */; };
+		22CDE991118F99A000323FA1 /* YMLegacyShim.m in Sources */ = {isa = PBXBuildFile; fileRef = 22CDE990118F99A000323FA1 /* YMLegacyShim.m */; };
 		22FD1C7D118B87A4008170E0 /* YMLoginViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 22FD1C7C118B87A4008170E0 /* YMLoginViewController.m */; };
 		22FD1D1C118B9B59008170E0 /* CFPrettyView.m in Sources */ = {isa = PBXBuildFile; fileRef = 22FD1D1B118B9B59008170E0 /* CFPrettyView.m */; };
 		22FD1D21118B9B7D008170E0 /* NSString+UUID.m in Sources */ = {isa = PBXBuildFile; fileRef = 22FD1D1E118B9B7D008170E0 /* NSString+UUID.m */; };
@@ -501,6 +502,8 @@
 		22A3B15B1177CB62006337B5 /* YMWebService.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = YMWebService.m; path = Classes/YMWebService.m; sourceTree = "<group>"; };
 		22CDE90F118F7A8B00323FA1 /* YMNetworkTableViewCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YMNetworkTableViewCell.h; sourceTree = "<group>"; };
 		22CDE910118F7A8B00323FA1 /* YMNetworkTableViewCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = YMNetworkTableViewCell.m; sourceTree = "<group>"; };
+		22CDE98F118F99A000323FA1 /* YMLegacyShim.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YMLegacyShim.h; sourceTree = "<group>"; };
+		22CDE990118F99A000323FA1 /* YMLegacyShim.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = YMLegacyShim.m; sourceTree = "<group>"; };
 		22FD1C7B118B87A4008170E0 /* YMLoginViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YMLoginViewController.h; sourceTree = "<group>"; };
 		22FD1C7C118B87A4008170E0 /* YMLoginViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = YMLoginViewController.m; sourceTree = "<group>"; };
 		22FD1D1A118B9B59008170E0 /* CFPrettyView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFPrettyView.h; sourceTree = "<group>"; };
@@ -1013,6 +1016,8 @@
 			children = (
 				22A3B15A1177CB62006337B5 /* YMWebService.h */,
 				22A3B15B1177CB62006337B5 /* YMWebService.m */,
+				22CDE98F118F99A000323FA1 /* YMLegacyShim.h */,
+				22CDE990118F99A000323FA1 /* YMLegacyShim.m */,
 			);
 			name = WebServices;
 			sourceTree = "<group>";
@@ -1334,6 +1339,7 @@
 				22FD1D22118B9B7D008170E0 /* UIColor+Extensions.m in Sources */,
 				22FD1D81118BA983008170E0 /* YMAccountsViewController.m in Sources */,
 				22CDE911118F7A8B00323FA1 /* YMNetworkTableViewCell.m in Sources */,
+				22CDE991118F99A000323FA1 /* YMLegacyShim.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
