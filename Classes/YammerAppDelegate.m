@@ -81,7 +81,11 @@
 	[window makeKeyAndVisible];
   [self setupNavigator];
   [[YMWebService sharedWebService] setShouldUpdateBadgeIcon:YES];
-  [[TTNavigator navigator] openURL:@"yammer://networks" animated:YES];
+  if ([LocalStorage getSetting:@"current_network_id"]) {
+    [self enterAppWithAccess];
+  } else {
+    [[TTNavigator navigator] openURL:@"yammer://networks" animated:YES];
+  }
   
 //  if (![[[YMWebService sharedWebService] loggedInUsers] count]) {
     // go to networks list if no logged in users exist or there was no
