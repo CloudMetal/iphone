@@ -10,6 +10,7 @@
 #import "YMWebService.h"
 #import "YMLoginViewController.h"
 #import "YMLegacyShim.h"
+#import "UIColor+Extensions.h"
 
 @implementation YMAccountsViewController
 
@@ -25,6 +26,7 @@
 {
   self.tableView = [[UITableView alloc] initWithFrame:
                     CGRectMake(0, 0, 320, 460) style:UITableViewStyleGrouped];
+  self.tableView.backgroundColor = [UIColor colorWithHexString:@"cae5fd"];
   self.tableView.delegate = self;
   self.tableView.dataSource = self;
   self.title = @"Accounts";
@@ -44,9 +46,11 @@
 - (void) viewDidAppear:(BOOL)animated
 {
   [super viewDidAppear:animated];
+  self.navigationController.navigationBar.tintColor 
+    = [UIColor colorWithRed:0.27 green:0.34 blue:0.39 alpha:1.0];
   if (![[self.web loggedInUsers] count]) {
     [self.navigationController pushViewController:
-     [[YMLoginViewController alloc] init] animated:YES];
+     [[YMLoginViewController alloc] init] animated:NO];
   } else {    
     [self.tableView reloadData];
     [self.tableView setEditing:YES animated:YES];

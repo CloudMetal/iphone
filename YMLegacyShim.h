@@ -17,5 +17,6 @@
 + (id)sharedShim;
 - (id)_legacyEnterAppWithNetwork:(YMNetwork *)network;
 - (id)_cleanupBeforeLoggingOutAccount:(YMUserAccount *)acct;
+- (id)_cleanupMultipleAccountsUpgrade;
 
 @end

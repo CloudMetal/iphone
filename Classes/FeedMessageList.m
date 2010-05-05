@@ -67,6 +67,12 @@
   //[self performSelectorOnMainThread:@selector(doShowModel) withObject:nil waitUntilDone:NO];  
 }
 
+- (void)viewDidAppear:(BOOL)animated
+{
+  self.title = [self.feed objectForKey:@"name"];
+  [super viewDidAppear:animated];
+}
+
 - (void)removeColor {
   NSAutoreleasePool *autoreleasepool = [[NSAutoreleasePool alloc] init];
   [(FeedMessageData*)self.dataSource removeAllColor];

@@ -90,4 +90,16 @@ YMLegacyShim *__sharedLegacyShim = nil;
   return acct;
 }
 
+- (id)_cleanupMultipleAccountsUpgrade
+{
+  [LocalStorage removeFile:[APIGateway push_file]];
+  [LocalStorage removeFile:SETTINGS];
+  [LocalStorage deleteAccountInfo];
+  YammerAppDelegate *del = (YammerAppDelegate *)[[UIApplication sharedApplication] delegate];
+  del.network_id = nil;
+  del.dateOfSelection = nil;
+  del.network_name = nil;
+  return nil;
+}
+
 @end

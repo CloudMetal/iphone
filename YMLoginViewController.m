@@ -9,6 +9,7 @@
 #import "YMLoginViewController.h"
 #import "YMWebService.h"
 #import "CFPrettyView.h"
+#import "UIColor+Extensions.h"
 
 #import "LocalStorage.h"
 #import "YMLegacyShim.h"
@@ -27,17 +28,48 @@
 {
   self.tableView = [[UITableView alloc] initWithFrame:
                     CGRectMake(0, 0, 320, 460) style:UITableViewStyleGrouped];
+  self.tableView.backgroundColor = [UIColor colorWithHexString:@"cae5fd"];
   self.tableView.delegate = self;
   self.tableView.dataSource = self;
-  self.title = @"Login";
+  self.navigationItem.titleView = [[UIImageView alloc] initWithImage:
+                                   [UIImage imageNamed:@"title.png"]];
+  self.navigationItem.hidesBackButton = YES;
+  emailAlreadyBecameFirstResponder = NO;
   
   if (!web) web = [YMWebService sharedWebService];
+  
+  NSString *upgradeText = @"";
+  if (![[web loggedInUsers] count])
+    upgradeText = @"     Yammer now supports multiple accounts.\n           "
+                  @"Please login to your first account.\n\n";
+  
+  TTStyledText* theText = [TTStyledText textFromXHTML:[NSString stringWithFormat:
+                           @"%@       No account? Sign up on <a href=\"https:"
+                           @"//www.yammer.com/\">yammer.com</a>", upgradeText]
+                                           lineBreaks:YES URLs:YES];
+  TTStyledTextLabel *l = [[TTStyledTextLabel alloc] 
+                          initWithFrame:CGRectMake(10,115,300,100)];
+	[l setText:theText];
+  [l setTextAlignment:UITextAlignmentCenter];
+	l.backgroundColor = [UIColor clearColor];
+	[self.tableView addSubview:l];
+}
+
+- (void)viewWillAppear:(BOOL)animated
+{
+  if ([[web loggedInUsers] count])
+    [self.navigationItem setHidesBackButton:NO animated:YES];
+  [super viewWillAppear:YES];
 }
 
 - (void) viewDidAppear:(BOOL)animated
 {
-  [[(UIControl *)[[self.tableView visibleCells] 
-  objectAtIndex:0] viewWithTag:LOGIN_USERNAME_TAG] becomeFirstResponder];
+  self.navigationController.navigationBar.tintColor 
+    = [UIColor colorWithRed:0.27 green:0.34 blue:0.39 alpha:1.0];
+  
+//  [[(UIControl *)[[self.tableView visibleCells] 
+//  objectAtIndex:0] viewWithTag:LOGIN_USERNAME_TAG] performSelector:
+//   @selector(becomeFirstResponder) withObject:nil afterDelay:.2];
 }
 
 - (NSInteger) numberOfSectionsInTableView:(UITableView *)table
@@ -71,6 +103,9 @@
     f.autocapitalizationType = UITextAutocapitalizationTypeNone;
     f.tag = LOGIN_USERNAME_TAG;
     [cell addSubview:f];
+    if (!emailAlreadyBecameFirstResponder)
+      [f becomeFirstResponder];
+    emailAlreadyBecameFirstResponder = YES;
   } else {
     cell.textLabel.text = @"Password";
     UITextField *f = [[[UITextField alloc] initWithFrame:

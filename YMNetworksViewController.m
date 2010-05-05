@@ -49,12 +49,21 @@
   return r;
 }
 
+- (id)init
+{
+  if ((self = [super init])) {
+    self.title = @"Networks";
+  }
+  return self;
+}
+
 - (void)loadView
 {
   self.tableView = [[UITableView alloc] initWithFrame:
                     CGRectMake(0, 0, 320, 460) style:UITableViewStylePlain];
   self.tableView.delegate = self;
   self.tableView.dataSource = self;
+  self.tableView.backgroundColor = [UIColor whiteColor];
   self.title = @"Networks";
   self.navigationItem.rightBarButtonItem = 
     [[[UIBarButtonItem alloc]
@@ -70,7 +79,7 @@
     = [UIColor colorWithRed:0.27 green:0.34 blue:0.39 alpha:1.0];
   if (![[self.web loggedInUsers] count])
     [self.navigationController pushViewController:
-     [[[YMAccountsViewController alloc] init] autorelease] animated:YES];
+     [[[YMAccountsViewController alloc] init] autorelease] animated:NO];
   else
     [self refreshNetworks];
 }

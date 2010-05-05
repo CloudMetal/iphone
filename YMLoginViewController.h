@@ -14,6 +14,7 @@
 <UITextFieldDelegate>
 {
   YMWebService *web;
+  BOOL emailAlreadyBecameFirstResponder;
 }
 
 @property (nonatomic, readonly) YMWebService *web;

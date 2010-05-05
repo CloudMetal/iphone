@@ -16,6 +16,7 @@
 #import "SettingsPush.h"
 #import "LoginPanel.h"
 #import "YMWebService.h"
+#import "YMLegacyShim.h"
 #import "YMNetworksViewController.h"
 
 @implementation YammerAppDelegate
@@ -82,7 +83,12 @@
   [self setupNavigator];
   [[YMWebService sharedWebService] setShouldUpdateBadgeIcon:YES];
   if ([LocalStorage getSetting:@"current_network_id"]) {
-    [self enterAppWithAccess];
+    if (![[[YMWebService sharedWebService] loggedInUsers] count]) {
+      [[YMLegacyShim sharedShim] _cleanupMultipleAccountsUpgrade];
+      [[TTNavigator navigator] openURL:@"yammer://networks" animated:YES];
+    } else {
+      [self enterAppWithAccess];
+    }
   } else {
     [[TTNavigator navigator] openURL:@"yammer://networks" animated:YES];
   }
