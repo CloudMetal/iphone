@@ -37,10 +37,10 @@
   for (YMUserAccount *acct in accounts) {
     [ops addObject:[web networksForUserAccount:acct]];
   }
-  [[StatusBarNotifier sharedNotifier] 
-   flashLoading:@"Updating Networks..."
-   deferred:[[DKDeferred gatherResults:ops]
-             addCallback:callbackTS(self, doneUpdatingAccounts:)]];
+  [[[StatusBarNotifier sharedNotifier] 
+    flashLoading:@"Updating Networks..."
+    deferred:[DKDeferred gatherResults:ops]]
+   addCallback:callbackTS(self, doneUpdatingAccounts:)];
 }
 
 - (id)doneUpdatingAccounts:(id)r
@@ -102,7 +102,7 @@ cellForRowAtIndexPath:(NSIndexPath *)indexPath
   static NSString *ident = @"YMNetworkCell1";
   YMNetworkTableViewCell *cell;
   YMNetwork *network = [[YMNetwork findByCriteria:
-                        @"ORDER BY name, pk ASC LIMIT 1 OFFSET %i", indexPath.row]
+                        @"ORDER BY name, pk ASC LIMIT %i,1", indexPath.row]
                         objectAtIndex:0];
   
   cell = (YMNetworkTableViewCell *)[table dequeueReusableCellWithIdentifier:ident];
@@ -126,10 +126,12 @@ cellForRowAtIndexPath:(NSIndexPath *)indexPath
 didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
   YMNetwork *network = [[YMNetwork findByCriteria:
-     @"ORDER BY name, pk ASC LIMIT 1 OFFSET %i", indexPath.row]
+     @"ORDER BY name, pk ASC LIMIT %i,1", indexPath.row]
                         objectAtIndex:0];
   network.unseenMessageCount = nsni(0);
   [network save];
+  
+  [web updateUIApplicationBadge];
   
   [table deselectRowAtIndexPath:indexPath animated:YES];
   [table reloadRowsAtIndexPaths:array_(indexPath) 

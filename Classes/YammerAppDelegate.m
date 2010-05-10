@@ -190,7 +190,7 @@
 //    UINavigationController* controller = [[navigator visibleViewController] navigationController];
 //    NetworkList* networkList = (NetworkList*)[[controller viewControllers] objectAtIndex:0];
 //    [networkList clearBadgeForNetwork:self.network_id];
-//    [NetworkList subtractFromBadgeCount:network_dict];
+    [NetworkList subtractFromBadgeCount:network_dict];
 
     self.dateOfSelection = [[NSDate date] description];
     [navigator openURL:@"yammer://tabs" animated:NO];
