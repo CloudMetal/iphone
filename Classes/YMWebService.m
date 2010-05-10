@@ -10,6 +10,7 @@
 #import "YMUserAccount.h"
 #import "YMNetwork.h"
 #import "NSString+URLEncoding.h"
+#import "NSString+UUID.h"
 #import "NSString-SQLiteColumnName.h"
 #import "SQLiteInstanceManager.h"
 
@@ -21,7 +22,7 @@ static YMWebService *__sharedWebService;
 account:(YMUserAccount *)acct defaults:(NSDictionary *)defaults;
 
 - (id)mutableMultipartRequestWithMethod:(id)method 
-account:(YMUserAccount *)acct defaults:(NSDictionary *)defs
+account:(YMUserAccount *)acct defaults:(NSDictionary *)defs;
 
 @end
 
@@ -321,7 +322,7 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches
   return [[[DKDeferredURLConnection alloc] initWithRequest:
            [self mutableMultipartRequestWithMethod:
             @"messages/" account:acct defaults:opts]
-           pauseFor:0 decodeFunction:__decodeJSON]
+           pauseFor:0 decodeFunction:callbackP(__decodeJSON)]
           addCallback:curryTS(self, @selector(_didPostMessage::), acct)];
 }
 
