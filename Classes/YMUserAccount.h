@@ -26,5 +26,6 @@
 // to get network/user lists from server
 @property (copy) NSString *wrapSecret, *wrapToken;
 
+- (void)clearNetworks;
 
 @end
