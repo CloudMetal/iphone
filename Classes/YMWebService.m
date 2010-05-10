@@ -10,6 +10,7 @@
 #import "YMUserAccount.h"
 #import "YMNetwork.h"
 #import "NSString+URLEncoding.h"
+#import "NSString-SQLiteColumnName.h"
 #import "SQLiteInstanceManager.h"
 
 static YMWebService *__sharedWebService;
@@ -17,8 +18,10 @@ static YMWebService *__sharedWebService;
 @interface YMWebService (PrivateStuffs)
 
 - (id)mutableRequestWithMethod:(id)method 
-                       account:(YMUserAccount *)acct 
-                      defaults:(NSDictionary *)defaults;
+account:(YMUserAccount *)acct defaults:(NSDictionary *)defaults;
+
+- (id)mutableMultipartRequestWithMethod:(id)method 
+account:(YMUserAccount *)acct defaults:(NSDictionary *)defs
 
 @end
 
@@ -104,6 +107,9 @@ id __decodeJSON(id results)
   return [YMUserAccount findByCriteria:@"WHERE logged_in=1"];
 }
 
+#pragma mark -
+#pragma mark User Accounts
+
 /**
  Saves the OAuth wrap information to the YMUserAccount provided. The web
  service will use these params when accessing the API for non-network
@@ -113,7 +119,7 @@ id __decodeJSON(id results)
  methods, and automatically persist those values to the model. It'll also
  update all user information for this user account.
  */
-- (DKDeferred *) loginUserAccount:(YMUserAccount *)acct 
+- (DKDeferred *)loginUserAccount:(YMUserAccount *)acct 
 {
   /// build login request
   NSMutableURLRequest *req = 
@@ -193,14 +199,10 @@ id __decodeJSON(id results)
   NSMutableArray *networks = [NSMutableArray array];
   if ([results count] == 2) {
     // remove existing networks and their associated data
-    int i, totalUnseen = 0;
-    if ([[SQLiteInstanceManager sharedManager] 
-         tableExists:[YMNetwork tableName]]) {
-      NSString *q = [NSString stringWithFormat:
-                     @"DELETE FROM %@ WHERE user_account_p_k=%i", 
-                     [YMNetwork tableName], acct.pk];
-      [[SQLiteInstanceManager sharedManager] executeUpdateSQL:q];
-    }
+    int i;
+    SQLiteInstanceManager *db = [SQLiteInstanceManager sharedManager];
+    [db executeUpdateSQL:@"BEGIN TRANSACTION;"];
+    [acct clearNetworks];
     // create networks from request, saving auth info
     for (NSDictionary *d in [results objectAtIndex:0]) {
       // get the auth stuff from the tokens array
@@ -221,12 +223,10 @@ id __decodeJSON(id results)
       n.secret = [ad objectForKey:@"secret"];
       [n save];
       [networks addObject:n];
-      totalUnseen += [[d objectForKey:@"unseen_message_count"] intValue];
     }
-    
+    [db executeUpdateSQL:@"COMMIT TRANSACTION;"];
     if (self.shouldUpdateBadgeIcon) {
-      id app = [NSClassFromString(@"UIApplication") sharedApplication];
-      [app setApplicationIconBadgeNumber:totalUnseen];
+      [self updateUIApplicationBadge];
     }
   }
   return networks;
@@ -236,6 +236,138 @@ id __decodeJSON(id results)
 {
   NSLog(@"_failedGetNetowrksAndTokens: %@ %@", error, [error userInfo]);
   return error;
+}
+
+#pragma mark -
+#pragma mark Messages
+
+- (DKDeferred *)getMessages:(YMUserAccount *)acct params:(NSDictionary *)params
+{
+  return [[[DKDeferredURLConnection alloc] initWithRequest:
+           [self mutableRequestWithMethod:@"messages.json" account:acct defaults:params]
+           pauseFor:0 decodeFunction:callbackP(__decodeJSON)]
+          addCallback:curryTS(self, @selector(_gotMessages::), acct)];
+}
+
+- (DKDeferred *)getMessages:(YMUserAccount *)acct 
+withTarget:(id)target params:(NSDictionary *)params
+{
+  return [[[DKDeferredURLConnection alloc] initWithRequest:
+           [self mutableRequestWithMethod:
+            [NSString stringWithFormat:@"messages/%@.json", target]
+                                  account:acct defaults:params]
+           pauseFor:0 decodeFunction:callbackP(__decodeJSON)]
+          addCallback:curryTS(self, @selector(_gotMessages::), acct)];
+}
+
+- (DKDeferred *)getMessages:(YMUserAccount *)acct 
+withTarget:(id)target withID:(NSString *)targetID params:(NSDictionary *)params
+{
+  return [self getMessages:acct withTarget:
+          [NSString stringWithFormat:@"%@/%@", target, targetID] 
+                    params:params];
+}
+
+- (id)_gotMessages:(YMUserAccount *)acct :(id)results
+{
+  NSMutableArray *ret = [NSMutableArray array];
+  NSDateFormatter *formatter = [[[NSDateFormatter alloc] init] autorelease];
+  [formatter setDateFormat:@"yyyy-MM-dd'T'HH:mm:ss.SSSZ"];
+  
+  if ([results count]) {
+    SQLiteInstanceManager *db = [SQLiteInstanceManager sharedManager];
+    [db executeUpdateSQL:@"BEGIN TRANSACTION;"];
+    for (NSDictionary *m in results) {
+      if (![YMMessage countByCriteria:@"WHERE %@=%@", 
+            [@"messageID" stringAsSQLColumnName], [m objectForKey:@"id"]]) {
+        YMMessage *message = [YMMessage new];
+        message.messageID = [m objectForKey:@"id"];
+        message.groupID = [m objectForKey:@"group-id"];
+        message.directToID = [m objectForKey:@"direct-to-id"];
+        message.URL = [m objectForKey:@"url"];
+        message.webURL = [m objectForKey:@"web-url"];
+        message.repliedToID = [m objectForKey:@"replied-to-id"];
+        message.threadID = [m objectForKey:@"thread-id"];
+        message.bodyPlain = [[m objectForKey:@"body"] objectForKey:@"plain"];
+        message.bodyParsed = [[m objectForKey:@"body"] objectForKey:@"parsed"];
+        message.messageType = [m objectForKey:@"message-type"];
+        message.clientType = [m objectForKey:@"client-type"];
+        message.senderID = [m objectForKey:@"sender-id"];
+        message.senderType = [m objectForKey:@"sender-type"];
+        message.createdAt = [formatter dateFromString:[m objectForKey:@"created-at"]];
+        message.read = nsni(0);
+        message.networkPK = acct.activeNetworkPK;
+        [message save];
+        [ret addObject:message];
+      } else {
+        [ret addObject:[YMMessage findFirstByCriteria:@"WHERE %@=%@", 
+                        [@"messageID" stringAsSQLColumnName], [m objectForKey:@"id"]]];
+      }
+    }
+    [db executeUpdateSQL:@"COMMIT TRANSACTION;"];
+  }
+  
+  return ret;
+}
+
+- (DKDeferred *)postMessage:(YMUserAccount *)acct body:(NSString *)body 
+replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches
+{
+  NSMutableDictionary *opts = [NSMutableDictionary dictionaryWithObjectsAndKeys:
+                               body, YMBodyKey, nil];
+  [opts addEntriesFromDictionary:replyOpts];
+  [opts addEntriesFromDictionary:attaches];
+  
+  return [[[DKDeferredURLConnection alloc] initWithRequest:
+           [self mutableMultipartRequestWithMethod:
+            @"messages/" account:acct defaults:opts]
+           pauseFor:0 decodeFunction:__decodeJSON]
+          addCallback:curryTS(self, @selector(_didPostMessage::), acct)];
+}
+
+- (id)_didPostMessage:(YMUserAccount *)acct :(id)results
+{
+  NSLog(@"_didPostMessage: %@ %@", acct, results);
+  return results;
+}
+
+- (DKDeferred *)deleteMessage:(YMUserAccount *)acct messageID:(NSString *)messageID
+{
+  NSMutableURLRequest *req = [self mutableRequestWithMethod:
+   [NSString stringWithFormat:@"messages/%@", messageID] 
+   account:acct defaults:EMPTY_DICT];
+  
+  [req setHTTPMethod:@"DELETE"];
+  
+  return [[[DKDeferredURLConnection alloc] 
+           initWithRequest:req pauseFor:0 decodeFunction:nil]
+          addCallback:curryTS(self, @selector(_didDeleteMessageID::), messageID)];
+}
+
+- (id)_didDeleteMessageID:(NSString *)messageID :(id)results
+{
+  NSLog(@"_didDeleteMessageID: %@ %@", messageID, results);
+  return results;
+}
+
+#pragma mark -
+#pragma mark Mostly Private Stuff
+
+/**
+ In UIKit applications, this will update the application
+ icon badge for unread messages in all persistent YMNetworks combined
+ */
+- (void)updateUIApplicationBadge
+{
+  NSArray *counts = [YMNetwork pairedArraysForProperties:
+                     array_(@"unseenMessageCount")];
+  NSLog(@"counts %@", counts);
+  int totalUnseen = 0;
+  for (NSNumber *unseenCount in [counts objectAtIndex:1]) {
+    totalUnseen += intv(unseenCount);
+  }
+  id app = [NSClassFromString(@"UIApplication") sharedApplication];
+  [app setApplicationIconBadgeNumber:totalUnseen];
 }
 
 /**
@@ -262,7 +394,7 @@ id __decodeJSON(id results)
   
   NSMutableURLRequest *req = 
   [NSMutableURLRequest requestWithURL:
-   [NSURL URLWithString:[[WS_MOUNTPOINT description] 
+   [NSURL URLWithString:[[self.mountPoint description] 
                          stringByAppendingFormat:@"/%@%@", method, params]]
                           cachePolicy:NSURLRequestUseProtocolCachePolicy
                       timeoutInterval:20.0];
@@ -291,6 +423,57 @@ id __decodeJSON(id results)
                       self.appKey, tok, sig, ts, ts, verifier];
   [req setValue:header forHTTPHeaderField:@"Authorization"];
   req.HTTPShouldHandleCookies = NO;
+  return req;
+}
+
+/**
+ Builds a new NSMutableURLRequest suitable for posting files to the server.
+ Returns an NSMutableURLRequest with the http method set to "POST", the
+ content-type, post data and content-length already filled in. It will
+ contain all the OAuth information same as `-mutableRequstWithMethod:account:defaults:`
+ */
+- (id)mutableMultipartRequestWithMethod:(id)method 
+account:(YMUserAccount *)acct defaults:(NSDictionary *)defs
+{
+  NSMutableURLRequest *req = [self mutableRequestWithMethod:method 
+                                  account:acct defaults:EMPTY_DICT];
+  NSString *boundaryID = [NSString stringWithUUID];
+  NSString *boundary = [NSString stringWithFormat:@"--%@\r\n", boundaryID];
+  
+  id val;
+  int attachmentCount = 0;
+  NSMutableData *body = [NSMutableData data];
+  
+  for (NSString *key in [defs allKeys]) {
+    [body appendData:[boundary dataUsingEncoding:NSUTF8StringEncoding]];
+    val = [defs objectForKey:key];
+    if ([val isKindOfClass:[NSString class]]) {
+      [body appendData:[[NSString stringWithFormat:
+       @"Content-Disposition: form-data; name=\"%@\"\r\n\r\n", key]
+                        dataUsingEncoding:NSUTF8StringEncoding]];
+      [body appendData:[val dataUsingEncoding:NSUTF8StringEncoding]];
+    } else if ([val isKindOfClass:[NSData class]]) {
+      [body appendData:[[NSString stringWithFormat:
+       @"Content-Disposition: form-data; name=\"attachment%i\"; filename=\"%@\"\r\n",
+       attachmentCount, key] dataUsingEncoding:NSUTF8StringEncoding]];
+      [body appendData:[@"Content-Type: application/octet-stream\r\n\r\n"
+                        dataUsingEncoding:NSUTF8StringEncoding]];
+      [body appendData:val];
+      attachmentCount++;
+    }
+    [body appendData:[@"\r\n" dataUsingEncoding:NSUTF8StringEncoding]];
+  }
+  
+  [body appendData:[[NSString stringWithFormat:@"--%@--\r\n", boundaryID]
+                    dataUsingEncoding:NSUTF8StringEncoding]];
+  
+  [req setHTTPMethod:@"POST"];
+  [req setHTTPBody:body];
+  [req setValue:[NSString stringWithFormat:@"multipart/form-data; boundary=%@",
+                 boundaryID] forHTTPHeaderField:@"Content-Type"];
+  [req setValue:[NSString stringWithFormat:@"%i", [body length]] 
+   forHTTPHeaderField:@"Content-Length"];
+  
   return req;
 }
 

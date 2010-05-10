@@ -114,6 +114,7 @@
 		1D60589B0D05DD56006BFB54 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 29B97316FDCFA39411CA2CEA /* main.m */; };
 		1D60589F0D05DD5A006BFB54 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1D30AB110D05D00D00671497 /* Foundation.framework */; };
 		1DF5F4E00D08C38300B7A737 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1DF5F4DF0D08C38300B7A737 /* UIKit.framework */; };
+		22131F9C11936C860092F094 /* YMMessage.m in Sources */ = {isa = PBXBuildFile; fileRef = 22131F9B11936C860092F094 /* YMMessage.m */; };
 		22235CA91190E533007F2255 /* StatusBarNotifier.m in Sources */ = {isa = PBXBuildFile; fileRef = 22235CA81190E533007F2255 /* StatusBarNotifier.m */; };
 		22235CCD1190E578007F2255 /* errorstatusbarbg.png in Resources */ = {isa = PBXBuildFile; fileRef = 22235CCC1190E578007F2255 /* errorstatusbarbg.png */; };
 		22235CDC1190F519007F2255 /* grouped-tv-bg.png in Resources */ = {isa = PBXBuildFile; fileRef = 22235CDB1190F519007F2255 /* grouped-tv-bg.png */; };
@@ -382,6 +383,8 @@
 		1D3623250D0F684500981E51 /* YammerAppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = YammerAppDelegate.m; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objc; };
 		1D6058910D05DD3D006BFB54 /* Yammer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Yammer.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		1DF5F4DF0D08C38300B7A737 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
+		22131F9A11936C860092F094 /* YMMessage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YMMessage.h; sourceTree = "<group>"; };
+		22131F9B11936C860092F094 /* YMMessage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = YMMessage.m; sourceTree = "<group>"; };
 		22235CA71190E533007F2255 /* StatusBarNotifier.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StatusBarNotifier.h; sourceTree = "<group>"; };
 		22235CA81190E533007F2255 /* StatusBarNotifier.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = StatusBarNotifier.m; sourceTree = "<group>"; };
 		22235CCC1190E578007F2255 /* errorstatusbarbg.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = errorstatusbarbg.png; sourceTree = "<group>"; };
@@ -1014,6 +1017,8 @@
 				22A3B1561177CB62006337B5 /* YMNetwork.m */,
 				22A3B1571177CB62006337B5 /* YMUserAccount.h */,
 				22A3B1581177CB62006337B5 /* YMUserAccount.m */,
+				22131F9A11936C860092F094 /* YMMessage.h */,
+				22131F9B11936C860092F094 /* YMMessage.m */,
 			);
 			name = Data;
 			sourceTree = "<group>";
@@ -1354,6 +1359,7 @@
 				22CDE911118F7A8B00323FA1 /* YMNetworkTableViewCell.m in Sources */,
 				22CDE991118F99A000323FA1 /* YMLegacyShim.m in Sources */,
 				22235CA91190E533007F2255 /* StatusBarNotifier.m in Sources */,
+				22131F9C11936C860092F094 /* YMMessage.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1459,8 +1465,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				CODE_SIGN_IDENTITY = "iPhone Distribution: Geni, Inc.";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution: Geni, Inc.";
+				CODE_SIGN_IDENTITY = "iPhone Developer: Samuel Sutch (27FP3L7KH9)";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer: Samuel Sutch (27FP3L7KH9)";
 				COPY_PHASE_STRIP = NO;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -1475,8 +1481,8 @@
 					"-ObjC",
 				);
 				PRODUCT_NAME = Yammer;
-				PROVISIONING_PROFILE = "AE632FB8-F029-42E1-A0DA-298066604A4F";
-				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "AE632FB8-F029-42E1-A0DA-298066604A4F";
+				PROVISIONING_PROFILE = "AE248043-7B17-4951-A878-00C93821C44D";
+				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "AE248043-7B17-4951-A878-00C93821C44D";
 				SDKROOT = iphoneos3.1;
 			};
 			name = Debug;
