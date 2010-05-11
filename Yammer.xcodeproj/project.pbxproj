@@ -512,6 +512,7 @@
 		22CDE910118F7A8B00323FA1 /* YMNetworkTableViewCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = YMNetworkTableViewCell.m; path = Classes/YMNetworkTableViewCell.m; sourceTree = "<group>"; };
 		22CDE98F118F99A000323FA1 /* YMLegacyShim.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = YMLegacyShim.h; path = Classes/YMLegacyShim.h; sourceTree = "<group>"; };
 		22CDE990118F99A000323FA1 /* YMLegacyShim.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = YMLegacyShim.m; path = Classes/YMLegacyShim.m; sourceTree = "<group>"; };
+		22FBAF081198F12C00751A72 /* YMWebService+Private.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "YMWebService+Private.h"; sourceTree = "<group>"; };
 		22FD1C7B118B87A4008170E0 /* YMLoginViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = YMLoginViewController.h; path = Classes/YMLoginViewController.h; sourceTree = "<group>"; };
 		22FD1C7C118B87A4008170E0 /* YMLoginViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = YMLoginViewController.m; path = Classes/YMLoginViewController.m; sourceTree = "<group>"; };
 		22FD1D1A118B9B59008170E0 /* CFPrettyView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CFPrettyView.h; path = Lib/CFPrettyView.h; sourceTree = "<group>"; };
@@ -1028,6 +1029,7 @@
 				22A3B15B1177CB62006337B5 /* YMWebService.m */,
 				22CDE98F118F99A000323FA1 /* YMLegacyShim.h */,
 				22CDE990118F99A000323FA1 /* YMLegacyShim.m */,
+				22FBAF081198F12C00751A72 /* YMWebService+Private.h */,
 			);
 			name = WebServices;
 			sourceTree = "<group>";
