@@ -7,6 +7,7 @@
 #import "ComposeMessage.h"
 #import "OAuthGateway.h"
 #import "YammerAppDelegate.h"
+#import "NetworkList.h"
 
 @implementation MainTabBar
 
@@ -106,6 +107,20 @@
   FeedMessageList *theView = [[[FeedMessageList alloc] initWithFeed:[LocalStorage getFeedInfo] refresh:YES compose:NO thread:NO] autorelease];
   [self setupView:theView title:@"My Feed" image:@"home.png"];
   [localViewControllersArray addObject:theView];
+  
+  
+  NSMutableArray* networks = [[LocalStorage getFile:NETWORKS_CURRENT] JSONValue];  
+  NSMutableDictionary* network_dict;
+  
+  for (NSMutableDictionary *network in networks) {
+    if ([[network objectForKey:@"id"] longValue] == [[(id)[[UIApplication sharedApplication] delegate] network_id] longValue]) {      
+//      self.network_name = [network objectForKey:@"name"];
+      network_dict = network;
+      break;
+    }
+  }
+  
+  [NetworkList subtractFromBadgeCount:network_dict];
   
   FeedMessageList *received = [[[FeedMessageList alloc] initWithFeed:[LocalStorage getReceivedInfo] refresh:YES compose:NO thread:NO] autorelease];
   [self setupView:received title:@"Received" image:@"received.png"];
