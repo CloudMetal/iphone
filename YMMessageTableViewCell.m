@@ -7,15 +7,29 @@
 //
 
 #import "YMMessageTableViewCell.h"
+#import <QuartzCore/QuartzCore.h>
+#import "UIColor+Extensions.h"
 
 
 @implementation YMMessageTableViewCell
 
-- (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier {
-    if ((self = [super initWithStyle:style reuseIdentifier:reuseIdentifier])) {
-        // Initialization code
-    }
-    return self;
+@synthesize avatarImageView, titleLabel, dateLabel, bodyLabel;
+
+//- (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier {
+//  if ((self = [super initWithStyle:style reuseIdentifier:reuseIdentifier])) {
+//    se
+//  }
+//  return self;
+//}
+
+- (id)initWithCoder:(NSCoder *)aDecoder
+{
+  if ((self = [super initWithCoder:aDecoder])) {
+    avatarImageView.layer.cornerRadius = 2;
+    avatarImageView.layer.borderColor = [UIColor colorWithWhite:.6 alpha:1].CGColor;
+    avatarImageView.layer.borderWidth = 1;
+  }
+  return self;
 }
 
 

@@ -302,7 +302,7 @@ withTarget:(id)target withID:(NSString *)targetID params:(NSDictionary *)params
 //  NSLog(@"gotMessages %@", results);
   NSMutableArray *ret = [NSMutableArray array];
   NSDateFormatter *formatter = [[[NSDateFormatter alloc] init] autorelease];
-  [formatter setDateFormat:@"yyyy/MM/dd'T'HH:mm:ss.SSSZ"];
+  [formatter setDateFormat:@"yyyy/MM/dd HH:mm:ss ZZ"];
   
   if ([[results objectForKey:@"messages"] count]) {
     SQLiteInstanceManager *db = [SQLiteInstanceManager sharedManager];
@@ -404,6 +404,15 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches
           addErrback:callbackTS(self, _getUsersFailed:)];
 }
 
+//- (id)_gotUsers:(YMUserAccount *)acct :(NSNumber *)page :(id)results
+//{
+//  return [[DKDeferred deferInThread:curryTS(self, @selector(_gotUsersThread:::), 
+//                                           acct, page) withObject:results]
+//          addCallback:callbackTS(self, _r:)];
+//}
+//
+//- (id)_r:(id)r { return r; }
+
 - (id)_gotUsers:(YMUserAccount *)acct :(NSNumber *)page :(id)results
 {
   BOOL fetchMore = NO;
@@ -412,6 +421,7 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches
     SQLiteInstanceManager *db = [SQLiteInstanceManager sharedManager];
     [db executeUpdateSQL:@"BEGIN TRANSACTION;"];
     for (NSDictionary *u in results) {
+      //      NSLog(@"u %@", u);
       YMContact *contact;
       if ([YMContact countByCriteria:@"WHERE user_i_d=%@", [u objectForKey:@"id"]]) {
         contact = (YMContact *)[YMContact findFirstByCriteria:
@@ -439,9 +449,11 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches
                                 objectForKey:@"phone_numbers"])
         [(NSMutableArray *)contact.phoneNumbers addObject:ph];
       contact.im = [NSMutableArray array];
-      for (NSDictionary *im in [[u objectForKey:@"contact"]
-                                objectForKey:@"im"])
-        [(NSMutableArray *)contact.im addObject:im];
+      if ([[[[u objectForKey:@"contact"] objectForKey:@"im"] 
+            objectForKey:@"provider"] length]) {
+        [(NSMutableArray *)contact.im addObject:
+         [[u objectForKey:@"contact"] objectForKey:@"im"]];
+      }
       contact.externalURLs = [u objectForKey:@"external_urls"];
       contact.birthDate = _nil([u objectForKey:@"birth_date"]);
       contact.hireDate = _nil([u objectForKey:@"hire_date"]);
@@ -459,9 +471,9 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches
     NSNumber *nextPage = nsni((intv(page)+1));
     NSLog(@"nextPage %@", nextPage);
     return [[[[DKDeferredURLConnection alloc] initWithRequest:
-             [self mutableRequestWithMethod:@"users.json"
-                   account:acct defaults:dict_([nextPage description], @"page")]
-               pauseFor:0 decodeFunction:callbackP(__decodeJSON)]
+              [self mutableRequestWithMethod:@"users.json"
+                                     account:acct defaults:dict_([nextPage description], @"page")]
+                                                     pauseFor:0 decodeFunction:callbackP(__decodeJSON)]
              addCallback:curryTS(self, @selector(_gotUsers:::), acct, nextPage)]
             addErrback:callbackTS(self, _getUsersFailed:)];
   }
@@ -479,17 +491,24 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches
 
 - (DKDeferred *)loadCachedContactImagesForUserAccount:(YMUserAccount *)acct
 {
-  YMNetwork *curNetwork = (YMNetwork *)[YMNetwork findByPK:intv(acct.activeNetworkPK)];
-  NSMutableArray *keys = [[[[YMContact pairedArraysForProperties:array_(@"mugshotURL") 
-                           withCriteria:@"WHERE network_i_d=%i", intv(curNetwork.networkID)]
-                          objectAtIndex:1] retain] autorelease];
+  YMNetwork *curNetwork = (YMNetwork *)[YMNetwork findByPK:
+                                        intv(acct.activeNetworkPK)];
+  NSMutableArray *keys = [[[[YMContact pairedArraysForProperties:
+                             array_(@"mugshotURL") 
+           withCriteria:@"WHERE network_i_d=%i", intv(curNetwork.networkID)]
+          objectAtIndex:1] retain] autorelease];
   
   // limit total fetch to 300
   NSIndexSet *indexSet;
   if ([keys count] > 300)
-    indexSet = [NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, 300)];
-  else
-    indexSet = [NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, [keys count] - 1)];
+    indexSet = [NSIndexSet indexSetWithIndexesInRange:
+                NSMakeRange(0, 300)];
+  else if ([keys count])
+    indexSet = [NSIndexSet indexSetWithIndexesInRange:
+                NSMakeRange(0, [keys count] - 1)];
+  else 
+    indexSet = [NSIndexSet indexSet];
+
   
   NSArray *fetchKeys = [keys objectsAtIndexes:indexSet];
   
@@ -533,7 +552,7 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches
 
 - (DKDeferred *)contactImageForURL:(NSString *)url
 {
-  if ([url isEqual:[NSNull null]])
+  if ([url isEqual:[NSNull null]] || [url isMatchedByRegex:@"no_photo_small\\.gif$"])
     return [DKDeferred succeed:[UIImage imageNamed:@"user-70.png"]];
   
   id ret = [[self contactImageCache] objectForKey:url];

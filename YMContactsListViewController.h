@@ -20,6 +20,8 @@
   NSArray *alphabet;
   NSMutableArray *alphabetGroups;
   NSString *filterText;
+  UISearchBar *searchBar;
+  BOOL shouldHideSectionIndex;
 }
 
 @property (nonatomic, readwrite, retain) NSString *filterText;

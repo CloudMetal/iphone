@@ -13,7 +13,7 @@
 #import "NSString+UUID.h"
 
 #define FLASH_LABEL_TAG 338
-#define TOP_OFFSET 460
+#define TOP_OFFSET 416
 #define REGULAR_BACKGROUND [UIColor colorWithWhite:.1 alpha:.9]
 #define ERROR_BACKGROUND [UIColor colorWithPatternImage: \
 [UIImage imageNamed:@"errorstatusbarbg.png"]]
@@ -48,8 +48,22 @@ static StatusBarNotifier *__sharedNotifier;
     self.isShown = NO;
     self.isError = NO;
     self.userInteractionEnabled = NO;
+    [[NSNotificationCenter defaultCenter]
+     addObserver:self selector:@selector(keyboardShowing:) name:UIKeyboardWillShowNotification object:nil];
+    [[NSNotificationCenter defaultCenter]
+     addObserver:self selector:@selector(keyboardHiding:) name:UIKeyboardWillHideNotification object:nil];
   }
   return self;
+}
+
+- (void)keyboardShowing:(id)r
+{
+  [self setHidden:YES];
+}
+
+- (void)keyboardHiding:(id)r
+{
+  [self setHidden:NO];
 }
 
 - (UILabel *)configuredLabel {

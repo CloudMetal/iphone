@@ -54,6 +54,12 @@
 		22235CA91190E533007F2255 /* StatusBarNotifier.m in Sources */ = {isa = PBXBuildFile; fileRef = 22235CA81190E533007F2255 /* StatusBarNotifier.m */; };
 		22235CCD1190E578007F2255 /* Images in Resources */ = {isa = PBXBuildFile; fileRef = 22235CCC1190E578007F2255 /* Images */; };
 		225FA8F7119A6D1F003579E0 /* YMContactDetailViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 225FA8F6119A6D1F003579E0 /* YMContactDetailViewController.m */; };
+		225FA97E119A8881003579E0 /* YMContactDetailView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 225FA97D119A8881003579E0 /* YMContactDetailView.xib */; };
+		225FA982119A8AAD003579E0 /* YMContactDetailView.m in Sources */ = {isa = PBXBuildFile; fileRef = 225FA981119A8AAD003579E0 /* YMContactDetailView.m */; };
+		225FA9E8119AA77F003579E0 /* syncing.png in Resources */ = {isa = PBXBuildFile; fileRef = 225FA9E7119AA77F003579E0 /* syncing.png */; };
+		225FAA11119AB0F7003579E0 /* YMMessageTableViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 225FAA10119AB0F7003579E0 /* YMMessageTableViewCell.xib */; };
+		225FAA28119AB511003579E0 /* NSDate+Helper.m in Sources */ = {isa = PBXBuildFile; fileRef = 225FAA26119AB511003579E0 /* NSDate+Helper.m */; };
+		225FAA2A119AB695003579E0 /* msg-bg.png in Resources */ = {isa = PBXBuildFile; fileRef = 225FAA29119AB695003579E0 /* msg-bg.png */; };
 		2293CD19119A063400AB0DD2 /* YMContact.m in Sources */ = {isa = PBXBuildFile; fileRef = 2293CD18119A063400AB0DD2 /* YMContact.m */; };
 		2293CD30119A142300AB0DD2 /* YMContactsListViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 2293CD2F119A142300AB0DD2 /* YMContactsListViewController.m */; };
 		2293CDB8119A363100AB0DD2 /* YMContactTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 2293CDB7119A363100AB0DD2 /* YMContactTableViewCell.m */; };
@@ -328,6 +334,14 @@
 		22235CCC1190E578007F2255 /* Images */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Images; sourceTree = "<group>"; };
 		225FA8F5119A6D1F003579E0 /* YMContactDetailViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YMContactDetailViewController.h; sourceTree = "<group>"; };
 		225FA8F6119A6D1F003579E0 /* YMContactDetailViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = YMContactDetailViewController.m; sourceTree = "<group>"; };
+		225FA97D119A8881003579E0 /* YMContactDetailView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = YMContactDetailView.xib; sourceTree = "<group>"; };
+		225FA980119A8AAD003579E0 /* YMContactDetailView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YMContactDetailView.h; sourceTree = "<group>"; };
+		225FA981119A8AAD003579E0 /* YMContactDetailView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = YMContactDetailView.m; sourceTree = "<group>"; };
+		225FA9E7119AA77F003579E0 /* syncing.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = syncing.png; path = Resources/syncing.png; sourceTree = "<group>"; };
+		225FAA10119AB0F7003579E0 /* YMMessageTableViewCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = YMMessageTableViewCell.xib; sourceTree = "<group>"; };
+		225FAA26119AB511003579E0 /* NSDate+Helper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSDate+Helper.m"; sourceTree = "<group>"; };
+		225FAA27119AB511003579E0 /* NSDate+Helper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSDate+Helper.h"; sourceTree = "<group>"; };
+		225FAA29119AB695003579E0 /* msg-bg.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "msg-bg.png"; path = "Resources/msg-bg.png"; sourceTree = "<group>"; };
 		2293CD17119A063400AB0DD2 /* YMContact.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YMContact.h; sourceTree = "<group>"; };
 		2293CD18119A063400AB0DD2 /* YMContact.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = YMContact.m; sourceTree = "<group>"; };
 		2293CD2E119A142300AB0DD2 /* YMContactsListViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YMContactsListViewController.h; sourceTree = "<group>"; };
@@ -771,6 +785,16 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		225FA97B119A886C003579E0 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				225FA97D119A8881003579E0 /* YMContactDetailView.xib */,
+				225FA980119A8AAD003579E0 /* YMContactDetailView.h */,
+				225FA981119A8AAD003579E0 /* YMContactDetailView.m */,
+			);
+			name = Views;
+			sourceTree = "<group>";
+		};
 		229FEFDB1180F89D00E10000 /* View Controllers */ = {
 			isa = PBXGroup;
 			children = (
@@ -960,6 +984,7 @@
 		22A3B1511177CB24006337B5 /* New Classes */ = {
 			isa = PBXGroup;
 			children = (
+				225FA97B119A886C003579E0 /* Views */,
 				22CDE912118F7A9000323FA1 /* Table View Cells */,
 				229FEFDB1180F89D00E10000 /* View Controllers */,
 				22A3B1541177CB31006337B5 /* WebServices */,
@@ -1004,6 +1029,7 @@
 				22FBAF931199125F00751A72 /* YMMessageTableViewCell.m */,
 				2293CDB6119A363100AB0DD2 /* YMContactTableViewCell.h */,
 				2293CDB7119A363100AB0DD2 /* YMContactTableViewCell.m */,
+				225FAA10119AB0F7003579E0 /* YMMessageTableViewCell.xib */,
 			);
 			name = "Table View Cells";
 			sourceTree = "<group>";
@@ -1024,6 +1050,8 @@
 		29B97315FDCFA39411CA2CEA /* Other Sources */ = {
 			isa = PBXGroup;
 			children = (
+				225FAA26119AB511003579E0 /* NSDate+Helper.m */,
+				225FAA27119AB511003579E0 /* NSDate+Helper.h */,
 				2293CE8E119A435D00AB0DD2 /* DataCache.h */,
 				2293CE8F119A435D00AB0DD2 /* DataCache.m */,
 				003B45231045832700310B73 /* NSString+URLEncoding.h */,
@@ -1054,6 +1082,8 @@
 		29B97317FDCFA39411CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				225FAA29119AB695003579E0 /* msg-bg.png */,
+				225FA9E7119AA77F003579E0 /* syncing.png */,
 				2293CDC0119A380400AB0DD2 /* user-70.png */,
 				22FBAFA3119918DB00751A72 /* 20-gear2.png */,
 				22FBAFA1119918A300751A72 /* 104-index-cards.png */,
@@ -1192,6 +1222,10 @@
 				22FBAFA2119918A300751A72 /* 104-index-cards.png in Resources */,
 				22FBAFA4119918DB00751A72 /* 20-gear2.png in Resources */,
 				2293CDC1119A380400AB0DD2 /* user-70.png in Resources */,
+				225FA97E119A8881003579E0 /* YMContactDetailView.xib in Resources */,
+				225FA9E8119AA77F003579E0 /* syncing.png in Resources */,
+				225FAA11119AB0F7003579E0 /* YMMessageTableViewCell.xib in Resources */,
+				225FAA2A119AB695003579E0 /* msg-bg.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1276,6 +1310,8 @@
 				2293CDB8119A363100AB0DD2 /* YMContactTableViewCell.m in Sources */,
 				2293CE90119A435D00AB0DD2 /* DataCache.m in Sources */,
 				225FA8F7119A6D1F003579E0 /* YMContactDetailViewController.m in Sources */,
+				225FA982119A8AAD003579E0 /* YMContactDetailView.m in Sources */,
+				225FAA28119AB511003579E0 /* NSDate+Helper.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

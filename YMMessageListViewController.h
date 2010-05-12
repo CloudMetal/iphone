@@ -20,6 +20,9 @@
   NSString *newerThan;
   NSNumber *threaded;
   NSArray *messagePKs;
+  id lastView;
+  BOOL loadedAvatars;
+  NSMutableArray *mugshots;
 }
 
 @property(nonatomic, readwrite, retain) YMUserAccount *userAccount;

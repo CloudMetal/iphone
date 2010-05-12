@@ -9,7 +9,10 @@
 #import "YMContactsListViewController.h"
 #import "YMWebService.h"
 #import "YMContactTableViewCell.h"
+#import "YMContactDetailViewController.h"
 #import "NSMutableArray-MultipleSort.h"
+#import "UIColor+Extensions.h"
+#import "StatusBarNotifier.h"
 
 @interface YMContactsListViewController (PrivateStuffs)
 
@@ -33,16 +36,25 @@
   self.tableView.delegate = self;
   self.tableView.dataSource = self;
   self.tableView.backgroundColor = [UIColor whiteColor];
+  self.toolbarItems =
+    array_([[UIBarButtonItem alloc] 
+            initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace
+            target:nil action:nil],
+           [[UIBarButtonItem alloc]
+            initWithBarButtonSystemItem:UIBarButtonSystemItemRefresh 
+            target:self action:@selector(doSync:)]);
   
-  UISearchBar *searchBar = [[UISearchBar alloc]
-                            initWithFrame:CGRectMake(0, 0, 320, 44)];
+  searchBar = [[UISearchBar alloc]
+               initWithFrame:CGRectMake(0, 0, 320, 44)];
+  searchBar.tintColor = [UIColor colorWithHexString:@"989898"];
   searchBar.autoresizingMask = UIViewAutoresizingFlexibleWidth;
   searchBar.delegate = self;
-  searchBar.showsCancelButton = YES;
+  searchBar.showsCancelButton = NO;
   self.tableView.tableHeaderView = searchBar;
   
   self.title = @"Contacts";
   
+  shouldHideSectionIndex = NO;
   if (!web) web = [YMWebService sharedWebService];
 }
 
@@ -52,12 +64,22 @@
   [super viewWillAppear:animated];
   [self refreshContactPKs];
   [self.tableView reloadData];
+  if ([contactPKs count])
+    [self.tableView scrollToRowAtIndexPath:
+      [NSIndexPath indexPathForRow:0 inSection:0] 
+     atScrollPosition:UITableViewScrollPositionTop animated:NO];
 }
 
 - (void) viewDidAppear:(BOOL)animated
 {
   [super viewDidAppear:animated];
-  [[web syncUsers:self.userAccount]
+}
+
+- (void)doSync:(id)sender
+{
+  [[[StatusBarNotifier sharedNotifier]
+    flashLoading:@"Syncing Contacts" deferred:
+    [web syncUsers:self.userAccount]]
    addCallback:callbackTS(self, _usersUpdated:)];
 }
 
@@ -117,7 +139,11 @@
 
 - (NSString *)searchQuery
 {
-  if (self.filterText) return @"";
+  if (!self.filterText || 
+      ![[self.filterText stringByTrimmingCharactersInSet:
+         [NSCharacterSet whitespaceCharacterSet]] length])
+    return @"";
+  
   return [NSString stringWithFormat:
           @" AND full_name LIKE '%%%%%@%%%%'",
           self.filterText];
@@ -139,6 +165,7 @@
 
 - (NSArray *) sectionIndexTitlesForTableView:(UITableView *)table
 {
+  if (shouldHideSectionIndex) return nil;
   NSMutableArray *ret = [NSMutableArray arrayWithCapacity:[alphabet count]];
   for (NSString *el in alphabet) [ret addObject:[el uppercaseString]];
   return ret;
@@ -205,6 +232,19 @@ cellForRowAtIndexPath:(NSIndexPath *)indexPath
   return cell;
 }
 
+- (void) tableView:(UITableView *)table
+didSelectRowAtIndexPath:(NSIndexPath *)indexPath
+{
+  int idx = [self indexForIndexPath:indexPath];
+  YMContact *contact = (YMContact *)[YMContact findByPK:
+                        intv([contactPKs objectAtIndex:idx])];
+  YMContactDetailViewController *c = [[YMContactDetailViewController alloc]
+                                      initWithStyle:UITableViewStyleGrouped];
+  c.contact = contact;
+  [self.navigationController pushViewController:c animated:YES];
+  [self.tableView deselectRowAtIndexPath:indexPath animated:YES];
+}
+
 - (id)_gotMugshot:(NSIndexPath *)indexPath :(id)result
 {
   int idx = [self indexForIndexPath:indexPath];
@@ -217,13 +257,16 @@ cellForRowAtIndexPath:(NSIndexPath *)indexPath
   return nil;
 }
 
-- (BOOL) searchBarShouldBeginEditing:(UISearchBar *)searchBar
+- (BOOL) searchBarShouldBeginEditing:(UISearchBar *)bar
 {
+  shouldHideSectionIndex = YES;
+  [self.tableView reloadData];
   [self.navigationController setNavigationBarHidden:YES animated:YES];
+  [searchBar setShowsCancelButton:YES animated:YES];
   return YES;
 }
 
-- (void) searchBar:(UISearchBar *)searchBar
+- (void) searchBar:(UISearchBar *)bar
 textDidChange:(NSString *)searchText
 {
   self.filterText = searchText;
@@ -231,24 +274,28 @@ textDidChange:(NSString *)searchText
   [self.tableView reloadData];
 }
 
-- (BOOL) searchBarShouldEndEditing:(UISearchBar *)searchBar
+- (BOOL) searchBarShouldEndEditing:(UISearchBar *)bar
 {
-  [self.tableView setSectionIndexMinimumDisplayRowCount:1000000];
+  if (shouldHideSectionIndex) {
+    shouldHideSectionIndex = NO;
+    [self refreshContactPKs];
+    [self.tableView reloadData];
+  }
+  [searchBar setShowsCancelButton:NO animated:YES];
   [self.navigationController setNavigationBarHidden:NO animated:YES];
   return YES;
 }
 
-- (void) searchBarCancelButtonClicked:(UISearchBar *)searchBar
+- (void) searchBarCancelButtonClicked:(UISearchBar *)bar
 {
   self.filterText = nil;
-  [self.tableView setSectionIndexMinimumDisplayRowCount:10];
+  [searchBar setShowsCancelButton:NO animated:YES];
   [self.navigationController setNavigationBarHidden:NO animated:YES];
   [searchBar resignFirstResponder];
 }
 
-- (void) searchBarSearchButtonClicked:(UISearchBar *)searchBar
+- (void) searchBarSearchButtonClicked:(UISearchBar *)bar
 {
-  [self.tableView setSectionIndexMinimumDisplayRowCount:10];
   [self.navigationController setNavigationBarHidden:NO animated:YES];
   [searchBar resignFirstResponder];
 }
@@ -270,6 +317,10 @@ textDidChange:(NSString *)searchText
   mugshots = nil;
   [contactPKs release];
   contactPKs = nil;
+  [alphabet release];
+  alphabet = nil;
+  [alphabetGroups release];
+  alphabetGroups = nil;
   [super viewDidUnload];
 }
 
@@ -277,6 +328,8 @@ textDidChange:(NSString *)searchText
 - (void)dealloc
 {
   self.tableView = nil;
+  self.userAccount = nil;
+  self.filterText = nil;
   [super dealloc];
 }
 
