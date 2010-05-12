@@ -7,43 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		0004D3CA10449C6A005F49DF /* YammerMessage.m in Sources */ = {isa = PBXBuildFile; fileRef = 0004D3C910449C6A005F49DF /* YammerMessage.m */; };
 		0004D3EF10449CB3005F49DF /* CoreData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0004D3EE10449CB3005F49DF /* CoreData.framework */; };
-		0004D45310449F9A005F49DF /* Yammer.xcdatamodel in Sources */ = {isa = PBXBuildFile; fileRef = 0004D45210449F9A005F49DF /* Yammer.xcdatamodel */; };
-		00114725110F6F9A00A6691D /* AutoCompleteCache.m in Sources */ = {isa = PBXBuildFile; fileRef = 00114724110F6F9A00A6691D /* AutoCompleteCache.m */; };
-		0014B3E7104624FC003A7761 /* TTTableYammerViewDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 0014B3E6104624FC003A7761 /* TTTableYammerViewDelegate.m */; };
 		00236A4310FCF445008B007E /* pdf.png in Resources */ = {isa = PBXBuildFile; fileRef = 00236A4210FCF445008B007E /* pdf.png */; };
-		00236A5710FCF889008B007E /* FullSizeDoc.m in Sources */ = {isa = PBXBuildFile; fileRef = 00236A5610FCF889008B007E /* FullSizeDoc.m */; };
 		002A9CF410F6630300BFD48C /* MessageUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 002A9CF310F6630300BFD48C /* MessageUI.framework */; };
-		002A9CF910F6664B00BFD48C /* SendMail.m in Sources */ = {isa = PBXBuildFile; fileRef = 002A9CF810F6664B00BFD48C /* SendMail.m */; };
 		0032F0E71062AC4D00929C5E /* photos15x14.png in Resources */ = {isa = PBXBuildFile; fileRef = 0032F0E51062AC4D00929C5E /* photos15x14.png */; };
-		003B44BE10457ED800310B73 /* MessageView.m in Sources */ = {isa = PBXBuildFile; fileRef = 003B44BD10457ED800310B73 /* MessageView.m */; };
-		003B4504104582C600310B73 /* APIGateway.m in Sources */ = {isa = PBXBuildFile; fileRef = 003B44FF104582C600310B73 /* APIGateway.m */; };
-		003B4505104582C600310B73 /* LocalStorage.m in Sources */ = {isa = PBXBuildFile; fileRef = 003B4501104582C600310B73 /* LocalStorage.m */; };
-		003B4506104582C600310B73 /* NSDate-Ago.m in Sources */ = {isa = PBXBuildFile; fileRef = 003B4503104582C600310B73 /* NSDate-Ago.m */; };
-		003B450E1045830400310B73 /* OAuthGateway.m in Sources */ = {isa = PBXBuildFile; fileRef = 003B45091045830400310B73 /* OAuthGateway.m */; };
-		003B450F1045830400310B73 /* OAuthPostMultipart.m in Sources */ = {isa = PBXBuildFile; fileRef = 003B450B1045830400310B73 /* OAuthPostMultipart.m */; };
-		003B45101045830400310B73 /* OAuthPostURLEncoded.m in Sources */ = {isa = PBXBuildFile; fileRef = 003B450D1045830400310B73 /* OAuthPostURLEncoded.m */; };
-		003B453B1045832700310B73 /* Base64Transcoder.c in Sources */ = {isa = PBXBuildFile; fileRef = 003B451D1045832700310B73 /* Base64Transcoder.c */; };
-		003B453C1045832700310B73 /* hmac.c in Sources */ = {isa = PBXBuildFile; fileRef = 003B451F1045832700310B73 /* hmac.c */; };
-		003B453D1045832700310B73 /* NSMutableURLRequest+Parameters.m in Sources */ = {isa = PBXBuildFile; fileRef = 003B45221045832700310B73 /* NSMutableURLRequest+Parameters.m */; };
-		003B453E1045832700310B73 /* NSString+URLEncoding.m in Sources */ = {isa = PBXBuildFile; fileRef = 003B45241045832700310B73 /* NSString+URLEncoding.m */; };
-		003B453F1045832700310B73 /* NSURL+Base.m in Sources */ = {isa = PBXBuildFile; fileRef = 003B45261045832700310B73 /* NSURL+Base.m */; };
-		003B45401045832700310B73 /* OAConsumer.m in Sources */ = {isa = PBXBuildFile; fileRef = 003B45281045832700310B73 /* OAConsumer.m */; };
-		003B45411045832700310B73 /* OADataFetcher.m in Sources */ = {isa = PBXBuildFile; fileRef = 003B452A1045832700310B73 /* OADataFetcher.m */; };
-		003B45421045832700310B73 /* OAHMAC_SHA1SignatureProvider.m in Sources */ = {isa = PBXBuildFile; fileRef = 003B452C1045832700310B73 /* OAHMAC_SHA1SignatureProvider.m */; };
-		003B45431045832700310B73 /* OAMutableURLRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = 003B452E1045832700310B73 /* OAMutableURLRequest.m */; };
-		003B45441045832700310B73 /* OAPlaintextSignatureProvider.m in Sources */ = {isa = PBXBuildFile; fileRef = 003B45301045832700310B73 /* OAPlaintextSignatureProvider.m */; };
-		003B45451045832700310B73 /* OARequestParameter.m in Sources */ = {isa = PBXBuildFile; fileRef = 003B45321045832700310B73 /* OARequestParameter.m */; };
-		003B45461045832700310B73 /* OAServiceTicket.m in Sources */ = {isa = PBXBuildFile; fileRef = 003B45341045832700310B73 /* OAServiceTicket.m */; };
-		003B45471045832700310B73 /* OAToken.m in Sources */ = {isa = PBXBuildFile; fileRef = 003B45371045832700310B73 /* OAToken.m */; };
-		003B45481045832700310B73 /* sha1.c in Sources */ = {isa = PBXBuildFile; fileRef = 003B45391045832700310B73 /* sha1.c */; };
 		003B458C1045878B00310B73 /* Default.png in Resources */ = {isa = PBXBuildFile; fileRef = 003B458B1045878B00310B73 /* Default.png */; };
-		003B8A5E10505D6A002BA526 /* FeedDictionary.m in Sources */ = {isa = PBXBuildFile; fileRef = 003B8A5D10505D6A002BA526 /* FeedDictionary.m */; };
-		004B11A6104D9AE200590B22 /* ColorBackground.m in Sources */ = {isa = PBXBuildFile; fileRef = 004B11A5104D9AE200590B22 /* ColorBackground.m */; };
 		0059CA2310ADEC15000D4135 /* smile_check.png in Resources */ = {isa = PBXBuildFile; fileRef = 0059CA2210ADEC15000D4135 /* smile_check.png */; };
-		005DB2B2109F4C69001FF9D5 /* SettingsTimeChooser.m in Sources */ = {isa = PBXBuildFile; fileRef = 005DB2B1109F4C69001FF9D5 /* SettingsTimeChooser.m */; };
-		006ACA6010456A220078A4BB /* MainTabBar.m in Sources */ = {isa = PBXBuildFile; fileRef = 006ACA5F10456A220078A4BB /* MainTabBar.m */; };
 		006ACBB610457BE00078A4BB /* advanced.png in Resources */ = {isa = PBXBuildFile; fileRef = 006ACBA110457BE00078A4BB /* advanced.png */; };
 		006ACBB710457BE00078A4BB /* arrow_down.png in Resources */ = {isa = PBXBuildFile; fileRef = 006ACBA210457BE00078A4BB /* arrow_down.png */; };
 		006ACBB810457BE00078A4BB /* arrow_up.png in Resources */ = {isa = PBXBuildFile; fileRef = 006ACBA310457BE00078A4BB /* arrow_up.png */; };
@@ -64,52 +33,19 @@
 		006ACBC710457BE00078A4BB /* threaded_mode.png in Resources */ = {isa = PBXBuildFile; fileRef = 006ACBB210457BE00078A4BB /* threaded_mode.png */; };
 		006ACBC810457BE00078A4BB /* title.png in Resources */ = {isa = PBXBuildFile; fileRef = 006ACBB310457BE00078A4BB /* title.png */; };
 		006ACBC910457BE00078A4BB /* user_gray.png in Resources */ = {isa = PBXBuildFile; fileRef = 006ACBB410457BE00078A4BB /* user_gray.png */; };
-		007039FD104AE26100561215 /* FullSizePhoto.m in Sources */ = {isa = PBXBuildFile; fileRef = 007039FC104AE26100561215 /* FullSizePhoto.m */; };
-		00705D1310485542005D7A3F /* DataSettings.m in Sources */ = {isa = PBXBuildFile; fileRef = 00705D1010485542005D7A3F /* DataSettings.m */; };
-		00705D1410485542005D7A3F /* DataSettingsPush.m in Sources */ = {isa = PBXBuildFile; fileRef = 00705D1210485542005D7A3F /* DataSettingsPush.m */; };
-		00705D1B10485559005D7A3F /* SettingsAdvancedOptions.m in Sources */ = {isa = PBXBuildFile; fileRef = 00705D1610485559005D7A3F /* SettingsAdvancedOptions.m */; };
-		00705D1C10485559005D7A3F /* SettingsPush.m in Sources */ = {isa = PBXBuildFile; fileRef = 00705D1810485559005D7A3F /* SettingsPush.m */; };
-		00705D21104855BE005D7A3F /* SpinnerViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 00705D20104855BE005D7A3F /* SpinnerViewController.m */; };
-		0070A272111212DD00A95B4A /* PhotoUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = 0070A271111212DD00A95B4A /* PhotoUtils.m */; };
-		00780FDB108FABEA00F6FA36 /* DirectorySearchDataSource.m in Sources */ = {isa = PBXBuildFile; fileRef = 00780FDA108FABEA00F6FA36 /* DirectorySearchDataSource.m */; };
-		00855FFA10B4B04B00E6AA8A /* NetworkList.m in Sources */ = {isa = PBXBuildFile; fileRef = 00855FF910B4B04B00E6AA8A /* NetworkList.m */; };
-		008C30821112599B0020479B /* LoginPanel.m in Sources */ = {isa = PBXBuildFile; fileRef = 008C30811112599B0020479B /* LoginPanel.m */; };
 		00901E1710445C8A008E7C7D /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00901E1610445C8A008E7C7D /* QuartzCore.framework */; };
-		00901E2010445E82008E7C7D /* libThree20.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 00901E1F10445E72008E7C7D /* libThree20.a */; };
-		00901E3910445EB9008E7C7D /* Three20.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 00901E3810445EB9008E7C7D /* Three20.bundle */; };
-		00901E6210446703008E7C7D /* FeedMessageList.m in Sources */ = {isa = PBXBuildFile; fileRef = 00901E6110446703008E7C7D /* FeedMessageList.m */; };
-		00901EB910447A3F008E7C7D /* TTTableYammerItem.m in Sources */ = {isa = PBXBuildFile; fileRef = 00901EB810447A3F008E7C7D /* TTTableYammerItem.m */; };
-		00901EBD10447C43008E7C7D /* TTTableYammerItemCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 00901EBC10447C43008E7C7D /* TTTableYammerItemCell.m */; };
-		00901EE4104481F8008E7C7D /* FeedMessageData.m in Sources */ = {isa = PBXBuildFile; fileRef = 00901EE3104481F8008E7C7D /* FeedMessageData.m */; };
-		0095A60B1045A681000C3083 /* FeedCache.m in Sources */ = {isa = PBXBuildFile; fileRef = 0095A60A1045A681000C3083 /* FeedCache.m */; };
-		0095A60E1045A6AB000C3083 /* FeedMetaData.m in Sources */ = {isa = PBXBuildFile; fileRef = 0095A60D1045A6AB000C3083 /* FeedMetaData.m */; };
-		009C2306104992290056A7F0 /* SpinnerWithTextCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 009C2305104992290056A7F0 /* SpinnerWithTextCell.m */; };
 		00B7093F11137E8A00ACA083 /* login.png in Resources */ = {isa = PBXBuildFile; fileRef = 00B7093E11137E8A00ACA083 /* login.png */; };
-		00BA7A221045EAD30002AB75 /* FeedList.m in Sources */ = {isa = PBXBuildFile; fileRef = 00BA7A211045EAD30002AB75 /* FeedList.m */; };
-		00BA7A251045EC1A0002AB75 /* FeedData.m in Sources */ = {isa = PBXBuildFile; fileRef = 00BA7A241045EC1A0002AB75 /* FeedData.m */; };
-		00BA7A751045F4FA0002AB75 /* MessageDetail.m in Sources */ = {isa = PBXBuildFile; fileRef = 00BA7A741045F4FA0002AB75 /* MessageDetail.m */; };
-		00BA99C610482A07006DE62B /* UserProfile.m in Sources */ = {isa = PBXBuildFile; fileRef = 00BA99C510482A07006DE62B /* UserProfile.m */; };
-		00BEE584106ABA57009B1678 /* OAuthCustom.m in Sources */ = {isa = PBXBuildFile; fileRef = 00BEE583106ABA57009B1678 /* OAuthCustom.m */; };
 		00C08546104861CB00331BF5 /* dist.plist in Resources */ = {isa = PBXBuildFile; fileRef = 00C08545104861CB00331BF5 /* dist.plist */; };
 		00C4F7FA1088D60F0062F370 /* smile_gray.png in Resources */ = {isa = PBXBuildFile; fileRef = 00C4F7F91088D60F0062F370 /* smile_gray.png */; };
 		00C4F80D108916910062F370 /* smile12x12.png in Resources */ = {isa = PBXBuildFile; fileRef = 00C4F80C108916910062F370 /* smile12x12.png */; };
 		00C6CC3110AE17FF00C96249 /* font.png in Resources */ = {isa = PBXBuildFile; fileRef = 00C6CC3010AE17FF00C96249 /* font.png */; };
-		00C6CC3610AE2B5400C96249 /* CheckMarkCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 00C6CC3510AE2B5400C96249 /* CheckMarkCell.m */; };
-		00C6CC3B10AE2C2E00C96249 /* SettingsFontSize.m in Sources */ = {isa = PBXBuildFile; fileRef = 00C6CC3A10AE2C2E00C96249 /* SettingsFontSize.m */; };
 		00CD58EE10B71FA300CEAD87 /* no_text_splash.png in Resources */ = {isa = PBXBuildFile; fileRef = 00CD58ED10B71FA300CEAD87 /* no_text_splash.png */; };
-		00DBFC74104B1F09005DB685 /* ImageCache.m in Sources */ = {isa = PBXBuildFile; fileRef = 00DBFC73104B1F09005DB685 /* ImageCache.m */; };
-		00DE0AF910481CBE00224666 /* DirectoryList.m in Sources */ = {isa = PBXBuildFile; fileRef = 00DE0AF810481CBE00224666 /* DirectoryList.m */; };
 		00E6CDB61046F7AD0042BD9E /* yammer_sound.wav in Resources */ = {isa = PBXBuildFile; fileRef = 00E6CDB51046F7AD0042BD9E /* yammer_sound.wav */; };
 		00E6CDB81046F7E00042BD9E /* Icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 00E6CDB71046F7E00042BD9E /* Icon.png */; };
-		00E6CDBB1046F7F20042BD9E /* ComposeMessage.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E6CDBA1046F7F20042BD9E /* ComposeMessage.m */; };
 		00E6CDBD1046F7FC0042BD9E /* ComposeMessage.xib in Resources */ = {isa = PBXBuildFile; fileRef = 00E6CDBC1046F7FC0042BD9E /* ComposeMessage.xib */; };
-		00EB608D10D961AD00318936 /* TypeAheadDemo.m in Sources */ = {isa = PBXBuildFile; fileRef = 00EB608C10D961AD00318936 /* TypeAheadDemo.m */; };
-		00EDAF011099F56F00D3F5E9 /* Settings.m in Sources */ = {isa = PBXBuildFile; fileRef = 00EDAF001099F56F00D3F5E9 /* Settings.m */; };
 		00EF42601049D40C00CF3CB5 /* thumbnail_loading.png in Resources */ = {isa = PBXBuildFile; fileRef = 00EF425F1049D40C00CF3CB5 /* thumbnail_loading.png */; };
-		00F2ABF011123AC800CBE755 /* DirectoryWidget.m in Sources */ = {isa = PBXBuildFile; fileRef = 00F2ABEF11123AC800CBE755 /* DirectoryWidget.m */; };
 		00F2B84710B75C640035B139 /* refresh.png in Resources */ = {isa = PBXBuildFile; fileRef = 00F2B84610B75C640035B139 /* refresh.png */; };
 		00FA2D0C10979AB000C6F2DF /* network.png in Resources */ = {isa = PBXBuildFile; fileRef = 00FA2D0B10979AB000C6F2DF /* network.png */; };
-		00FA2D161097A51300C6F2DF /* SettingsSwitchNetwork.m in Sources */ = {isa = PBXBuildFile; fileRef = 00FA2D151097A51300C6F2DF /* SettingsSwitchNetwork.m */; };
 		1D3623260D0F684500981E51 /* YammerAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 1D3623250D0F684500981E51 /* YammerAppDelegate.m */; };
 		1D60589B0D05DD56006BFB54 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 29B97316FDCFA39411CA2CEA /* main.m */; };
 		1D60589F0D05DD5A006BFB54 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1D30AB110D05D00D00671497 /* Foundation.framework */; };
@@ -117,6 +53,13 @@
 		22131F9C11936C860092F094 /* YMMessage.m in Sources */ = {isa = PBXBuildFile; fileRef = 22131F9B11936C860092F094 /* YMMessage.m */; };
 		22235CA91190E533007F2255 /* StatusBarNotifier.m in Sources */ = {isa = PBXBuildFile; fileRef = 22235CA81190E533007F2255 /* StatusBarNotifier.m */; };
 		22235CCD1190E578007F2255 /* Images in Resources */ = {isa = PBXBuildFile; fileRef = 22235CCC1190E578007F2255 /* Images */; };
+		225FA8F7119A6D1F003579E0 /* YMContactDetailViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 225FA8F6119A6D1F003579E0 /* YMContactDetailViewController.m */; };
+		2293CD19119A063400AB0DD2 /* YMContact.m in Sources */ = {isa = PBXBuildFile; fileRef = 2293CD18119A063400AB0DD2 /* YMContact.m */; };
+		2293CD30119A142300AB0DD2 /* YMContactsListViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 2293CD2F119A142300AB0DD2 /* YMContactsListViewController.m */; };
+		2293CDB8119A363100AB0DD2 /* YMContactTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 2293CDB7119A363100AB0DD2 /* YMContactTableViewCell.m */; };
+		2293CDC1119A380400AB0DD2 /* user-70.png in Resources */ = {isa = PBXBuildFile; fileRef = 2293CDC0119A380400AB0DD2 /* user-70.png */; };
+		2293CE4A119A3BDF00AB0DD2 /* NSString+URLEncoding.m in Sources */ = {isa = PBXBuildFile; fileRef = 003B45241045832700310B73 /* NSString+URLEncoding.m */; };
+		2293CE90119A435D00AB0DD2 /* DataCache.m in Sources */ = {isa = PBXBuildFile; fileRef = 2293CE8F119A435D00AB0DD2 /* DataCache.m */; };
 		229FEFDE1180F9A500E10000 /* YMNetworksViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 229FEFDD1180F9A500E10000 /* YMNetworksViewController.m */; };
 		22A3B0CD1177CA27006337B5 /* DKCallback.m in Sources */ = {isa = PBXBuildFile; fileRef = 22A3B05A1177CA27006337B5 /* DKCallback.m */; };
 		22A3B0CE1177CA27006337B5 /* DKDeferred+CoreLocation.m in Sources */ = {isa = PBXBuildFile; fileRef = 22A3B05C1177CA27006337B5 /* DKDeferred+CoreLocation.m */; };
@@ -176,7 +119,10 @@
 		22A3B15D1177CB62006337B5 /* YMUserAccount.m in Sources */ = {isa = PBXBuildFile; fileRef = 22A3B1581177CB62006337B5 /* YMUserAccount.m */; };
 		22A3B15E1177CB62006337B5 /* YMWebService.m in Sources */ = {isa = PBXBuildFile; fileRef = 22A3B15B1177CB62006337B5 /* YMWebService.m */; };
 		22CDE911118F7A8B00323FA1 /* YMNetworkTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 22CDE910118F7A8B00323FA1 /* YMNetworkTableViewCell.m */; };
-		22CDE991118F99A000323FA1 /* YMLegacyShim.m in Sources */ = {isa = PBXBuildFile; fileRef = 22CDE990118F99A000323FA1 /* YMLegacyShim.m */; };
+		22FBAF531198F43100751A72 /* YMMessageListViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 22FBAF521198F43100751A72 /* YMMessageListViewController.m */; };
+		22FBAF941199125F00751A72 /* YMMessageTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 22FBAF931199125F00751A72 /* YMMessageTableViewCell.m */; };
+		22FBAFA2119918A300751A72 /* 104-index-cards.png in Resources */ = {isa = PBXBuildFile; fileRef = 22FBAFA1119918A300751A72 /* 104-index-cards.png */; };
+		22FBAFA4119918DB00751A72 /* 20-gear2.png in Resources */ = {isa = PBXBuildFile; fileRef = 22FBAFA3119918DB00751A72 /* 20-gear2.png */; };
 		22FD1C7D118B87A4008170E0 /* YMLoginViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 22FD1C7C118B87A4008170E0 /* YMLoginViewController.m */; };
 		22FD1D1C118B9B59008170E0 /* CFPrettyView.m in Sources */ = {isa = PBXBuildFile; fileRef = 22FD1D1B118B9B59008170E0 /* CFPrettyView.m */; };
 		22FD1D21118B9B7D008170E0 /* NSString+UUID.m in Sources */ = {isa = PBXBuildFile; fileRef = 22FD1D1E118B9B7D008170E0 /* NSString+UUID.m */; };
@@ -199,13 +145,6 @@
 			containerPortal = 00901E1A10445E72008E7C7D /* Three20.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = BEF31F3A0F352DF5000DE5D2;
-			remoteInfo = Three20;
-		};
-		00901E2110445EA2008E7C7D /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 00901E1A10445E72008E7C7D /* Three20.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = BEF31F390F352DF5000DE5D2;
 			remoteInfo = Three20;
 		};
 /* End PBXContainerItemProxy section */
@@ -246,8 +185,8 @@
 		003B45201045832700310B73 /* hmac.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = hmac.h; path = OAuth/hmac.h; sourceTree = "<group>"; };
 		003B45211045832700310B73 /* NSMutableURLRequest+Parameters.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSMutableURLRequest+Parameters.h"; path = "OAuth/NSMutableURLRequest+Parameters.h"; sourceTree = "<group>"; };
 		003B45221045832700310B73 /* NSMutableURLRequest+Parameters.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSMutableURLRequest+Parameters.m"; path = "OAuth/NSMutableURLRequest+Parameters.m"; sourceTree = "<group>"; };
-		003B45231045832700310B73 /* NSString+URLEncoding.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSString+URLEncoding.h"; path = "OAuth/NSString+URLEncoding.h"; sourceTree = "<group>"; };
-		003B45241045832700310B73 /* NSString+URLEncoding.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSString+URLEncoding.m"; path = "OAuth/NSString+URLEncoding.m"; sourceTree = "<group>"; };
+		003B45231045832700310B73 /* NSString+URLEncoding.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSString+URLEncoding.h"; path = "Classes/OAuth/NSString+URLEncoding.h"; sourceTree = "<group>"; };
+		003B45241045832700310B73 /* NSString+URLEncoding.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSString+URLEncoding.m"; path = "Classes/OAuth/NSString+URLEncoding.m"; sourceTree = "<group>"; };
 		003B45251045832700310B73 /* NSURL+Base.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSURL+Base.h"; path = "OAuth/NSURL+Base.h"; sourceTree = "<group>"; };
 		003B45261045832700310B73 /* NSURL+Base.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSURL+Base.m"; path = "OAuth/NSURL+Base.m"; sourceTree = "<group>"; };
 		003B45271045832700310B73 /* OAConsumer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OAConsumer.h; path = OAuth/OAConsumer.h; sourceTree = "<group>"; };
@@ -387,6 +326,17 @@
 		22235CA71190E533007F2255 /* StatusBarNotifier.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = StatusBarNotifier.h; path = Lib/StatusBarNotifier.h; sourceTree = "<group>"; };
 		22235CA81190E533007F2255 /* StatusBarNotifier.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = StatusBarNotifier.m; path = Lib/StatusBarNotifier.m; sourceTree = "<group>"; };
 		22235CCC1190E578007F2255 /* Images */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Images; sourceTree = "<group>"; };
+		225FA8F5119A6D1F003579E0 /* YMContactDetailViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YMContactDetailViewController.h; sourceTree = "<group>"; };
+		225FA8F6119A6D1F003579E0 /* YMContactDetailViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = YMContactDetailViewController.m; sourceTree = "<group>"; };
+		2293CD17119A063400AB0DD2 /* YMContact.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YMContact.h; sourceTree = "<group>"; };
+		2293CD18119A063400AB0DD2 /* YMContact.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = YMContact.m; sourceTree = "<group>"; };
+		2293CD2E119A142300AB0DD2 /* YMContactsListViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YMContactsListViewController.h; sourceTree = "<group>"; };
+		2293CD2F119A142300AB0DD2 /* YMContactsListViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = YMContactsListViewController.m; sourceTree = "<group>"; };
+		2293CDB6119A363100AB0DD2 /* YMContactTableViewCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YMContactTableViewCell.h; sourceTree = "<group>"; };
+		2293CDB7119A363100AB0DD2 /* YMContactTableViewCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = YMContactTableViewCell.m; sourceTree = "<group>"; };
+		2293CDC0119A380400AB0DD2 /* user-70.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "user-70.png"; path = "Resources/user-70.png"; sourceTree = "<group>"; };
+		2293CE8E119A435D00AB0DD2 /* DataCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DataCache.h; sourceTree = "<group>"; };
+		2293CE8F119A435D00AB0DD2 /* DataCache.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DataCache.m; sourceTree = "<group>"; };
 		229FEFDC1180F9A500E10000 /* YMNetworksViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = YMNetworksViewController.h; path = Classes/YMNetworksViewController.h; sourceTree = "<group>"; };
 		229FEFDD1180F9A500E10000 /* YMNetworksViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = YMNetworksViewController.m; path = Classes/YMNetworksViewController.m; sourceTree = "<group>"; };
 		22A3B0581177CA27006337B5 /* DeferredKit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DeferredKit.h; sourceTree = "<group>"; };
@@ -513,6 +463,12 @@
 		22CDE98F118F99A000323FA1 /* YMLegacyShim.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = YMLegacyShim.h; path = Classes/YMLegacyShim.h; sourceTree = "<group>"; };
 		22CDE990118F99A000323FA1 /* YMLegacyShim.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = YMLegacyShim.m; path = Classes/YMLegacyShim.m; sourceTree = "<group>"; };
 		22FBAF081198F12C00751A72 /* YMWebService+Private.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "YMWebService+Private.h"; sourceTree = "<group>"; };
+		22FBAF511198F43100751A72 /* YMMessageListViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YMMessageListViewController.h; sourceTree = "<group>"; };
+		22FBAF521198F43100751A72 /* YMMessageListViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = YMMessageListViewController.m; sourceTree = "<group>"; };
+		22FBAF921199125F00751A72 /* YMMessageTableViewCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YMMessageTableViewCell.h; sourceTree = "<group>"; };
+		22FBAF931199125F00751A72 /* YMMessageTableViewCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = YMMessageTableViewCell.m; sourceTree = "<group>"; };
+		22FBAFA1119918A300751A72 /* 104-index-cards.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "104-index-cards.png"; sourceTree = "<group>"; };
+		22FBAFA3119918DB00751A72 /* 20-gear2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "20-gear2.png"; sourceTree = "<group>"; };
 		22FD1C7B118B87A4008170E0 /* YMLoginViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = YMLoginViewController.h; path = Classes/YMLoginViewController.h; sourceTree = "<group>"; };
 		22FD1C7C118B87A4008170E0 /* YMLoginViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = YMLoginViewController.m; path = Classes/YMLoginViewController.m; sourceTree = "<group>"; };
 		22FD1D1A118B9B59008170E0 /* CFPrettyView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CFPrettyView.h; path = Lib/CFPrettyView.h; sourceTree = "<group>"; };
@@ -539,7 +495,6 @@
 				1DF5F4E00D08C38300B7A737 /* UIKit.framework in Frameworks */,
 				288765FD0DF74451002DB57D /* CoreGraphics.framework in Frameworks */,
 				00901E1710445C8A008E7C7D /* QuartzCore.framework in Frameworks */,
-				00901E2010445E82008E7C7D /* libThree20.a in Frameworks */,
 				0004D3EF10449CB3005F49DF /* CoreData.framework in Frameworks */,
 				002A9CF410F6630300BFD48C /* MessageUI.framework in Frameworks */,
 				22A3B1021177CA47006337B5 /* SystemConfiguration.framework in Frameworks */,
@@ -628,8 +583,6 @@
 				003B45201045832700310B73 /* hmac.h */,
 				003B45211045832700310B73 /* NSMutableURLRequest+Parameters.h */,
 				003B45221045832700310B73 /* NSMutableURLRequest+Parameters.m */,
-				003B45231045832700310B73 /* NSString+URLEncoding.h */,
-				003B45241045832700310B73 /* NSString+URLEncoding.m */,
 				003B45251045832700310B73 /* NSURL+Base.h */,
 				003B45261045832700310B73 /* NSURL+Base.m */,
 				003B45271045832700310B73 /* OAConsumer.h */,
@@ -827,6 +780,12 @@
 				22FD1C7C118B87A4008170E0 /* YMLoginViewController.m */,
 				22FD1D7F118BA983008170E0 /* YMAccountsViewController.h */,
 				22FD1D80118BA983008170E0 /* YMAccountsViewController.m */,
+				22FBAF511198F43100751A72 /* YMMessageListViewController.h */,
+				22FBAF521198F43100751A72 /* YMMessageListViewController.m */,
+				2293CD2E119A142300AB0DD2 /* YMContactsListViewController.h */,
+				2293CD2F119A142300AB0DD2 /* YMContactsListViewController.m */,
+				225FA8F5119A6D1F003579E0 /* YMContactDetailViewController.h */,
+				225FA8F6119A6D1F003579E0 /* YMContactDetailViewController.m */,
 			);
 			name = "View Controllers";
 			sourceTree = "<group>";
@@ -1018,6 +977,8 @@
 				22A3B1581177CB62006337B5 /* YMUserAccount.m */,
 				22131F9A11936C860092F094 /* YMMessage.h */,
 				22131F9B11936C860092F094 /* YMMessage.m */,
+				2293CD17119A063400AB0DD2 /* YMContact.h */,
+				2293CD18119A063400AB0DD2 /* YMContact.m */,
 			);
 			name = Data;
 			sourceTree = "<group>";
@@ -1039,6 +1000,10 @@
 			children = (
 				22CDE90F118F7A8B00323FA1 /* YMNetworkTableViewCell.h */,
 				22CDE910118F7A8B00323FA1 /* YMNetworkTableViewCell.m */,
+				22FBAF921199125F00751A72 /* YMMessageTableViewCell.h */,
+				22FBAF931199125F00751A72 /* YMMessageTableViewCell.m */,
+				2293CDB6119A363100AB0DD2 /* YMContactTableViewCell.h */,
+				2293CDB7119A363100AB0DD2 /* YMContactTableViewCell.m */,
 			);
 			name = "Table View Cells";
 			sourceTree = "<group>";
@@ -1059,6 +1024,10 @@
 		29B97315FDCFA39411CA2CEA /* Other Sources */ = {
 			isa = PBXGroup;
 			children = (
+				2293CE8E119A435D00AB0DD2 /* DataCache.h */,
+				2293CE8F119A435D00AB0DD2 /* DataCache.m */,
+				003B45231045832700310B73 /* NSString+URLEncoding.h */,
+				003B45241045832700310B73 /* NSString+URLEncoding.m */,
 				22FD1D1D118B9B7D008170E0 /* NSString+UUID.h */,
 				22FD1D1E118B9B7D008170E0 /* NSString+UUID.m */,
 				22FD1D1F118B9B7D008170E0 /* UIColor+Extensions.h */,
@@ -1085,6 +1054,9 @@
 		29B97317FDCFA39411CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				2293CDC0119A380400AB0DD2 /* user-70.png */,
+				22FBAFA3119918DB00751A72 /* 20-gear2.png */,
+				22FBAFA1119918A300751A72 /* 104-index-cards.png */,
 				22235CCC1190E578007F2255 /* Images */,
 				22FD1D2E118B9D7F008170E0 /* hud-overlay.png */,
 				00C08545104861CB00331BF5 /* dist.plist */,
@@ -1128,7 +1100,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				00901E2210445EA2008E7C7D /* PBXTargetDependency */,
 			);
 			name = Yammer;
 			productName = Yammer;
@@ -1180,7 +1151,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				00901E3910445EB9008E7C7D /* Three20.bundle in Resources */,
 				006ACBB610457BE00078A4BB /* advanced.png in Resources */,
 				006ACBB710457BE00078A4BB /* arrow_down.png in Resources */,
 				006ACBB810457BE00078A4BB /* arrow_up.png in Resources */,
@@ -1219,6 +1189,9 @@
 				00B7093F11137E8A00ACA083 /* login.png in Resources */,
 				22FD1D2F118B9D7F008170E0 /* hud-overlay.png in Resources */,
 				22235CCD1190E578007F2255 /* Images in Resources */,
+				22FBAFA2119918A300751A72 /* 104-index-cards.png in Resources */,
+				22FBAFA4119918DB00751A72 /* 20-gear2.png in Resources */,
+				2293CDC1119A380400AB0DD2 /* user-70.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1231,68 +1204,7 @@
 			files = (
 				1D60589B0D05DD56006BFB54 /* main.m in Sources */,
 				1D3623260D0F684500981E51 /* YammerAppDelegate.m in Sources */,
-				00901E6210446703008E7C7D /* FeedMessageList.m in Sources */,
-				00901EB910447A3F008E7C7D /* TTTableYammerItem.m in Sources */,
-				00901EBD10447C43008E7C7D /* TTTableYammerItemCell.m in Sources */,
-				00901EE4104481F8008E7C7D /* FeedMessageData.m in Sources */,
-				0004D3CA10449C6A005F49DF /* YammerMessage.m in Sources */,
-				0004D45310449F9A005F49DF /* Yammer.xcdatamodel in Sources */,
-				006ACA6010456A220078A4BB /* MainTabBar.m in Sources */,
-				003B44BE10457ED800310B73 /* MessageView.m in Sources */,
-				003B4504104582C600310B73 /* APIGateway.m in Sources */,
-				003B4505104582C600310B73 /* LocalStorage.m in Sources */,
-				003B4506104582C600310B73 /* NSDate-Ago.m in Sources */,
-				003B450E1045830400310B73 /* OAuthGateway.m in Sources */,
-				003B450F1045830400310B73 /* OAuthPostMultipart.m in Sources */,
-				003B45101045830400310B73 /* OAuthPostURLEncoded.m in Sources */,
-				003B453B1045832700310B73 /* Base64Transcoder.c in Sources */,
-				003B453C1045832700310B73 /* hmac.c in Sources */,
-				003B453D1045832700310B73 /* NSMutableURLRequest+Parameters.m in Sources */,
-				003B453E1045832700310B73 /* NSString+URLEncoding.m in Sources */,
-				003B453F1045832700310B73 /* NSURL+Base.m in Sources */,
-				003B45401045832700310B73 /* OAConsumer.m in Sources */,
-				003B45411045832700310B73 /* OADataFetcher.m in Sources */,
-				003B45421045832700310B73 /* OAHMAC_SHA1SignatureProvider.m in Sources */,
-				003B45431045832700310B73 /* OAMutableURLRequest.m in Sources */,
-				003B45441045832700310B73 /* OAPlaintextSignatureProvider.m in Sources */,
-				003B45451045832700310B73 /* OARequestParameter.m in Sources */,
-				003B45461045832700310B73 /* OAServiceTicket.m in Sources */,
-				003B45471045832700310B73 /* OAToken.m in Sources */,
-				003B45481045832700310B73 /* sha1.c in Sources */,
-				0095A60B1045A681000C3083 /* FeedCache.m in Sources */,
-				0095A60E1045A6AB000C3083 /* FeedMetaData.m in Sources */,
-				00BA7A221045EAD30002AB75 /* FeedList.m in Sources */,
-				00BA7A251045EC1A0002AB75 /* FeedData.m in Sources */,
-				00BA7A751045F4FA0002AB75 /* MessageDetail.m in Sources */,
-				0014B3E7104624FC003A7761 /* TTTableYammerViewDelegate.m in Sources */,
-				00E6CDBB1046F7F20042BD9E /* ComposeMessage.m in Sources */,
-				00DE0AF910481CBE00224666 /* DirectoryList.m in Sources */,
-				00BA99C610482A07006DE62B /* UserProfile.m in Sources */,
-				00705D1310485542005D7A3F /* DataSettings.m in Sources */,
-				00705D1410485542005D7A3F /* DataSettingsPush.m in Sources */,
-				00705D1B10485559005D7A3F /* SettingsAdvancedOptions.m in Sources */,
-				00705D1C10485559005D7A3F /* SettingsPush.m in Sources */,
-				00705D21104855BE005D7A3F /* SpinnerViewController.m in Sources */,
-				009C2306104992290056A7F0 /* SpinnerWithTextCell.m in Sources */,
-				007039FD104AE26100561215 /* FullSizePhoto.m in Sources */,
-				00DBFC74104B1F09005DB685 /* ImageCache.m in Sources */,
-				004B11A6104D9AE200590B22 /* ColorBackground.m in Sources */,
-				003B8A5E10505D6A002BA526 /* FeedDictionary.m in Sources */,
-				00BEE584106ABA57009B1678 /* OAuthCustom.m in Sources */,
-				00780FDB108FABEA00F6FA36 /* DirectorySearchDataSource.m in Sources */,
-				00FA2D161097A51300C6F2DF /* SettingsSwitchNetwork.m in Sources */,
-				00EDAF011099F56F00D3F5E9 /* Settings.m in Sources */,
-				005DB2B2109F4C69001FF9D5 /* SettingsTimeChooser.m in Sources */,
-				00C6CC3610AE2B5400C96249 /* CheckMarkCell.m in Sources */,
-				00C6CC3B10AE2C2E00C96249 /* SettingsFontSize.m in Sources */,
-				00855FFA10B4B04B00E6AA8A /* NetworkList.m in Sources */,
-				00EB608D10D961AD00318936 /* TypeAheadDemo.m in Sources */,
-				002A9CF910F6664B00BFD48C /* SendMail.m in Sources */,
-				00236A5710FCF889008B007E /* FullSizeDoc.m in Sources */,
-				00114725110F6F9A00A6691D /* AutoCompleteCache.m in Sources */,
-				0070A272111212DD00A95B4A /* PhotoUtils.m in Sources */,
-				00F2ABF011123AC800CBE755 /* DirectoryWidget.m in Sources */,
-				008C30821112599B0020479B /* LoginPanel.m in Sources */,
+				2293CE4A119A3BDF00AB0DD2 /* NSString+URLEncoding.m in Sources */,
 				22A3B0CD1177CA27006337B5 /* DKCallback.m in Sources */,
 				22A3B0CE1177CA27006337B5 /* DKDeferred+CoreLocation.m in Sources */,
 				22A3B0CF1177CA27006337B5 /* DKDeferred+JSON.m in Sources */,
@@ -1355,21 +1267,19 @@
 				22FD1D22118B9B7D008170E0 /* UIColor+Extensions.m in Sources */,
 				22FD1D81118BA983008170E0 /* YMAccountsViewController.m in Sources */,
 				22CDE911118F7A8B00323FA1 /* YMNetworkTableViewCell.m in Sources */,
-				22CDE991118F99A000323FA1 /* YMLegacyShim.m in Sources */,
 				22235CA91190E533007F2255 /* StatusBarNotifier.m in Sources */,
 				22131F9C11936C860092F094 /* YMMessage.m in Sources */,
+				22FBAF531198F43100751A72 /* YMMessageListViewController.m in Sources */,
+				22FBAF941199125F00751A72 /* YMMessageTableViewCell.m in Sources */,
+				2293CD19119A063400AB0DD2 /* YMContact.m in Sources */,
+				2293CD30119A142300AB0DD2 /* YMContactsListViewController.m in Sources */,
+				2293CDB8119A363100AB0DD2 /* YMContactTableViewCell.m in Sources */,
+				2293CE90119A435D00AB0DD2 /* DataCache.m in Sources */,
+				225FA8F7119A6D1F003579E0 /* YMContactDetailViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
-
-/* Begin PBXTargetDependency section */
-		00901E2210445EA2008E7C7D /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = Three20;
-			targetProxy = 00901E2110445EA2008E7C7D /* PBXContainerItemProxy */;
-		};
-/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		00B4E9CE10696619000F0651 /* Store */ = {

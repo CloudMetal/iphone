@@ -11,10 +11,11 @@
 #import "YMAccountsViewController.h"
 #import "UIColor+Extensions.h"
 #import "YMNetworkTableViewCell.h"
+#import "YMMessageListViewController.h"
 #import "CFPrettyView.h"
 #import "StatusBarNotifier.h"
+#import "UIColor+Extensions.h"
 
-#import "YMLegacyShim.h"
 #import "YammerAppDelegate.h"
 
 
@@ -61,6 +62,8 @@
 {
   self.tableView = [[UITableView alloc] initWithFrame:
                     CGRectMake(0, 0, 320, 460) style:UITableViewStylePlain];
+  self.tableView.autoresizingMask = (UIViewAutoresizingFlexibleWidth |
+                                     UIViewAutoresizingFlexibleHeight);
   self.tableView.delegate = self;
   self.tableView.dataSource = self;
   self.tableView.backgroundColor = [UIColor whiteColor];
@@ -77,11 +80,14 @@
 {
   self.navigationController.navigationBar.tintColor 
     = [UIColor colorWithRed:0.27 green:0.34 blue:0.39 alpha:1.0];
+  self.navigationController.toolbar.tintColor 
+    = [UIColor colorWithHexString:@"353535"];
   if (![[self.web loggedInUsers] count])
     [self.navigationController pushViewController:
      [[[YMAccountsViewController alloc] init] autorelease] animated:NO];
   else
     [self refreshNetworks];
+  [web purgeCachedContactImages];
 }
 
 - (NSInteger) numberOfSectionsInTableView:(UITableView *)table
@@ -112,7 +118,7 @@ cellForRowAtIndexPath:(NSIndexPath *)indexPath
              reuseIdentifier:ident] autorelease];
   
   [cell.unreadLabel setHidden:NO];
-  
+  cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
   cell.textLabel.text = network.name;
   if (!intv(network.unseenMessageCount))
     [cell.unreadLabel setHidden:YES];
@@ -137,20 +143,21 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath
   [table reloadRowsAtIndexPaths:array_(indexPath) 
                withRowAnimation:UITableViewRowAnimationNone];
   
-  DKDeferred *d = [DKDeferred deferInThread:
-                   callbackTS([YMLegacyShim sharedShim], 
-                              _legacyEnterAppWithNetwork:) withObject:network];
-  [d addCallback:callbackTS(self, _legacyBootstrapDone:)];
+  YMUserAccount *acct = (YMUserAccount *)[YMUserAccount findByPK:intv(network.userAccountPK)];
+  acct.activeNetworkPK = nsni(network.pk);
+  [acct save];
   
-  CFPrettyView *hud = [[[CFPrettyView alloc] initWithFrame:CGRectZero] autorelease];
-  [hud showAsLoadingHUDWithDeferred:d inView:
-   [[UIApplication sharedApplication] keyWindow]];
+  YMMessageListViewController *controller = [[[YMMessageListViewController alloc] 
+                                              initWithStyle:UITableViewStylePlain] autorelease];
+  controller.userAccount = acct;
+  
+  [self.navigationController pushViewController:controller animated:YES];
 }
 
-- (id)_legacyBootstrapDone:(id)r
+- (BOOL)shouldAutorotateToInterfaceOrientation:
+(UIInterfaceOrientation)interfaceOrientation
 {
-  [(id)[[UIApplication sharedApplication] delegate] enterAppWithAccess];
-  return r;
+  return YES;
 }
 
 - (void)didReceiveMemoryWarning

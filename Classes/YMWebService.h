@@ -10,11 +10,14 @@
 #import "YMNetwork.h"
 #import "YMUserAccount.h"
 #import "YMMessage.h"
+#import "YMContact.h"
 #import "YMWebService+Private.h"
 
 #define WS_URL @"https://staging.yammer.com"
 #define WS_MOUNTPOINT [NSURL URLWithString:[NSString \
             stringWithFormat:@"%@%@", WS_URL, @"/api/v1"]]
+
+#define IS_TARGET(__a, __b) ([__a isEqualToString:__b])
 
 #define YMMessageTargetAll @""
 #define YMMessageTargetSent @"sent"
@@ -36,6 +39,7 @@
 #define YMReplyToIDKey @"reply_to_id"
 #define YMDirectToIDKey @"direct_to_id"
 
+@class DataCache;
 
 @interface YMWebService : NSObject
 {
@@ -43,6 +47,7 @@
   NSString *appKey;
   NSString *appSecret;
   BOOL shouldUpdateBadgeIcon;
+  DataCache *_contactImageCache;
 }
 
 + (id)sharedWebService;
@@ -55,6 +60,12 @@
 
 - (NSArray *)loggedInUsers;
 - (void)updateUIApplicationBadge;
+
+// high performance contact image caching
+- (DKDeferred *)loadCachedContactImagesForUserAccount:(YMUserAccount *)acct;
+- (void)purgeCachedContactImages;
+- (id)imageForURLInMemoryCache:(NSString *)url;
+- (DKDeferred *)contactImageForURL:(NSString *)url;
 
 /** 
  Takes a YMUserAccount and authenticates it against the yammer
@@ -140,6 +151,10 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches;
  Calls back on success with the supplied messageID of the removed message.
  */
 - (DKDeferred *)deleteMessage:(YMUserAccount *)acct messageID:(NSString *)messageID;
+
+/**
+ */
+- (DKDeferred *)syncUsers:(YMUserAccount *)acct;
 
 @end
 

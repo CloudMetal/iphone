@@ -11,8 +11,8 @@
 #import "CFPrettyView.h"
 #import "UIColor+Extensions.h"
 
-#import "LocalStorage.h"
-#import "YMLegacyShim.h"
+//#import "LocalStorage.h"
+//#import "YMLegacyShim.h"
 #import "YammerAppDelegate.h"
 
 
@@ -38,21 +38,21 @@
   
   if (!web) web = [YMWebService sharedWebService];
   
-  NSString *upgradeText = @"";
-  if (![[web loggedInUsers] count])
-    upgradeText = @"     Yammer now supports multiple accounts.\n           "
-                  @"Please login to your first account.\n\n";
-  
-  TTStyledText* theText = [TTStyledText textFromXHTML:[NSString stringWithFormat:
-                           @"%@       No account? Sign up on <a href=\"https:"
-                           @"//www.yammer.com/\">yammer.com</a>", upgradeText]
-                                           lineBreaks:YES URLs:YES];
-  TTStyledTextLabel *l = [[TTStyledTextLabel alloc] 
-                          initWithFrame:CGRectMake(10,115,300,100)];
-	[l setText:theText];
-  [l setTextAlignment:UITextAlignmentCenter];
-	l.backgroundColor = [UIColor clearColor];
-	[self.tableView addSubview:l];
+//  NSString *upgradeText = @"";
+//  if (![[web loggedInUsers] count])
+//    upgradeText = @"     Yammer now supports multiple accounts.\n           "
+//                  @"Please login to your first account.\n\n";
+//  
+//  TTStyledText* theText = [TTStyledText textFromXHTML:[NSString stringWithFormat:
+//                           @"%@       No account? Sign up on <a href=\"https:"
+//                           @"//www.yammer.com/\">yammer.com</a>", upgradeText]
+//                                           lineBreaks:YES URLs:YES];
+//  TTStyledTextLabel *l = [[TTStyledTextLabel alloc] 
+//                          initWithFrame:CGRectMake(10,115,300,100)];
+//	[l setText:theText];
+//  [l setTextAlignment:UITextAlignmentCenter];
+//	l.backgroundColor = [UIColor clearColor];
+//	[self.tableView addSubview:l];
 }
 
 - (void)viewWillAppear:(BOOL)animated
@@ -212,20 +212,21 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath
   if (isDeferred(result))
     return [result addCallbacks:callbackTS(self, _cbGetNetworksSucceeded:) 
                                :callbackTS(self, _cbGetNetworksFailed:)];
-  if ([LocalStorage getSetting:@"current_network_id"]) {
-    [self.navigationController popViewControllerAnimated:YES];
-  } else {
-    if ([result isKindOfClass:[NSArray class]] && [result count]) {
-      DKDeferred *d = [DKDeferred deferInThread:
-                       callbackTS([YMLegacyShim sharedShim], 
-                                   _legacyEnterAppWithNetwork:) withObject:[result objectAtIndex:0]];
-      [d addCallback:callbackTS(self, _legacyBootstrapDone:)];
-      
-      CFPrettyView *hud = [[[CFPrettyView alloc] initWithFrame:CGRectZero] autorelease];
-      [hud showAsLoadingHUDWithDeferred:d inView:
-       [[UIApplication sharedApplication] keyWindow]];
-    }
-  }
+//  if ([LocalStorage getSetting:@"current_network_id"]) {
+//    [self.navigationController popViewControllerAnimated:YES];
+//  } else {
+//    if ([result isKindOfClass:[NSArray class]] && [result count]) {
+//      DKDeferred *d = [DKDeferred deferInThread:
+//                       callbackTS([YMLegacyShim sharedShim], 
+//                                   _legacyEnterAppWithNetwork:) withObject:[result objectAtIndex:0]];
+//      [d addCallback:callbackTS(self, _legacyBootstrapDone:)];
+//      
+//      CFPrettyView *hud = [[[CFPrettyView alloc] initWithFrame:CGRectZero] autorelease];
+//      [hud showAsLoadingHUDWithDeferred:d inView:
+//       [[UIApplication sharedApplication] keyWindow]];
+//    }
+//  }
+  [self.navigationController popToRootViewControllerAnimated:YES];
   
   return result;
 }
@@ -241,12 +242,12 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath
   return error;
 }
 
-- (id)_legacyBootstrapDone:(id)r
-{
-  [self.navigationController popToRootViewControllerAnimated:NO];
-  [(id)[[UIApplication sharedApplication] delegate] enterAppWithAccess];
-  return r;
-}
+//- (id)_legacyBootstrapDone:(id)r
+//{
+//  [self.navigationController popToRootViewControllerAnimated:NO];
+//  [(id)[[UIApplication sharedApplication] delegate] enterAppWithAccess];
+//  return r;
+//}
 
 - (void)didReceiveMemoryWarning
 {

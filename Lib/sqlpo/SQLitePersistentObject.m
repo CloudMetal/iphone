@@ -277,6 +277,7 @@ NSMutableArray *checkedTables;
           NSString *propName = [colName stringAsPropertyString];
           
           NSString *colType = [theProps valueForKey:propName];
+//          NSLog(@"propName %@ colType %@", propName, colType);
           if (colType == nil)
             break;
           if ([colType isEqualToString:@"i"] || // int
@@ -310,7 +311,7 @@ NSMutableArray *checkedTables;
             
           {
             const char *colVal = (const char *)sqlite3_column_text(statement, i);
-            
+//            NSLog(@"colVal %s", colVal);
             if (colVal != nil)
             {
               NSString *colValString = [NSString stringWithUTF8String:colVal];

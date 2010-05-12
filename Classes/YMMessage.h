@@ -1,11 +1,3 @@
-//
-//  YMMessage.h
-//  Yammer
-//
-//  Created by Samuel Sutch on 5/6/10.
-//  Copyright 2010 __MyCompanyName__. All rights reserved.
-//
-
 #import <Foundation/Foundation.h>
 #import "SQLitePersistentObject.h"
 
@@ -15,7 +7,7 @@
   NSNumber *messageID;
   NSNumber *groupID;
   NSNumber *directToID;
-  NSString *URL;
+  NSString *url;
   NSString *webURL;
   NSNumber *repliedToID;
   NSNumber *threadID;
@@ -35,30 +27,35 @@
   
   NSNumber *networkPK;
   NSNumber *read;
+  NSString *target;
+  NSNumber *targetID;
 }
 
-@property(nonatomic, retain, readwrite) NSNumber *messageID;
-@property(nonatomic, retain, readwrite) NSNumber *groupID;
-@property(nonatomic, retain, readwrite) NSNumber *directToID;
-@property(nonatomic, retain, readwrite) NSString *URL;
-@property(nonatomic, retain, readwrite) NSString *webURL;
-@property(nonatomic, retain, readwrite) NSNumber *repliedToID;
-@property(nonatomic, retain, readwrite) NSNumber *threadID;
+@property(nonatomic, readwrite, retain) NSNumber *messageID;
 
-@property(nonatomic, retain, readwrite) NSString *bodyParsed;
-@property(nonatomic, retain, readwrite) NSString *bodyPlain;
+@property(nonatomic, readwrite, retain) NSNumber *groupID;
+@property(nonatomic, readwrite, retain) NSNumber *directToID;
+@property(nonatomic, readwrite, retain) NSNumber *repliedToID;
+@property(nonatomic, readwrite, retain) NSNumber *threadID;
 
-@property(nonatomic, retain, readwrite) NSArray *attachmentPKs;
+@property(nonatomic, readwrite, retain) NSString *url;
+@property(nonatomic, readwrite, retain) NSString *webURL;
+@property(nonatomic, readwrite, retain) NSString *bodyParsed;
+@property(nonatomic, readwrite, retain) NSString *bodyPlain;
 
-@property(nonatomic, retain, readwrite) NSString *messageType;
-@property(nonatomic, retain, readwrite) NSString *clientType;
+@property(nonatomic, readwrite, retain) NSArray *attachmentPKs;
 
-@property(nonatomic, retain, readwrite) NSNumber *senderID;
-@property(nonatomic, retain, readwrite) NSString *senderType;
+@property(nonatomic, readwrite, retain) NSString *messageType;
+@property(nonatomic, readwrite, retain) NSString *clientType;
 
-@property(nonatomic, retain, readwrite) NSDate *createdAt;
+@property(nonatomic, readwrite, retain) NSNumber *senderID;
+@property(nonatomic, readwrite, retain) NSString *senderType;
 
-@property(nonatomic, retain, readwrite) NSNumber *networkPK;
-@property(nonatomic, retain, readwrite) NSNumber *read;
+@property(nonatomic, readwrite, retain) NSDate *createdAt;
+
+@property(nonatomic, readwrite, retain) NSNumber *networkPK;
+@property(nonatomic, readwrite, retain) NSNumber *read;
+@property(nonatomic, readwrite, retain) NSString *target;
+@property(nonatomic, readwrite, retain) NSNumber *targetID;
 
 @end

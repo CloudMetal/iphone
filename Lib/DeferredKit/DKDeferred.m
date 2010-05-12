@@ -753,7 +753,7 @@ static NSInteger __urlConnectionCount;
                      connectionWithRequest:request
                      delegate:self] retain];
       __urlConnectionCount += 1;
-//      NSLog(@"loading %@ : %@ %@", self.started, url, [request allHTTPHeaderFields]);
+      NSLog(@"loading %@ : %@", self.started, url);
       if (!connection) {
         __urlConnectionCount -= 1;
         NSLog(@"error:???");
@@ -852,7 +852,7 @@ didReceiveResponse:(NSURLResponse *)response {
 }
 
 - (id)_cbStartLoading:(id)result {
-//  NSLog(@"connection: %@ : %@ %@", self.started, url, [request allHTTPHeaderFields]);
+  NSLog(@"connection: %@ : %@", self.started, url);
   connection = [[NSURLConnection connectionWithRequest:request delegate:self] retain];
   if (connection) {
     __urlConnectionCount += 1;
@@ -932,6 +932,7 @@ static DKDeferredCache *__sharedCache;
   for (NSString *key in keys) {
     val = [self _getValue:key];
     [ret addObject:((val == nil) ? [NSNull null] : val)];
+    val = nil;
   }
   return ret; //[NSDictionary dictionaryWithObjects:ret forKeys:keys];
 }
@@ -939,7 +940,7 @@ static DKDeferredCache *__sharedCache;
 // should always be executed in a thread
 - (id)_getValue:(NSString *)key { 
   if (key == (id)[NSNull null])
-    return key;
+    return nil;
   NSString *fname = [dir stringByAppendingPathComponent:md5(key)];
   NSFileManager *fm = [NSFileManager defaultManager];
   if ([fm fileExistsAtPath:fname]) {

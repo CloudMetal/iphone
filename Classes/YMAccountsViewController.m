@@ -9,7 +9,7 @@
 #import "YMAccountsViewController.h"
 #import "YMWebService.h"
 #import "YMLoginViewController.h"
-#import "YMLegacyShim.h"
+//#import "YMLegacyShim.h"
 #import "UIColor+Extensions.h"
 
 @implementation YMAccountsViewController
@@ -26,6 +26,8 @@
 {
   self.tableView = [[UITableView alloc] initWithFrame:
                     CGRectMake(0, 0, 320, 460) style:UITableViewStyleGrouped];
+  self.tableView.autoresizingMask = (UIViewAutoresizingFlexibleWidth |
+                                     UIViewAutoresizingFlexibleHeight);
   self.tableView.backgroundColor = [UIColor colorWithHexString:@"cae5fd"];
   self.tableView.delegate = self;
   self.tableView.dataSource = self;
@@ -109,7 +111,7 @@ commitEditingStyle:(UITableViewCellEditingStyle)editingStyle
     YMUserAccount *acct = [[YMUserAccount findByCriteria:
                             @"ORDER BY username, pk ASC LIMIT 1 OFFSET %i", 
                             indexPath.row] objectAtIndex:0];
-    [[YMLegacyShim sharedShim] _cleanupBeforeLoggingOutAccount:acct];
+//    [[YMLegacyShim sharedShim] _cleanupBeforeLoggingOutAccount:acct];
     [acct deleteObjectCascade:YES];
     [self.tableView reloadData];
     [self.tableView setEditing:YES animated:YES];
@@ -117,6 +119,12 @@ commitEditingStyle:(UITableViewCellEditingStyle)editingStyle
       [self addAccount:nil];
     }
   }
+}
+
+- (BOOL)shouldAutorotateToInterfaceOrientation:
+(UIInterfaceOrientation)interfaceOrientation
+{
+  return YES;
 }
 
 - (void)didReceiveMemoryWarning
