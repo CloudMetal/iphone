@@ -342,10 +342,23 @@ withTarget:(id)target withID:(NSString *)targetID params:(NSDictionary *)params
         message.networkPK = acct.activeNetworkPK;
         message.target = target;
         message.targetID = (![targetID isEqual:[NSNull null]] ? targetID : nil);
+        
+        if (message.repliedToID) {
+          for (NSDictionary *ref in [results objectForKey:@"references"]) {
+            if ([[ref objectForKey:@"type"] isEqual:@"message"] 
+                && [[ref objectForKey:@"id"] isEqual:message.repliedToID]) {
+              message.repliedToSenderID = _nil([ref objectForKey:@"sender_id"]);
+              break;
+            }
+          }
+        }
+        
         [message save];
         
         [ret addObject:message];
       }
+      
+      
     }
     [db executeUpdateSQL:@"COMMIT TRANSACTION;"];
   }

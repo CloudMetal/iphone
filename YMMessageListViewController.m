@@ -13,19 +13,26 @@
 #import "UIColor+Extensions.h"
 #import "NSDate+Helper.h"
 #import "YMMessageTableViewCell.h"
+#import "NSMutableArray-MultipleSort.h"
+#import <QuartzCore/QuartzCore.h>
+#import "YMMessageCompanionTableViewCell.h"
+#import "YMContactDetailViewController.h"
+
 
 @interface YMMessageListViewController (PrivateStuffs)
 
 - (NSString *)listCriteria;
 - (void)refreshMessagePKs;
 - (id)doReload:(id)arg;
+- (NSInteger)rowForIndexPath:(NSIndexPath *)indexPath;
+- (CGFloat)expandedHeightOfRow:(NSInteger)idx;
 
 @end
 
 
 @implementation YMMessageListViewController
 
-@synthesize target, targetID, olderThan, newerThan, threaded, userAccount;
+@synthesize target, targetID, olderThan, newerThan, threaded, userAccount, selectedIndexPath;
 
 - (void)loadView
 {
@@ -62,13 +69,16 @@
   self.newerThan = nil;
   self.threaded = nsnb(NO);
   loadedAvatars = NO;
+  shouldRearrangeWhenDeselecting = YES;
   
   if (!web) web = [YMWebService sharedWebService];
 }
 
 - (void) viewWillAppear:(BOOL)animated
 {
+  self.selectedIndexPath = nil;
   [self refreshMessagePKs];
+  [super viewWillAppear:animated];
 }
 
 - (void) viewDidAppear:(BOOL)animated
@@ -119,6 +129,7 @@
 
 - (id)_imagesLoaded:(id)arg
 {
+  NSLog(@"images loaded");
   loadedAvatars = YES;
   [self doReload:nil];
   return arg;
@@ -152,6 +163,9 @@
 
 - (id)_gotMessages:(YMUserAccount *)acct :(id)_target :(id)_targetID :(id)results 
 {
+  shouldRearrangeWhenDeselecting = NO;
+  self.selectedIndexPath = nil;
+  shouldRearrangeWhenDeselecting = YES;
   [self refreshMessagePKs];
   [self.tableView reloadData];
   return results;
@@ -175,14 +189,67 @@
 {
   if (messagePKs) [messagePKs release];
   messagePKs = nil;
-  messagePKs = [[[YMMessage pairedArraysForProperties:
-                  EMPTY_ARRAY withCriteria:[self listCriteria]] 
-                 objectAtIndex:0] retain];
+  if (titles) [titles release];
+  titles = nil;
+  if (mugshotURLs) [mugshotURLs release];
+  mugshotURLs = nil;
   if (mugshots) [mugshots release];
   mugshots = nil;
+  
+  NSArray *a = [YMMessage pairedArraySelect:[NSString stringWithFormat:
+                @"SELECT y_m_message.pk, y_m_contact.mugshot_u_r_l, y_m_contact.full_name, "
+                @"(SELECT full_name FROM y_m_contact AS ymc WHERE " 
+                @"y_m_message.replied_to_sender_i_d=ymc.user_i_d) "
+                @"FROM y_m_message INNER JOIN y_m_contact ON y_m_message.sender_i_d " 
+                @"= y_m_contact.user_i_d %@ ORDER BY y_m_message.created_at DESC ", 
+                                             [self listCriteria]] fields:4];
+  
+  messagePKs = [[a objectAtIndex:0] retain];
+  mugshotURLs = [[a objectAtIndex:1] retain];
+  NSMutableArray *_titles = [NSMutableArray arrayWithCapacity:[messagePKs count]];
   mugshots = [[NSMutableArray arrayWithCapacity:[messagePKs count]] retain];
-  for (int i = 0; i < [messagePKs count]; i++)
-    [mugshots addObject:[NSNull null]];
+  
+  for (int i = 0; i < [messagePKs count]; i++) {
+    UIImage *img = nil;
+    NSString *mugshotUrl = [mugshotURLs objectAtIndex:i];
+    if ([mugshotUrl isKindOfClass:
+         [NSString class]] && [mugshotUrl length]) {
+      img = [[web imageForURLInMemoryCache:mugshotUrl] retain];
+    }
+
+    [mugshots addObject:(img ? [img autorelease] : (id)[NSNull null])];
+    NSString *tit = [[a objectAtIndex:2] objectAtIndex:i];
+    NSString *rtit = [[a objectAtIndex:3] objectAtIndex:i];
+    if ([rtit isEqual:[NSNull null]])
+      [_titles addObject:tit];
+    else 
+      [_titles addObject:[tit stringByAppendingFormat:@" re: %@", rtit]];
+  }
+  titles = [_titles retain];
+}
+
+- (NSInteger)rowForIndexPath:(NSIndexPath *)indexPath
+{
+  int idx;
+  if (!selectedIndexPath || indexPath.row <= (selectedIndexPath.row - 1)
+      || selectedIndexPath.row == indexPath.row) idx = indexPath.row;
+  else if (indexPath.row > selectedIndexPath.row) idx = indexPath.row + 1;
+  else idx = 0;
+  
+  return idx;
+}
+
+- (CGFloat)expandedHeightOfRow:(NSInteger)idx
+{
+  YMMessage *message = (YMMessage *)[YMMessage findByPK:
+                       intv([messagePKs objectAtIndex:idx])];
+  CGSize max = CGSizeMake(self.interfaceOrientation 
+                          == UIInterfaceOrientationPortrait ? 247 : 407 , 480);
+  CGSize sizeNeeded = [message.bodyPlain sizeWithFont:[UIFont systemFontOfSize:11] 
+                       constrainedToSize:max lineBreakMode:UILineBreakModeWordWrap];
+  if (sizeNeeded.height > 28.0)
+    return sizeNeeded.height + 32.0;
+  return 60.0;
 }
 
 -(NSInteger) numberOfSectionsInTableView:(UITableView *)tableView
@@ -193,23 +260,39 @@
 - (CGFloat) tableView:(UITableView *)table
 heightForRowAtIndexPath:(NSIndexPath *)indexPath
 {
+  if (selectedIndexPath && selectedIndexPath.row == indexPath.row)
+    return [self expandedHeightOfRow:indexPath.row];
   return 60;
 }
 
 - (NSInteger) tableView:(UITableView *)table
   numberOfRowsInSection:(NSInteger)section
 {
-  return [messagePKs count];
+  return [messagePKs count] + ((self.selectedIndexPath != nil) ? 1 : 0);
 }
 
 - (UITableViewCell *) tableView:(UITableView *)table
 cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
+  int idx = [self rowForIndexPath:indexPath];
+  
+  if (selectedIndexPath && indexPath.row == selectedIndexPath.row + 1) {
+    YMMessageCompanionTableViewCell *cell;
+    for (id v in [[NSBundle mainBundle] loadNibNamed:
+                  @"YMMessageCompanionTableViewCell" owner:nil options:nil]) {
+      if (![v isKindOfClass:[YMMessageCompanionTableViewCell class]]) 
+        continue;
+      cell = v;
+      break;
+    }
+    cell.onUser = curryTS(self, @selector(gotoUserIndexPath:sender:), 
+                          [NSIndexPath indexPathForRow:idx inSection:0]);
+    return cell;
+  }
+  
   static NSString *ident = @"YMMessageCell1";
   YMMessage *message = (YMMessage *)[YMMessage findByPK:
-         intv([messagePKs objectAtIndex:indexPath.row])];
-  YMContact *c = (YMContact *)[YMContact findFirstByCriteria:
-                                     @"WHERE user_i_d=%i", intv(message.senderID)];
+         intv([messagePKs objectAtIndex:idx])];
   
   YMMessageTableViewCell *cell = (YMMessageTableViewCell *)
     [table dequeueReusableCellWithIdentifier:ident];
@@ -223,33 +306,115 @@ cellForRowAtIndexPath:(NSIndexPath *)indexPath
     }
   }
   
-  UIImage *img;
-  if (!c.mugshotURL || [c.mugshotURL isEqual:[NSNull null]] 
-      || ![c.mugshotURL length] 
-      || !(img = [[YMWebService sharedWebService]
-                  imageForURLInMemoryCache:c.mugshotURL])
-      || (![[mugshots objectAtIndex:indexPath.row] isEqual:[NSNull null]] 
-          && (img = [mugshots objectAtIndex:indexPath.row]))
-      || (![[web contactImageForURL:c.mugshotURL] 
-           addCallback:curryTS(self, @selector(_gotMugshot::), indexPath)]))
-    img = [UIImage imageNamed:@"user-70.png"];
-  
-  cell.avatarImageView.image = img;
+  cell.avatarImageView.image = [UIImage imageNamed:@"user-70.png"];
+  id img = [mugshots objectAtIndex:idx];
+  NSString *ms = [mugshotURLs objectAtIndex:idx];
+  if ([img isEqual:[NSNull null]]) {
+    if (!loadedAvatars) { // do nothing if we haven't yet loaded
+    } else if ([ms isKindOfClass:[NSString class]] && [ms length]) {
+      [[web contactImageForURL:ms]
+       addCallback:curryTS(self, @selector(_gotMugshot::), indexPath)];
+    } else {
+      [mugshots replaceObjectAtIndex:idx withObject:[UIImage imageNamed:@"user-70.png"]];
+    }
+  } else {
+    cell.avatarImageView.image = img;
+  }
+
+  cell.avatarImageView.layer.masksToBounds = YES;
+  cell.avatarImageView.layer.borderColor = [UIColor colorWithWhite:.5 alpha:1].CGColor;
+  cell.avatarImageView.layer.cornerRadius = 3;
+  cell.avatarImageView.layer.borderWidth = 1;
+  if (selectedIndexPath && selectedIndexPath.row == idx) {
+    CGFloat expandedHeight = [self expandedHeightOfRow:idx];
+    CGRect f = cell.bodyLabel.frame;
+    cell.bodyLabel.frame = CGRectMake(f.origin.x, f.origin.y,
+                                      f.size.width, expandedHeight - 32.0);
+    CGRect f2 = cell.frame;
+    cell.frame = CGRectMake(f2.origin.x, f2.origin.y, f2.size.width, expandedHeight);
+    cell.bodyLabel.numberOfLines = 0;
+  } else {
+    CGRect f = cell.bodyLabel.frame;
+    cell.bodyLabel.frame = CGRectMake(f.origin.x, f.origin.y,
+                                      f.size.width, 28.0);
+    CGRect f2 = cell.frame;
+    cell.frame = CGRectMake(f2.origin.x, f2.origin.y, f2.size.width, 60.0);
+    cell.bodyLabel.numberOfLines = 2;
+  }
   cell.bodyLabel.text = message.bodyPlain;
-  cell.titleLabel.text = (c.fullName ? c.fullName : c.username);
-  cell.dateLabel.text = [message.createdAt stringDaysAgo];
+  cell.dateLabel.text = [NSDate stringForDisplayFromDate:message.createdAt];
+  cell.titleLabel.text = [titles objectAtIndex:idx];
   
   return cell;
 }
 
+- (void) tableView:(UITableView *)table
+didSelectRowAtIndexPath:(NSIndexPath *)indexPath
+{
+  self.selectedIndexPath = indexPath;
+  [self.tableView reloadRowsAtIndexPaths:array_(self.selectedIndexPath)
+                        withRowAnimation:UITableViewRowAnimationFade];
+}
+
+- (NSIndexPath *)tableView:(UITableView *)table
+willSelectRowAtIndexPath:(NSIndexPath *)indexPath
+{
+  if (selectedIndexPath) {
+    int idx = [self rowForIndexPath:indexPath];
+    if (selectedIndexPath.row + 1 == idx) return nil;
+    self.selectedIndexPath = nil;
+    return nil;
+  }
+  return indexPath;
+}
+
+- (void)setSelectedIndexPath:(NSIndexPath *)indexPath
+{
+  if (selectedIndexPath) {
+    NSIndexPath *previousIndexPath = [selectedIndexPath retain];
+    [selectedIndexPath release];
+    selectedIndexPath = nil;
+    if (shouldRearrangeWhenDeselecting) {
+      [self.tableView deleteRowsAtIndexPaths:
+       array_([NSIndexPath indexPathForRow:previousIndexPath.row+1 inSection:0])
+                            withRowAnimation:UITableViewRowAnimationTop];
+      [self.tableView reloadRowsAtIndexPaths:array_(previousIndexPath)
+                            withRowAnimation:UITableViewRowAnimationFade];
+    }
+    [previousIndexPath release];
+  }
+  selectedIndexPath = [indexPath retain];
+  if (selectedIndexPath) {
+    [self.tableView insertRowsAtIndexPaths:
+     array_([NSIndexPath indexPathForRow:indexPath.row+1 inSection:0])
+                          withRowAnimation:UITableViewRowAnimationBottom];
+  }
+}
+
 - (id)_gotMugshot:(NSIndexPath *)indexPath :(id)result
 {
+  int idx = [self rowForIndexPath:indexPath];
   if ([result isKindOfClass:[UIImage class]]) {
-    [mugshots replaceObjectAtIndex:indexPath.row withObject:result];
+    [mugshots replaceObjectAtIndex:idx withObject:result];
     YMMessageTableViewCell *cell = (YMMessageTableViewCell *)
-    [self.tableView cellForRowAtIndexPath:indexPath];
+    [self.tableView cellForRowAtIndexPath:
+     [NSIndexPath indexPathForRow:idx inSection:0]];
     if (cell) cell.avatarImageView.image = result;
   }
+  return nil;
+}
+
+- (id)gotoUserIndexPath:(NSIndexPath *)indexPath sender:(id)s
+{
+  int idx = [self rowForIndexPath:indexPath] - 1;
+  YMMessage *message = (YMMessage *)[YMMessage findByPK:
+                                     intv([messagePKs objectAtIndex:idx])];
+  YMContact *contact = (YMContact *)[YMContact findFirstByCriteria:
+                               @"WHERE user_i_d=%i", intv(message.senderID)];
+  YMContactDetailViewController *c = [[YMContactDetailViewController alloc]
+                                      initWithStyle:UITableViewStyleGrouped];
+  c.contact = contact;
+  [self.navigationController pushViewController:c animated:YES];
   return nil;
 }
 

@@ -194,6 +194,8 @@
 +(NSArray *)pairedArraysForProperties:(NSArray *)theProps withCriteria:(NSString *)criteriaString, ...;
 +(NSArray *)pairedArraysForProperties:(NSArray *)theProps;
 
++(NSArray *)pairedArraySelect:(NSString *)selectString fields:(NSInteger)fieldCount;
+
 + (NSInteger)count; 
 + (NSInteger)countByCriteria:(NSString *)criteriaString, ...;
 

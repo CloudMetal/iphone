@@ -23,8 +23,13 @@
   id lastView;
   BOOL loadedAvatars;
   NSMutableArray *mugshots;
+  NSIndexPath *selectedIndexPath;
+  BOOL shouldRearrangeWhenDeselecting;
+  NSArray *titles;
+  NSArray *mugshotURLs;
 }
 
+@property(nonatomic, readwrite, retain) NSIndexPath *selectedIndexPath;
 @property(nonatomic, readwrite, retain) YMUserAccount *userAccount;
 @property(nonatomic, readwrite, retain) NSString *target;
 @property(nonatomic, readwrite, retain) NSString *targetID;

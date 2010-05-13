@@ -29,6 +29,8 @@
   NSNumber *read;
   NSString *target;
   NSNumber *targetID;
+  
+  NSNumber *repliedToSenderID;
 }
 
 @property(nonatomic, readwrite, retain) NSNumber *messageID;
@@ -57,5 +59,7 @@
 @property(nonatomic, readwrite, retain) NSNumber *read;
 @property(nonatomic, readwrite, retain) NSString *target;
 @property(nonatomic, readwrite, retain) NSNumber *targetID;
+
+@property(nonatomic, readwrite, retain) NSNumber *repliedToSenderID;
 
 @end

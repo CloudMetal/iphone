@@ -242,6 +242,7 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath
                                       initWithStyle:UITableViewStyleGrouped];
   c.contact = contact;
   [self.navigationController pushViewController:c animated:YES];
+  if ([searchBar isFirstResponder]) [searchBar resignFirstResponder];
   [self.tableView deselectRowAtIndexPath:indexPath animated:YES];
 }
 

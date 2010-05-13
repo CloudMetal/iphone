@@ -635,6 +635,38 @@ NSMutableArray *checkedTables;
   
   return ret;
 }
+
++ (NSArray *)pairedArraySelect:(NSString *)selectString fields:(NSInteger)fields
+{
+  NSMutableArray *ret = [NSMutableArray array];
+  int i;
+  for (i = 0; i < fields; i++) {
+    [ret addObject:[NSMutableArray array]];
+  }
+  [[self class] tableCheck];
+  sqlite3 *db = [[SQLiteInstanceManager sharedManager] database];
+  sqlite3_stmt *stmt;
+  if (sqlite3_prepare_v2(db, [selectString UTF8String], -1, &stmt, NULL) == SQLITE_OK) {
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+      for (i = 0; i < fields; i++) {
+        NSMutableArray *fieldArray = [ret objectAtIndex:i];
+        const char *valAsString = (const char *)sqlite3_column_text(stmt, i);
+        if (valAsString) {
+          NSString *s = [NSString stringWithUTF8String:(const char *)sqlite3_column_text(stmt, i)];
+          if (s) [fieldArray addObject:s];
+          else [fieldArray addObject:[NSNull null]];
+        } else {
+          [fieldArray addObject:[NSNull null]];
+        }
+      }
+    }
+  }
+  sqlite3_finalize(stmt);
+  NSLog(@"errmsg %s", sqlite3_errmsg(db));
+  
+  return ret;
+}
+
 #ifdef TARGET_OS_COCOTRON
 + (NSArray *)getPropertiesList
 {

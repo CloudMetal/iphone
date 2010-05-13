@@ -53,3 +53,9 @@ static inline NSComparisonResult compare(id elem1, id elem2, void* context)
 // Takes a comparator and a nil-terminated list of paired arrays
 - (void)sortArrayUsingSelector:(SEL)comparator withPairedMutableArrays:(NSMutableArray *)array1, ...;
 @end
+
+@interface NSMutableArray (Reverse)
+
+- (void)reverseInPlace;
+
+@end

@@ -60,6 +60,15 @@
 		225FAA11119AB0F7003579E0 /* YMMessageTableViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 225FAA10119AB0F7003579E0 /* YMMessageTableViewCell.xib */; };
 		225FAA28119AB511003579E0 /* NSDate+Helper.m in Sources */ = {isa = PBXBuildFile; fileRef = 225FAA26119AB511003579E0 /* NSDate+Helper.m */; };
 		225FAA2A119AB695003579E0 /* msg-bg.png in Resources */ = {isa = PBXBuildFile; fileRef = 225FAA29119AB695003579E0 /* msg-bg.png */; };
+		225FAAE5119B6856003579E0 /* YMMessageCompanionTableViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 225FAAE4119B6856003579E0 /* YMMessageCompanionTableViewCell.xib */; };
+		225FAAEA119B6947003579E0 /* inline-bg.png in Resources */ = {isa = PBXBuildFile; fileRef = 225FAAE9119B6947003579E0 /* inline-bg.png */; };
+		225FAAEF119B7672003579E0 /* like-inline.png in Resources */ = {isa = PBXBuildFile; fileRef = 225FAAEB119B7672003579E0 /* like-inline.png */; };
+		225FAAF0119B7672003579E0 /* more-inline.png in Resources */ = {isa = PBXBuildFile; fileRef = 225FAAEC119B7672003579E0 /* more-inline.png */; };
+		225FAAF1119B7672003579E0 /* thread-inline.png in Resources */ = {isa = PBXBuildFile; fileRef = 225FAAED119B7672003579E0 /* thread-inline.png */; };
+		225FAAF2119B7672003579E0 /* user-inline.png in Resources */ = {isa = PBXBuildFile; fileRef = 225FAAEE119B7672003579E0 /* user-inline.png */; };
+		225FAAF5119B7B90003579E0 /* YMMessageCompanionTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 225FAAF4119B7B90003579E0 /* YMMessageCompanionTableViewCell.m */; };
+		225FAB2F119B9610003579E0 /* reply-inline.png in Resources */ = {isa = PBXBuildFile; fileRef = 225FAB2E119B9610003579E0 /* reply-inline.png */; };
+		225FABA4119BC060003579E0 /* ABTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 225FABA3119BC060003579E0 /* ABTableViewCell.m */; };
 		2293CD19119A063400AB0DD2 /* YMContact.m in Sources */ = {isa = PBXBuildFile; fileRef = 2293CD18119A063400AB0DD2 /* YMContact.m */; };
 		2293CD30119A142300AB0DD2 /* YMContactsListViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 2293CD2F119A142300AB0DD2 /* YMContactsListViewController.m */; };
 		2293CDB8119A363100AB0DD2 /* YMContactTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 2293CDB7119A363100AB0DD2 /* YMContactTableViewCell.m */; };
@@ -342,6 +351,17 @@
 		225FAA26119AB511003579E0 /* NSDate+Helper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSDate+Helper.m"; sourceTree = "<group>"; };
 		225FAA27119AB511003579E0 /* NSDate+Helper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSDate+Helper.h"; sourceTree = "<group>"; };
 		225FAA29119AB695003579E0 /* msg-bg.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "msg-bg.png"; path = "Resources/msg-bg.png"; sourceTree = "<group>"; };
+		225FAAE4119B6856003579E0 /* YMMessageCompanionTableViewCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = YMMessageCompanionTableViewCell.xib; sourceTree = "<group>"; };
+		225FAAE9119B6947003579E0 /* inline-bg.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "inline-bg.png"; path = "Resources/inline-bg.png"; sourceTree = "<group>"; };
+		225FAAEB119B7672003579E0 /* like-inline.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "like-inline.png"; path = "Resources/like-inline.png"; sourceTree = "<group>"; };
+		225FAAEC119B7672003579E0 /* more-inline.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "more-inline.png"; path = "Resources/more-inline.png"; sourceTree = "<group>"; };
+		225FAAED119B7672003579E0 /* thread-inline.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "thread-inline.png"; path = "Resources/thread-inline.png"; sourceTree = "<group>"; };
+		225FAAEE119B7672003579E0 /* user-inline.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "user-inline.png"; path = "Resources/user-inline.png"; sourceTree = "<group>"; };
+		225FAAF3119B7B90003579E0 /* YMMessageCompanionTableViewCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YMMessageCompanionTableViewCell.h; sourceTree = "<group>"; };
+		225FAAF4119B7B90003579E0 /* YMMessageCompanionTableViewCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = YMMessageCompanionTableViewCell.m; sourceTree = "<group>"; };
+		225FAB2E119B9610003579E0 /* reply-inline.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "reply-inline.png"; path = "Resources/reply-inline.png"; sourceTree = "<group>"; };
+		225FABA2119BC060003579E0 /* ABTableViewCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ABTableViewCell.h; sourceTree = "<group>"; };
+		225FABA3119BC060003579E0 /* ABTableViewCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ABTableViewCell.m; sourceTree = "<group>"; };
 		2293CD17119A063400AB0DD2 /* YMContact.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YMContact.h; sourceTree = "<group>"; };
 		2293CD18119A063400AB0DD2 /* YMContact.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = YMContact.m; sourceTree = "<group>"; };
 		2293CD2E119A142300AB0DD2 /* YMContactsListViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YMContactsListViewController.h; sourceTree = "<group>"; };
@@ -1030,6 +1050,9 @@
 				2293CDB6119A363100AB0DD2 /* YMContactTableViewCell.h */,
 				2293CDB7119A363100AB0DD2 /* YMContactTableViewCell.m */,
 				225FAA10119AB0F7003579E0 /* YMMessageTableViewCell.xib */,
+				225FAAE4119B6856003579E0 /* YMMessageCompanionTableViewCell.xib */,
+				225FAAF3119B7B90003579E0 /* YMMessageCompanionTableViewCell.h */,
+				225FAAF4119B7B90003579E0 /* YMMessageCompanionTableViewCell.m */,
 			);
 			name = "Table View Cells";
 			sourceTree = "<group>";
@@ -1050,6 +1073,8 @@
 		29B97315FDCFA39411CA2CEA /* Other Sources */ = {
 			isa = PBXGroup;
 			children = (
+				225FABA2119BC060003579E0 /* ABTableViewCell.h */,
+				225FABA3119BC060003579E0 /* ABTableViewCell.m */,
 				225FAA26119AB511003579E0 /* NSDate+Helper.m */,
 				225FAA27119AB511003579E0 /* NSDate+Helper.h */,
 				2293CE8E119A435D00AB0DD2 /* DataCache.h */,
@@ -1082,6 +1107,12 @@
 		29B97317FDCFA39411CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				225FAB2E119B9610003579E0 /* reply-inline.png */,
+				225FAAEB119B7672003579E0 /* like-inline.png */,
+				225FAAEC119B7672003579E0 /* more-inline.png */,
+				225FAAED119B7672003579E0 /* thread-inline.png */,
+				225FAAEE119B7672003579E0 /* user-inline.png */,
+				225FAAE9119B6947003579E0 /* inline-bg.png */,
 				225FAA29119AB695003579E0 /* msg-bg.png */,
 				225FA9E7119AA77F003579E0 /* syncing.png */,
 				2293CDC0119A380400AB0DD2 /* user-70.png */,
@@ -1226,6 +1257,13 @@
 				225FA9E8119AA77F003579E0 /* syncing.png in Resources */,
 				225FAA11119AB0F7003579E0 /* YMMessageTableViewCell.xib in Resources */,
 				225FAA2A119AB695003579E0 /* msg-bg.png in Resources */,
+				225FAAE5119B6856003579E0 /* YMMessageCompanionTableViewCell.xib in Resources */,
+				225FAAEA119B6947003579E0 /* inline-bg.png in Resources */,
+				225FAAEF119B7672003579E0 /* like-inline.png in Resources */,
+				225FAAF0119B7672003579E0 /* more-inline.png in Resources */,
+				225FAAF1119B7672003579E0 /* thread-inline.png in Resources */,
+				225FAAF2119B7672003579E0 /* user-inline.png in Resources */,
+				225FAB2F119B9610003579E0 /* reply-inline.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1312,6 +1350,8 @@
 				225FA8F7119A6D1F003579E0 /* YMContactDetailViewController.m in Sources */,
 				225FA982119A8AAD003579E0 /* YMContactDetailView.m in Sources */,
 				225FAA28119AB511003579E0 /* NSDate+Helper.m in Sources */,
+				225FAAF5119B7B90003579E0 /* YMMessageCompanionTableViewCell.m in Sources */,
+				225FABA4119BC060003579E0 /* ABTableViewCell.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
