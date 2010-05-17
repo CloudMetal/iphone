@@ -63,6 +63,7 @@
     @"<html><head><style>"
   @"body { font-size: 12px; font-family: Helvetica; margin: 0; padding: 10px;}"
   @"</style></head><body>%@</body></html>";
+  
   return [NSString stringWithFormat:template, self.message.bodyPlain];
 }
 
