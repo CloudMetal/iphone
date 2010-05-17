@@ -17,6 +17,7 @@
 #import <QuartzCore/QuartzCore.h>
 #import "YMMessageCompanionTableViewCell.h"
 #import "YMContactDetailViewController.h"
+#import "YMMessageDetailViewController.h"
 
 
 @interface YMMessageListViewController (PrivateStuffs)
@@ -83,7 +84,6 @@
 
 - (void) viewDidAppear:(BOOL)animated
 {
-  loadedAvatars = NO;
   [super viewDidAppear:animated];
   YMNetwork *network = (YMNetwork *)[YMNetwork findByPK:
                        intv(self.userAccount.activeNetworkPK)];
@@ -273,9 +273,7 @@ heightForRowAtIndexPath:(NSIndexPath *)indexPath
 
 - (UITableViewCell *) tableView:(UITableView *)table
 cellForRowAtIndexPath:(NSIndexPath *)indexPath
-{
-  int idx = [self rowForIndexPath:indexPath];
-  
+{  
   if (selectedIndexPath && indexPath.row == selectedIndexPath.row + 1) {
     YMMessageCompanionTableViewCell *cell;
     for (id v in [[NSBundle mainBundle] loadNibNamed:
@@ -285,10 +283,13 @@ cellForRowAtIndexPath:(NSIndexPath *)indexPath
       cell = v;
       break;
     }
-    cell.onUser = curryTS(self, @selector(gotoUserIndexPath:sender:), 
-                          [NSIndexPath indexPathForRow:idx inSection:0]);
+    NSIndexPath *onActionIndex = [NSIndexPath indexPathForRow:indexPath.row - 1 inSection:0];
+    cell.onUser = curryTS(self, @selector(gotoUserIndexPath:sender:), onActionIndex);
+    cell.onMore = curryTS(self, @selector(gotoMessageIndexPath:sender:), onActionIndex);
     return cell;
   }
+  
+  int idx = [self rowForIndexPath:indexPath];
   
   static NSString *ident = @"YMMessageCell1";
   YMMessage *message = (YMMessage *)[YMMessage findByPK:
@@ -406,14 +407,27 @@ willSelectRowAtIndexPath:(NSIndexPath *)indexPath
 
 - (id)gotoUserIndexPath:(NSIndexPath *)indexPath sender:(id)s
 {
-  int idx = [self rowForIndexPath:indexPath] - 1;
+  int idx = [self rowForIndexPath:indexPath];
   YMMessage *message = (YMMessage *)[YMMessage findByPK:
                                      intv([messagePKs objectAtIndex:idx])];
   YMContact *contact = (YMContact *)[YMContact findFirstByCriteria:
                                @"WHERE user_i_d=%i", intv(message.senderID)];
-  YMContactDetailViewController *c = [[YMContactDetailViewController alloc]
-                                      initWithStyle:UITableViewStyleGrouped];
+  YMContactDetailViewController *c = [[[YMContactDetailViewController alloc]
+                                       initWithStyle:UITableViewStyleGrouped]
+                                      autorelease];
   c.contact = contact;
+  [self.navigationController pushViewController:c animated:YES];
+  return nil;
+}
+
+- (id)gotoMessageIndexPath:(NSIndexPath *)indexPath sender:(id)s
+{
+  int idx = [self rowForIndexPath:indexPath];
+  YMMessage *m = (YMMessage *)[YMMessage findByPK:intv([messagePKs objectAtIndex:idx])];
+  YMMessageDetailViewController *c = [[[YMMessageDetailViewController alloc]
+                                       initWithStyle:UITableViewStyleGrouped]
+                                      autorelease];
+  c.message = m;
   [self.navigationController pushViewController:c animated:YES];
   return nil;
 }

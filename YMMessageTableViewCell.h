@@ -7,7 +7,6 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "ABTableViewCell.h"
 
 
 @interface YMMessageTableViewCell : UITableViewCell {

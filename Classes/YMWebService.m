@@ -410,10 +410,10 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches
 {
   NSLog(@"mm sync? %@", acct);
   NSMutableURLRequest *req = [self mutableRequestWithMethod:@"users.json" 
-                                   account:acct defaults:EMPTY_DICT];
+                                   account:acct defaults:dict_(@"1", @"page")];
   return [[[[DKDeferredURLConnection alloc]
             initWithRequest:req pauseFor:0 decodeFunction:callbackP(__decodeJSON)]
-           addCallback:curryTS(self, @selector(_gotUsers:::), acct, nsni(0))]
+           addCallback:curryTS(self, @selector(_gotUsers:::), acct, nsni(1))]
           addErrback:callbackTS(self, _getUsersFailed:)];
 }
 
