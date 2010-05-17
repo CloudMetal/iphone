@@ -10,6 +10,7 @@
 #import "SpinnerWithTextCell.h"
 #import "YammerAppDelegate.h"
 #import "NetworkList.h"
+#import "YMWebService.h"
 
 @implementation FeedMessageList
 
@@ -44,6 +45,9 @@
     
     if (![self.title isEqualToString:@"Received"])
       [NSThread detachNewThreadSelector:@selector(checkForNewMessages:) toTarget:self withObject:@"silent"];        
+    YMNetwork *network = [YMNetwork findFirstByCriteria:@"WHERE network_i_d=%i", [(id)[[UIApplication sharedApplication] delegate] network_id]];
+    YMUserAccount *acct = (id)[YMUserAccount findByPK:intv(network.userAccountPK)];
+    [[YMWebService sharedWebService] networksForUserAccount:acct];
   }
   return self;
 }
