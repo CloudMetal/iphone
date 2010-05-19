@@ -20,6 +20,7 @@
 @implementation YMMessageDetailView
 
 @synthesize message, parentViewController;
+@synthesize onUser, onTag;
 
 - (void)setMessage:(YMMessage *)m
 {
@@ -60,11 +61,14 @@
 - (NSString *)htmlValue
 {
   NSString *template = 
-    @"<html><head><style>"
-  @"body { font-size: 12px; font-family: Helvetica; margin: 0; padding: 10px;}"
+  @"<html><head><style>"
+  @"html { background-color: #f9f9f9}"
+  @"body { font-size: 13px; font-family: Helvetica; margin: 0; padding: 10px;}"
+  @"a { font-size:13px; font-weight: bold; color: white; display:inline-block; " 
+  @"    padding: 2px 3px; background-color: #256ac7; -webkit-border-radius:2px; text-decoration:none;}"
   @"</style></head><body>%@</body></html>";
   
-  return [NSString stringWithFormat:template, self.message.bodyPlain];
+  return [NSString stringWithFormat:template, self.message.bodyParsed];
 }
 
 - (void)sizeViewsToFit
@@ -82,6 +86,29 @@
   
 }
 
+- (BOOL) webView:(UIWebView *)webView shouldStartLoadWithRequest:(NSURLRequest *)request
+  navigationType:(UIWebViewNavigationType)navigationType
+{
+  static NSString *yammerUrlRegex = @"(yammer://)([a-z]+)/([0-9]+)";
+  NSLog(@"request %@ %@", request, [request.URL description]);
+  NSString *url = [request.URL description];
+  NSArray *comp = [url arrayOfCaptureComponentsMatchedByRegex:yammerUrlRegex];
+  if ([comp count]) comp = [comp objectAtIndex:0];
+  NSLog(@"comp %@", comp);
+  if ([comp count] == 4 && [[comp objectAtIndex:1] isEqual:@"yammer://"]) {
+    if ([[comp objectAtIndex:2] isEqual:@"user"]) {
+      YMContact *c = (YMContact *)[YMContact findFirstByCriteria:@"WHERE user_i_d=%@",
+                                   [comp objectAtIndex:3]];
+      NSLog(@"c %@", c);
+      if (self.onUser && c)
+        [self.onUser :c];
+    } else if ([[comp objectAtIndex:2] isEqual:@"tag"]) {
+      if (self.onTag) [self.onTag :[comp objectAtIndex:3]];
+    }
+  }
+  return NO;
+}
+
 - (IBAction)user:(id)sender {}
 - (IBAction)like:(id)sender {}
 - (IBAction)thread:(id)sender {}
@@ -93,10 +120,13 @@
 
 - (void)dealloc
 {
+  [fromContact release];
+  [toContact release];
+  self.onTag = nil;
+  self.onUser = nil;
   self.message = nil;
   [super dealloc];
 }
-
 
 @end
 

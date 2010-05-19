@@ -64,6 +64,7 @@
 // high performance contact image caching
 - (DKDeferred *)loadCachedContactImagesForUserAccount:(YMUserAccount *)acct;
 - (void)purgeCachedContactImages;
+- (void)writeCachedContactImages;
 - (id)imageForURLInMemoryCache:(NSString *)url;
 - (DKDeferred *)contactImageForURL:(NSString *)url;
 
@@ -88,45 +89,44 @@
 - (DKDeferred *)networksForUserAccount:(YMUserAccount *)acct;
 
 
-/**
- Takes a YMUserAccount and calls back with all messages from the company-wide feed
- from the `activeNetworkPK` of the user account provided. Calls back with a list
- of YMMessage objects.
- 
- This method requires that `activeNetworkPK` be set on the user's account and that
- the YMNetwork with that PK has been fetched and has updated OAuth token/secret info.
- */
-- (DKDeferred *)getMessages:(YMUserAccount *)acct params:(NSDictionary *)params;
+///**
+// Takes a YMUserAccount and calls back with all messages from the company-wide feed
+// from the `activeNetworkPK` of the user account provided. Calls back with a list
+// of YMMessage objects.
+// 
+// This method requires that `activeNetworkPK` be set on the user's account and that
+// the YMNetwork with that PK has been fetched and has updated OAuth token/secret info.
+// */
+////- (DKDeferred *)getMessages:(YMUserAccount *)acct params:(NSDictionary *)params;
+//
+///**
+// Takes a YMUserAccount and calls back with all messages from the provided target.
+// IE: YMMessageTargetSent will return a list of messages the user received in their
+// `activeNetworkPK`.
+// 
+// This method requires that `activeNetworkPK` be set on the user's account and that
+// the YMNetwork with that PK has been fetched and has updated OAuth token/secret info.
+// 
+// Example:
+// 
+// You can query the most recent 20 messages delivered to you like this:
+// 
+// [[YMWebService sharedService]
+//  getMessages:myAccount withTarget:
+//  YMMessageTargetReceived params:nil]
+// 
+// */
+////- (DKDeferred *)getMessages:(YMUserAccount *)acct 
+////                 withTarget:(id)target 
+////                     params:(NSDictionary *)params;
+//
+///**
+// Similar to `getMessage:withTarget:params` except you can provide a target ID. Some 
+// message targets require an ID like YMMessageTargetInGroup will require the group ID.
+// */
 
-/**
- Takes a YMUserAccount and calls back with all messages from the provided target.
- IE: YMMessageTargetSent will return a list of messages the user received in their
- `activeNetworkPK`.
- 
- This method requires that `activeNetworkPK` be set on the user's account and that
- the YMNetwork with that PK has been fetched and has updated OAuth token/secret info.
- 
- Example:
- 
- You can query the most recent 20 messages delivered to you like this:
- 
- [[YMWebService sharedService]
-  getMessages:myAccount withTarget:
-  YMMessageTargetReceived params:nil]
- 
- */
-- (DKDeferred *)getMessages:(YMUserAccount *)acct 
-                 withTarget:(id)target 
-                     params:(NSDictionary *)params;
-
-/**
- Similar to `getMessage:withTarget:params` except you can provide a target ID. Some 
- message targets require an ID like YMMessageTargetInGroup will require the group ID.
- */
-- (DKDeferred *)getMessages:(YMUserAccount *)acct 
-                 withTarget:(id)target 
-                     withID:(NSString *)targetID
-                     params:(NSDictionary *)params;
+- (DKDeferred *)getMessages:(YMUserAccount *)acct withTarget:(NSString *)target 
+withID:(NSNumber *)targetID params:(NSDictionary *)params fetchToID:(NSNumber *)toID;
 
 /**
  Posts a new message to the supplied YMUserAccount's `activeNetworkPK`. `replyOpts`

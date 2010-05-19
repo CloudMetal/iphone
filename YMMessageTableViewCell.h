@@ -20,3 +20,20 @@
 @property (nonatomic, readwrite, assign) UILabel *titleLabel, *bodyLabel, *dateLabel;
 
 @end
+
+@interface YMFastMessageTableViewCell : UITableViewCell
+{
+  UIView *contentView;
+  NSString *title;
+  NSString *body;
+  NSString *date;
+  UIImage *avatar;
+  UIImageView *imageView;
+}
+
+@property(nonatomic, copy) NSString *title, *body, *date;
+@property(nonatomic, retain) UIImage *avatar;
+
+- (void)drawContentView:(CGRect)r;
+
+@end

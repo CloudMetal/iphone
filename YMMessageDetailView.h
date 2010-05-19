@@ -12,7 +12,7 @@
 @class YMWebService;
 @class YMContact;
 
-@interface YMMessageDetailView : UIView {
+@interface YMMessageDetailView : UIView <UIWebViewDelegate> {
   IBOutlet UIButton *userButton, *likeButton, *threadButton,
   *replyButton, *bookmarkButton, *attachmentsButton, *sendButton, *followButton;
   IBOutlet UILabel *titleLabel, *dateLabel;
@@ -23,11 +23,13 @@
   YMContact *fromContact;
   YMContact *toContact;
   YMWebService *web;
+  id<DKCallback> onUser, onTag;
 }
 
 @property(nonatomic, readwrite, retain) YMMessage *message;
 @property(nonatomic, readonly) NSString *htmlValue;
 @property(nonatomic, assign) UIViewController *parentViewController;
+@property(nonatomic, readwrite, retain) id<DKCallback> onUser, onTag;
 
 - (IBAction)user:(id)sender;
 - (IBAction)like:(id)sender;

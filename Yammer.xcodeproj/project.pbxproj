@@ -340,8 +340,8 @@
 		00FA2D141097A51300C6F2DF /* SettingsSwitchNetwork.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SettingsSwitchNetwork.h; sourceTree = "<group>"; };
 		00FA2D151097A51300C6F2DF /* SettingsSwitchNetwork.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SettingsSwitchNetwork.m; sourceTree = "<group>"; };
 		1D30AB110D05D00D00671497 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
-		1D3623240D0F684500981E51 /* YammerAppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YammerAppDelegate.h; sourceTree = "<group>"; };
-		1D3623250D0F684500981E51 /* YammerAppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = YammerAppDelegate.m; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objc; };
+		1D3623240D0F684500981E51 /* YammerAppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = YammerAppDelegate.h; path = Classes/YammerAppDelegate.h; sourceTree = "<group>"; };
+		1D3623250D0F684500981E51 /* YammerAppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = YammerAppDelegate.m; path = Classes/YammerAppDelegate.m; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objc; };
 		1D6058910D05DD3D006BFB54 /* Yammer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Yammer.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		1DF5F4DF0D08C38300B7A737 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		22131F9A11936C860092F094 /* YMMessage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = YMMessage.h; path = Classes/YMMessage.h; sourceTree = "<group>"; };
@@ -808,8 +808,6 @@
 				00901EBA10447C2A008E7C7D /* TTTable */,
 				00901EE1104481D1008E7C7D /* DataSources */,
 				00901E751044670D008E7C7D /* CoreClasses */,
-				1D3623240D0F684500981E51 /* YammerAppDelegate.h */,
-				1D3623250D0F684500981E51 /* YammerAppDelegate.m */,
 			);
 			path = Classes;
 			sourceTree = "<group>";
@@ -1084,6 +1082,8 @@
 			children = (
 				22A3B1511177CB24006337B5 /* New Classes */,
 				080E96DDFE201D6D7F000001 /* Classes */,
+				1D3623240D0F684500981E51 /* YammerAppDelegate.h */,
+				1D3623250D0F684500981E51 /* YammerAppDelegate.m */,
 				29B97315FDCFA39411CA2CEA /* Other Sources */,
 				29B97317FDCFA39411CA2CEA /* Resources */,
 				29B97323FDCFA39411CA2CEA /* Frameworks */,

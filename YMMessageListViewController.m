@@ -35,6 +35,23 @@
 
 @synthesize target, targetID, olderThan, newerThan, threaded, userAccount, selectedIndexPath;
 
+- (id)init
+{
+  if ((self = [super init])) {
+    self.title = @"Messages";
+    
+    self.target = YMMessageTargetAll;
+    self.targetID = nil;
+    self.olderThan = nil;
+    self.newerThan = nil;
+    self.threaded = nsnb(NO);
+    loadedAvatars = NO;
+    shouldRearrangeWhenDeselecting = YES;
+    shouldScrollToTop = YES;
+  }
+  return self;
+}
+
 - (void)loadView
 {
   self.tableView = [[UITableView alloc] initWithFrame:
@@ -62,15 +79,38 @@
             initWithBarButtonSystemItem:UIBarButtonSystemItemCompose 
             target:self action:@selector(composeNew:)]);
   
-  self.title = @"Messages";
+  UIView *tf = [[[UIView alloc] initWithFrame:CGRectMake(0, 0, 320, 76)] autorelease];
+  tf.autoresizingMask = UIViewAutoresizingFlexibleWidth;
+  moreButton = [[UIButton buttonWithType:UIButtonTypeCustom] retain];
+  moreButton.frame = CGRectMake(0, 32, 320, 44);
+  moreButton.autoresizingMask = UIViewAutoresizingFlexibleWidth;
+  [moreButton setTitleColor:[UIColor colorWithHexString:@"646464"] forState:UIControlStateNormal];
+  [moreButton setTitle:@"Load More" forState:UIControlStateNormal];
+  moreButton.titleLabel.font = [UIFont boldSystemFontOfSize:14];
+  [moreButton setBackgroundColor:[UIColor colorWithHexString:@"f2f2f2"]];
+  [moreButton addTarget:self action:@selector(loadMore:) forControlEvents:UIControlEventTouchUpInside];
+  [tf addSubview:moreButton];
   
-  self.target = YMMessageTargetAll;
-  self.targetID = nil;
-  self.olderThan = nil;
-  self.newerThan = nil;
-  self.threaded = nsnb(NO);
-  loadedAvatars = NO;
-  shouldRearrangeWhenDeselecting = YES;
+  totalLoadedLabel = [[[UILabel alloc] initWithFrame:CGRectMake(0, 0, 320, 32)] retain];
+  totalLoadedLabel.text = @"0 Messages Loaded";
+  totalLoadedLabel.font = [UIFont boldSystemFontOfSize:13];
+  totalLoadedLabel.textAlignment = UITextAlignmentCenter;
+  totalLoadedLabel.backgroundColor = [UIColor whiteColor];
+  [tf addSubview:totalLoadedLabel];
+  
+  self.tableView.tableFooterView = tf;
+  
+  refreshButton = [[UIButton buttonWithType:UIButtonTypeCustom] retain];
+  refreshButton.frame = CGRectMake(0, 0, 320, 44);
+  [refreshButton setImage:[UIImage imageNamed:@"refresh.png"] forState:UIControlStateNormal];
+  refreshButton.autoresizingMask = UIViewAutoresizingFlexibleWidth;
+  [refreshButton setImageEdgeInsets:UIEdgeInsetsMake(0, -20, 0, 0)];
+  [refreshButton setTitleColor:[UIColor colorWithHexString:@"646464"] forState:UIControlStateNormal];
+  refreshButton.titleLabel.font = [UIFont systemFontOfSize:13];
+  [refreshButton setBackgroundColor:[UIColor colorWithHexString:@"f2f2f2"]];
+  [refreshButton setTitle:@"Refresh" forState:UIControlStateNormal];
+  [refreshButton addTarget:self action:@selector(refreshFeed:) forControlEvents:UIControlEventTouchUpInside];
+  self.tableView.tableHeaderView = refreshButton;
   
   if (!web) web = [YMWebService sharedWebService];
 }
@@ -79,6 +119,9 @@
 {
   self.selectedIndexPath = nil;
   [self refreshMessagePKs];
+  if (!loadedAvatars)
+    [[web loadCachedContactImagesForUserAccount:self.userAccount]
+     addCallback:callbackTS(self, _imagesLoaded:)];
   [super viewWillAppear:animated];
 }
 
@@ -103,7 +146,17 @@
   } else {
     [self doReload:nil];
   }
+  if (shouldScrollToTop && [messagePKs count]) {
+    [self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0] 
+                          atScrollPosition:UITableViewScrollPositionTop animated:YES];
+    shouldScrollToTop = NO;
+  }
+}
 
+- (void)viewWillDisappear:(BOOL)animated
+{
+  [web writeCachedContactImages];
+  [super viewWillDisappear:animated];
 }
 
 - (id)doReload:(id)arg
@@ -113,16 +166,25 @@
     [lastView release];
     lastView = nil;
   }
-  if (!loadedAvatars)
-    return [[web loadCachedContactImagesForUserAccount:self.userAccount]
-            addCallback:callbackTS(self, _imagesLoaded:)];
+
   [self.tableView reloadData];
-  [[StatusBarNotifier sharedNotifier] flashLoading:@"Refreshing Messages" 
-     deferred:[[[web getMessages:self.userAccount params:EMPTY_DICT]
-    addCallback:curryTS(self, @selector(_gotMessages::::), 
-                        self.userAccount, self.target, 
-                        (self.targetID == nil ? (id)[NSNull null] : self.targetID))]
-   addErrback:callbackTS(self, _failedGetMessages:)]];
+  
+  DKDeferred *d;
+  NSMutableDictionary *opts = [NSMutableDictionary dictionary];
+  
+  if (olderThan)
+    [opts setObject:[olderThan description] forKey:@"older_than"];
+  if (newerThan)
+    [opts setObject:[newerThan description] forKey:@"newer_than"];
+  if (PREF_KEY(@"lastSeenMessageID"))
+    [opts setObject:[PREF_KEY(@"lastSeenMessageID") description] 
+             forKey:@"last_seen_message_id"];
+  
+  d = [web getMessages:self.userAccount withTarget:target withID:targetID 
+                params:opts fetchToID:newerThan];
+  [d addCallback:callbackTS(self, _gotMessages:)];
+  [d addErrback:callbackTS(self, _failedGetMessages:)];
+  [[StatusBarNotifier sharedNotifier] flashLoading:@"Refreshing Messages" deferred:d];
   
   return arg;
 }
@@ -133,6 +195,36 @@
   loadedAvatars = YES;
   [self doReload:nil];
   return arg;
+}
+
+- (void)loadMore:(id)sender
+{
+  if ([messagePKs count]) {
+    YMMessage *last = (YMMessage *)[YMMessage findByPK:
+                                    intv([messagePKs lastObject])];
+    if (last)
+      olderThan = [last.messageID retain];
+    else
+      olderThan = nil;
+    if (newerThan)
+      newerThan = nil;
+  }
+  [self doReload:nil];
+}
+
+- (void)refreshFeed:(id)sender
+{
+  if ([messagePKs count]) {
+    YMMessage *first = (YMMessage *)[YMMessage findByPK:
+                                     intv([messagePKs objectAtIndex:0])];
+    if (first)
+      newerThan = [first.messageID retain];
+    else
+      newerThan = nil;
+    if (olderThan)
+      olderThan = nil;
+  }
+  [self doReload:nil];
 }
 
 - (void)gotoUsers:(id)sender
@@ -161,12 +253,22 @@
 {
 }
 
-- (id)_gotMessages:(YMUserAccount *)acct :(id)_target :(id)_targetID :(id)results 
+- (id)_gotMessages:(id)results
 {
   shouldRearrangeWhenDeselecting = NO;
   self.selectedIndexPath = nil;
   shouldRearrangeWhenDeselecting = YES;
   [self refreshMessagePKs];
+  if ([messagePKs count]) {
+    YMMessage *mostRecent = (YMMessage *)[YMMessage findByPK:
+                                          intv([messagePKs objectAtIndex:0])];
+    PREF_SET(@"lastSeenMessageID", mostRecent.messageID);
+  }
+  [lastUpdated release];
+  lastUpdated = [[NSDate date] retain];
+  [refreshButton setTitle:[NSString stringWithFormat:@"Refresh (last updated %@)",
+                           [NSDate stringForDisplayFromDate:lastUpdated]] 
+                 forState:UIControlStateNormal];
   [self.tableView reloadData];
   return results;
 }
@@ -187,6 +289,7 @@
 
 - (void)refreshMessagePKs
 {
+  // this is optimized more for speed than clarity...
   if (messagePKs) [messagePKs release];
   messagePKs = nil;
   if (titles) [titles release];
@@ -195,6 +298,8 @@
   mugshotURLs = nil;
   if (mugshots) [mugshots release];
   mugshots = nil;
+  if (newerThan) [newerThan release];
+  newerThan = nil;
   
   NSArray *a = [YMMessage pairedArraySelect:[NSString stringWithFormat:
                 @"SELECT y_m_message.pk, y_m_contact.mugshot_u_r_l, y_m_contact.full_name, "
@@ -226,6 +331,13 @@
       [_titles addObject:[tit stringByAppendingFormat:@" re: %@", rtit]];
   }
   titles = [_titles retain];
+  if ([messagePKs count])
+    newerThan = [[(YMMessage *)[YMMessage findByPK:
+              intv([messagePKs objectAtIndex:0])] messageID] retain];
+  else newerThan = nil;
+  
+  totalLoadedLabel.text = [NSString stringWithFormat:@"%i messages loaded",
+                           [messagePKs count]];
 }
 
 - (NSInteger)rowForIndexPath:(NSIndexPath *)indexPath
@@ -286,6 +398,7 @@ cellForRowAtIndexPath:(NSIndexPath *)indexPath
     NSIndexPath *onActionIndex = [NSIndexPath indexPathForRow:indexPath.row - 1 inSection:0];
     cell.onUser = curryTS(self, @selector(gotoUserIndexPath:sender:), onActionIndex);
     cell.onMore = curryTS(self, @selector(gotoMessageIndexPath:sender:), onActionIndex);
+    cell.onThread = curryTS(self, @selector(gotoThreadIndexPath:sender:), onActionIndex);
     return cell;
   }
   
@@ -295,19 +408,27 @@ cellForRowAtIndexPath:(NSIndexPath *)indexPath
   YMMessage *message = (YMMessage *)[YMMessage findByPK:
          intv([messagePKs objectAtIndex:idx])];
   
-  YMMessageTableViewCell *cell = (YMMessageTableViewCell *)
-    [table dequeueReusableCellWithIdentifier:ident];
-  if (!cell) {
-    for (UIView *v in [[NSBundle mainBundle] loadNibNamed:
-                       @"YMMessageTableViewCell" owner:nil options:nil]) {
-      if (![v isMemberOfClass:
-            [YMMessageTableViewCell class]]) continue;
-      cell = (YMMessageTableViewCell *)v;
-      break;
-    }
-  }
+//  YMMessageTableViewCell *cell = (YMMessageTableViewCell *)
+//    [table dequeueReusableCellWithIdentifier:ident];
+//  if (!cell) {
+//    for (UIView *v in [[NSBundle mainBundle] loadNibNamed:
+//                       @"YMMessageTableViewCell" owner:nil options:nil]) {
+//      if (![v isMemberOfClass:
+//            [YMMessageTableViewCell class]]) continue;
+//      cell = (YMMessageTableViewCell *)v;
+//      break;
+//    }
+//  }
   
-  cell.avatarImageView.image = [UIImage imageNamed:@"user-70.png"];
+//  cell.avatarImageView.image = [UIImage imageNamed:@"user-70.png"];
+  
+  
+  YMFastMessageTableViewCell *cell = (YMFastMessageTableViewCell *)
+    [table dequeueReusableCellWithIdentifier:ident];
+  if (!cell) cell = [[[YMFastMessageTableViewCell alloc] initWithFrame:
+                      CGRectMake(0, 0, 320, 60) reuseIdentifier:ident] autorelease];
+  
+  cell.avatar = [UIImage imageNamed:@"user-70.png"];
   id img = [mugshots objectAtIndex:idx];
   NSString *ms = [mugshotURLs objectAtIndex:idx];
   if ([img isEqual:[NSNull null]]) {
@@ -319,32 +440,37 @@ cellForRowAtIndexPath:(NSIndexPath *)indexPath
       [mugshots replaceObjectAtIndex:idx withObject:[UIImage imageNamed:@"user-70.png"]];
     }
   } else {
-    cell.avatarImageView.image = img;
+//    cell.avatarImageView.image = img;
+//    cell.image = 
+    cell.avatar = img;
   }
 
-  cell.avatarImageView.layer.masksToBounds = YES;
-  cell.avatarImageView.layer.borderColor = [UIColor colorWithWhite:.5 alpha:1].CGColor;
-  cell.avatarImageView.layer.cornerRadius = 3;
-  cell.avatarImageView.layer.borderWidth = 1;
+//  cell.avatarImageView.layer.masksToBounds = YES;
+//  cell.avatarImageView.layer.borderColor = [UIColor colorWithWhite:.5 alpha:1].CGColor;
+//  cell.avatarImageView.layer.cornerRadius = 3;
+//  cell.avatarImageView.layer.borderWidth = 1;
   if (selectedIndexPath && selectedIndexPath.row == idx) {
-    CGFloat expandedHeight = [self expandedHeightOfRow:idx];
-    CGRect f = cell.bodyLabel.frame;
-    cell.bodyLabel.frame = CGRectMake(f.origin.x, f.origin.y,
-                                      f.size.width, expandedHeight - 32.0);
-    CGRect f2 = cell.frame;
-    cell.frame = CGRectMake(f2.origin.x, f2.origin.y, f2.size.width, expandedHeight);
-    cell.bodyLabel.numberOfLines = 0;
+//    CGFloat expandedHeight = [self expandedHeightOfRow:idx];
+//    CGRect f = cell.bodyLabel.frame;
+//    cell.bodyLabel.frame = CGRectMake(f.origin.x, f.origin.y,
+//                                      f.size.width, expandedHeight - 32.0);
+//    CGRect f2 = cell.frame;
+//    cell.frame = CGRectMake(f2.origin.x, f2.origin.y, f2.size.width, expandedHeight);
+//    cell.bodyLabel.numberOfLines = 0;
   } else {
-    CGRect f = cell.bodyLabel.frame;
-    cell.bodyLabel.frame = CGRectMake(f.origin.x, f.origin.y,
-                                      f.size.width, 28.0);
-    CGRect f2 = cell.frame;
-    cell.frame = CGRectMake(f2.origin.x, f2.origin.y, f2.size.width, 60.0);
-    cell.bodyLabel.numberOfLines = 2;
+//    CGRect f = cell.bodyLabel.frame;
+//    cell.bodyLabel.frame = CGRectMake(f.origin.x, f.origin.y,
+//                                      f.size.width, 28.0);
+//    CGRect f2 = cell.frame;
+//    cell.frame = CGRectMake(f2.origin.x, f2.origin.y, f2.size.width, 60.0);
+//    cell.bodyLabel.numberOfLines = 2;
   }
-  cell.bodyLabel.text = message.bodyPlain;
-  cell.dateLabel.text = [NSDate stringForDisplayFromDate:message.createdAt];
-  cell.titleLabel.text = [titles objectAtIndex:idx];
+//  cell.bodyLabel.text = message.bodyPlain;
+//  cell.dateLabel.text = [NSDate stringForDisplayFromDate:message.createdAt];
+//  cell.titleLabel.text = [titles objectAtIndex:idx];
+  cell.body = message.bodyPlain;
+  cell.date = [NSDate stringForDisplayFromDate:message.createdAt];
+  cell.title = [titles objectAtIndex:idx];
   
   return cell;
 }
@@ -361,8 +487,9 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 willSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
   if (selectedIndexPath) {
-    int idx = [self rowForIndexPath:indexPath];
-    if (selectedIndexPath.row + 1 == idx) return nil;
+//    int idx = [self rowForIndexPath:indexPath];
+//    if (selectedIndexPath.row + 1 == idx) return nil;
+    if (selectedIndexPath.row + 1 == indexPath.row) return nil;
     self.selectedIndexPath = nil;
     return nil;
   }
@@ -397,10 +524,10 @@ willSelectRowAtIndexPath:(NSIndexPath *)indexPath
   int idx = [self rowForIndexPath:indexPath];
   if ([result isKindOfClass:[UIImage class]]) {
     [mugshots replaceObjectAtIndex:idx withObject:result];
-    YMMessageTableViewCell *cell = (YMMessageTableViewCell *)
+    YMFastMessageTableViewCell *cell = (YMFastMessageTableViewCell *)
     [self.tableView cellForRowAtIndexPath:
      [NSIndexPath indexPathForRow:idx inSection:0]];
-    if (cell) cell.avatarImageView.image = result;
+    if (cell) cell.avatar = result;
   }
   return nil;
 }
@@ -416,6 +543,7 @@ willSelectRowAtIndexPath:(NSIndexPath *)indexPath
                                        initWithStyle:UITableViewStyleGrouped]
                                       autorelease];
   c.contact = contact;
+  c.userAccount = self.userAccount;
   [self.navigationController pushViewController:c animated:YES];
   return nil;
 }
@@ -428,6 +556,19 @@ willSelectRowAtIndexPath:(NSIndexPath *)indexPath
                                        initWithStyle:UITableViewStyleGrouped]
                                       autorelease];
   c.message = m;
+  c.userAccount = self.userAccount;
+  [self.navigationController pushViewController:c animated:YES];
+  return nil;
+}
+
+- (id)gotoThreadIndexPath:(NSIndexPath *)indexPath sender:(id)s
+{
+  int idx = [self rowForIndexPath:indexPath];
+  YMMessage *m = (YMMessage *)[YMMessage findByPK:intv([messagePKs objectAtIndex:idx])];
+  YMMessageListViewController *c = [[[YMMessageListViewController alloc] init] autorelease];
+  c.userAccount = self.userAccount;
+  c.target = YMMessageTargetInThread;
+  c.targetID = m.threadID;
   [self.navigationController pushViewController:c animated:YES];
   return nil;
 }

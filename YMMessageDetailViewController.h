@@ -12,14 +12,17 @@
 //@class YMMessageDetailView, YMMessage, YMWebService;
 
 @class YMMessage;
+@class YMUserAccount;
 @class YMWebService;
 
 @interface YMMessageDetailViewController : UITableViewController {
   YMMessageDetailView *detailView;
   YMMessage *message;
   YMWebService *web;
+  YMUserAccount *userAccount;
 }
 
 @property (nonatomic, readwrite, retain) YMMessage *message;
+@property (nonatomic, readwrite, retain) YMUserAccount *userAccount;
 
 @end

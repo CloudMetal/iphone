@@ -75,6 +75,12 @@
   [super viewDidAppear:animated];
 }
 
+- (void)viewWillDisappear:(BOOL)animated
+{
+  [web writeCachedContactImages];
+  [super viewWillDisappear:animated];
+}
+
 - (void)doSync:(id)sender
 {
   [[[StatusBarNotifier sharedNotifier]

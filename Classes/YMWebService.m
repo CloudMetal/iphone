@@ -26,6 +26,9 @@ account:(YMUserAccount *)acct defaults:(NSDictionary *)defaults;
 - (id)mutableMultipartRequestWithMethod:(id)method 
 account:(YMUserAccount *)acct defaults:(NSDictionary *)defs;
 
+- (NSString *)parseMessageBody:(NSString *)parsedBody 
+                withReferences:(NSDictionary *)refs;
+
 - (id)contactImageCache;
 - (id)deferredDiskCache;
 
@@ -253,7 +256,7 @@ id _nil(id r)
   }
   return networks;
 }
-
+/***/
 - (id)_failedGetNetworksAndTokens:(NSError *)error
 {
   NSLog(@"_failedGetNetowrksAndTokens: %@ %@", error, [error userInfo]);
@@ -263,53 +266,69 @@ id _nil(id r)
 #pragma mark -
 #pragma mark Messages
 
-- (DKDeferred *)getMessages:(YMUserAccount *)acct params:(NSDictionary *)params
-{
-  return [[[DKDeferredURLConnection alloc] initWithRequest:
-           [self mutableRequestWithMethod:@"messages.json" account:acct defaults:params]
-           pauseFor:0 decodeFunction:callbackP(__decodeJSON)]
-          addCallback:curryTS(self, @selector(_gotMessages::::), acct, 
-                              YMMessageTargetAll, [NSNull null])];
-}
+//- (DKDeferred *)getMessages:(YMUserAccount *)acct params:(NSDictionary *)params
+//{
+//  NSString *fetchTo = @"";
+//  if ([params objectForKey:@"newer_than"])
+//    fetchTo = [params objectForKey:@"newer_than"];
+//  return [[[DKDeferredURLConnection alloc] initWithRequest:
+//           [self mutableRequestWithMethod:@"messages.json" account:acct defaults:params]
+//           pauseFor:0 decodeFunction:callbackP(__decodeJSON)]
+//          addCallback:curryTS(self, @selector(_gotMessages:::::), acct, 
+//                              YMMessageTargetAll, [NSNull null])];
+//}
+//
+//- (DKDeferred *)getMessages:(YMUserAccount *)acct 
+//withTarget:(id)target params:(NSDictionary *)params
+//{
+//  return [[[DKDeferredURLConnection alloc] initWithRequest:
+//           [self mutableRequestWithMethod:
+//            [NSString stringWithFormat:@"messages/%@.json", target]
+//           account:acct defaults:params]
+//          pauseFor:0 decodeFunction:callbackP(__decodeJSON)]
+//          addCallback:curryTS(self, @selector(_gotMessages:::::), acct, 
+//                             target, [NSNull null])];
+//}
 
-- (DKDeferred *)getMessages:(YMUserAccount *)acct 
-withTarget:(id)target params:(NSDictionary *)params
+- (DKDeferred *)getMessages:(YMUserAccount *)acct withTarget:(NSString *)target 
+withID:(NSNumber *)targetID params:(NSDictionary *)params fetchToID:(NSNumber *)toID 
 {
+  NSString *method = nil;
+  target = (target ? target : YMMessageTargetAll);
+  if (targetID && ![targetID isEqual:[NSNull null]]) 
+    method = [NSString stringWithFormat:
+              @"messages/%@/%@.json", target, targetID];
+  else if (![target isEqual:YMMessageTargetAll])
+    method = [NSString stringWithFormat:@"%@.json", target];
+  else
+    method = @"messages.json";
+  
   return [[[DKDeferredURLConnection alloc] initWithRequest:
-           [self mutableRequestWithMethod:
-            [NSString stringWithFormat:@"messages/%@.json", target]
-           account:acct defaults:params]
-          pauseFor:0 decodeFunction:callbackP(__decodeJSON)]
-         addCallback:curryTS(self, @selector(_gotMessages::::), acct, 
-                             target, [NSNull null])];
-}
-
-- (DKDeferred *)getMessages:(YMUserAccount *)acct 
-withTarget:(id)target withID:(NSString *)targetID params:(NSDictionary *)params
-{
-  return [[[DKDeferredURLConnection alloc] initWithRequest:
-           [self mutableRequestWithMethod:
-            [NSString stringWithFormat:
-             @"messages/%@/%@.json", target, targetID]
+           [self mutableRequestWithMethod:method
             account:acct defaults:params]
            pauseFor:0 decodeFunction:callbackP(__decodeJSON)]
-          addCallback:curryTS(self, @selector(_gotMessages::::), acct,
-                              target, targetID)];
+          addCallback:
+          curryTS(self, @selector(_gotMessages:target:targetID:page:fetchToID:results:), 
+                  acct, target, (targetID ? targetID : (id)[NSNull null]),
+                  nsni(1), (toID ? toID : (id)[NSNull null]))];
 }
 
-- (id)_gotMessages:(YMUserAccount *)acct :(id)target :(id)targetID :(id)results
+- (id)_gotMessages:(YMUserAccount *)acct target:(id)target targetID:(id)targetID
+page:(id)page fetchToID:(id)toID results:(id)results
 {
-//  NSLog(@"gotMessages %@", results);
   NSMutableArray *ret = [NSMutableArray array];
   NSDateFormatter *formatter = [[[NSDateFormatter alloc] init] autorelease];
   [formatter setDateFormat:@"yyyy/MM/dd HH:mm:ss ZZ"];
+  BOOL fetchToIdFound = NO;
+  BOOL fetchingTo = ![toID isEqual:[NSNull null]];
   
   if ([[results objectForKey:@"messages"] count]) {
     SQLiteInstanceManager *db = [SQLiteInstanceManager sharedManager];
     
     NSArray *existingMessageIDs = 
       [YMMessage pairedArraysForProperties:array_(@"messageID") withCriteria:
-       [NSString stringWithFormat:@"WHERE network_p_k=%i AND target='%@'%@", intv(acct.activeNetworkPK), target, 
+       [NSString stringWithFormat:@"WHERE network_p_k=%i AND target='%@'%@",
+        intv(acct.activeNetworkPK), target, 
         (![targetID isEqual:[NSNull null]] 
          ? [NSString stringWithFormat:@" AND target_i_d='%@'", targetID] 
          : @"")]];
@@ -317,6 +336,8 @@ withTarget:(id)target withID:(NSString *)targetID params:(NSDictionary *)params
     NSMutableArray *existings = [NSMutableArray array];
     for (NSString *existingIDAsString in [existingMessageIDs objectAtIndex:1])
       [existings addObject:nsni([existingIDAsString intValue])];
+    if (fetchingTo)
+      fetchToIdFound = [existings containsObject:toID];
     
     [db executeUpdateSQL:@"BEGIN TRANSACTION;"];
     
@@ -331,7 +352,8 @@ withTarget:(id)target withID:(NSString *)targetID params:(NSDictionary *)params
         message.repliedToID = _nil([m objectForKey:@"replied_to_id"]);
         message.threadID = _nil([m objectForKey:@"thread_id"]);
         message.bodyPlain = [[m objectForKey:@"body"] objectForKey:@"plain"];
-        message.bodyParsed = [[m objectForKey:@"body"] objectForKey:@"parsed"];
+        message.bodyParsed = [self parseMessageBody:[[m objectForKey:@"body"] objectForKey:@"parsed"]
+                                     withReferences:[results objectForKey:@"references"]];
         message.messageType = [m objectForKey:@"message_type"];
         message.clientType = [m objectForKey:@"client_type"];
         message.senderID = [m objectForKey:@"sender_id"];
@@ -343,6 +365,7 @@ withTarget:(id)target withID:(NSString *)targetID params:(NSDictionary *)params
         message.target = target;
         message.targetID = (![targetID isEqual:[NSNull null]] ? targetID : nil);
         
+        // connect important references
         if (message.repliedToID) {
           for (NSDictionary *ref in [results objectForKey:@"references"]) {
             if ([[ref objectForKey:@"type"] isEqual:@"message"] 
@@ -354,16 +377,79 @@ withTarget:(id)target withID:(NSString *)targetID params:(NSDictionary *)params
         }
         
         [message save];
-        
         [ret addObject:message];
+        
+        if (fetchingTo && !fetchToIdFound && intv([m objectForKey:@"id"]) == intv(toID))
+          fetchToIdFound = YES;
+        
+      } else {
+        [ret addObject:[YMMessage findFirstByCriteria:@"WHERE message_i_d=%@", 
+                        [m objectForKey:@"id"]]];
       }
-      
-      
     }
     [db executeUpdateSQL:@"COMMIT TRANSACTION;"];
   }
   
-  return ret;
+  if (fetchingTo && !fetchToIdFound && intv(page) < 5 && [ret count]) {
+    NSMutableDictionary *params = [NSMutableDictionary dictionary];
+    YMMessage *lastFetched = [ret lastObject];
+    [params setObject:[lastFetched.messageID description] forKey:@"older_than"];
+    [params setObject:[toID description] forKey:@"newer_than"];
+    [params setObject:[[[ret objectAtIndex:0] messageID] description] 
+               forKey:@"last_seen_message_id"];
+    
+    DKDeferred *d = [self getMessages:acct withTarget:target withID:targetID
+                               params:params fetchToID:toID];
+    return [d addCallback:
+     curryTS(self, @selector(_gotMessages:target:targetID:page:fetchToID:results:),
+             acct, target, targetID, nsni(intv(page)+1), toID)];
+  }
+  
+  return [NSArray array];
+}
+
+- (NSString *)parseMessageBody:(NSString *)parsedBody withReferences:(NSDictionary *)refs
+{
+  static NSCharacterSet *openBracketSet = nil;
+  static NSCharacterSet *closeBracketSet = nil;
+  static NSString *parsedBodyRegex = @"\\[\\[([a-z]+:[0-9]+)\\]\\]";
+  static RKLRegexOptions opts = (RKLCaseless | RKLMultiline 
+                                 | RKLDotAll | RKLUnicodeWordBoundaries);
+  
+  if (!openBracketSet) 
+    openBracketSet = [[NSCharacterSet characterSetWithCharactersInString:@"["] retain];
+  if (!closeBracketSet) 
+    closeBracketSet = [[NSCharacterSet characterSetWithCharactersInString:@"]"] retain];
+  
+  NSMutableString *html = [NSMutableString string];
+  int idx = 0;
+  
+  while (idx <= [parsedBody length]) {
+    NSRange match = [parsedBody rangeOfRegex:parsedBodyRegex options:opts inRange:
+                     NSMakeRange(idx, [parsedBody length] - idx) capture:0 error:nil];
+    if (match.location != NSNotFound) { 
+      [html appendString:[parsedBody substringWithRange:NSMakeRange(idx, match.location - idx)]];
+      idx = match.location + match.length;
+    } 
+    else break;
+    
+    // TODO: this could be optimized
+    NSArray *typeAndID = [[parsedBody substringWithRange:match]
+                          componentsSeparatedByString:@":"];
+    NSString *typ = [[typeAndID objectAtIndex:0] stringByTrimmingCharactersInSet:openBracketSet];
+    NSString *eyed = [[typeAndID objectAtIndex:1] stringByTrimmingCharactersInSet:closeBracketSet];
+    for (NSDictionary *ref in refs) {
+      if ([[ref objectForKey:@"type"] isEqual:typ] && intv([ref objectForKey:@"id"]) == intv(eyed)) {
+        [html appendFormat:@"<a href=\"yammer://%@/%@\">%@%@</a>", typ, eyed, 
+         ([typ isEqual:@"user"] ? @"@" : @"#"), [ref objectForKey:@"name"]];
+        break;
+      }
+    }
+  }
+  
+  [html appendString:[parsedBody substringFromIndex:idx]];
+  
+  return html;
 }
 
 - (DKDeferred *)postMessage:(YMUserAccount *)acct body:(NSString *)body 
@@ -416,15 +502,6 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches
            addCallback:curryTS(self, @selector(_gotUsers:::), acct, nsni(1))]
           addErrback:callbackTS(self, _getUsersFailed:)];
 }
-
-//- (id)_gotUsers:(YMUserAccount *)acct :(NSNumber *)page :(id)results
-//{
-//  return [[DKDeferred deferInThread:curryTS(self, @selector(_gotUsersThread:::), 
-//                                           acct, page) withObject:results]
-//          addCallback:callbackTS(self, _r:)];
-//}
-//
-//- (id)_r:(id)r { return r; }
 
 - (id)_gotUsers:(YMUserAccount *)acct :(NSNumber *)page :(id)results
 {
@@ -547,18 +624,27 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches
 
 - (void) purgeCachedContactImages
 {
-  [DKDeferred deferInThread:callbackTS(self, _purgeCachedKeys:)
+  [DKDeferred deferInThread:curryTS(self, @selector(_purgeCachedKeys::), nsnb(YES))
                  withObject:[[self contactImageCache] allKeys]];
 }
 
-- (id)_purgeCachedKeys:(NSArray *)keys
+- (void)writeCachedContactImages
 {
+  [DKDeferred deferInThread:curryTS(self, @selector(_purgeCachedKeys::), nsnb(NO))
+                 withObject:[[self contactImageCache] allKeys]];
+}
+
+- (id)_purgeCachedKeys:(NSNumber *)memoryToo :(NSArray *)keys
+{
+  BOOL removeFromMem = boolv(memoryToo);
   DKDeferredCache *c = [self deferredDiskCache];
   DataCache *mem = [self contactImageCache];
   for (NSString *k in keys) {
-    [c _setValue:UIImagePNGRepresentation([mem objectForKey:k])
-          forKey:k timeout:nsni(864000) arg:nil];
-    [mem invalidateKey:k];
+    if (![c hasKey:k])
+      [c _setValue:UIImagePNGRepresentation([mem objectForKey:k])
+            forKey:k timeout:nsni(864000) arg:nil];
+    if (removeFromMem)
+      [mem invalidateKey:k];
   }
   return nil;
 }

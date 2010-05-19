@@ -18,18 +18,19 @@
   IBOutlet UILabel *jobTitleLabel;
   IBOutlet UIButton *followButton;
   IBOutlet UIButton *messageButton;
-  id<DKCallback> onFollow;
-  id<DKCallback> onMessage;
+  IBOutlet UIButton *feedButton;
+  id<DKCallback> onFollow, onMessage, onFeed;
   YMContact *contact;
 }
 
 @property (nonatomic, readwrite, retain) YMContact *contact;
 @property (nonatomic, readwrite, retain) 
-  id<DKCallback> onFollow, onMessage;
+  id<DKCallback> onFollow, onMessage, onFeed;
 
 + (id)contactDetailViewWithRect:(CGRect)rect;
 
 - (IBAction)follow:(id)sender;
 - (IBAction)message:(id)sender;
+- (IBAction)feed:(id)sender;
 
 @end

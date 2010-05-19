@@ -12,7 +12,7 @@
 
 @implementation YMContactDetailView
 
-@synthesize onFollow, onMessage, contact;
+@synthesize onFollow, onMessage, onFeed, contact;
 
 + (id) contactDetailViewWithRect:(CGRect)rect
 {
@@ -38,17 +38,26 @@
   jobTitleLabel.text = ([c.jobTitle length] ? c.jobTitle : 
                         ([c.location length] ? c.location : @""));
   locationLabel.text = ([c.jobTitle length] ? c.location : @"");
-  
+  [feedButton setTitle:[NSString stringWithFormat:@"%@'s feed", 
+                        fullNameLabel.text] forState:UIControlStateNormal];
+  if (contact) [contact release];
+  contact = nil;
+  contact = [c retain];
 }
 
 - (void)message:(id)sender
 {
-  if (self.onMessage) [self.onMessage :self];
+  if (self.onMessage) [self.onMessage :self.contact];
 }
 
 - (void)follow:(id)sender
 {
-  if (self.onFollow) [self.onFollow :self];
+  if (self.onFollow) [self.onFollow :self.contact];
+}
+
+- (void)feed:(id)sender
+{
+  if (self.onFeed) [self.onFeed :self.contact];
 }
 
 - (void)dealloc

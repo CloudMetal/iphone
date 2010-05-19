@@ -143,12 +143,12 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath
   [table reloadRowsAtIndexPaths:array_(indexPath) 
                withRowAnimation:UITableViewRowAnimationNone];
   
-  YMUserAccount *acct = (YMUserAccount *)[YMUserAccount findByPK:intv(network.userAccountPK)];
+  YMUserAccount *acct = (YMUserAccount *)[YMUserAccount findByPK:
+                                          intv(network.userAccountPK)];
   acct.activeNetworkPK = nsni(network.pk);
   [acct save];
   
-  YMMessageListViewController *controller = [[[YMMessageListViewController alloc] 
-                                              initWithStyle:UITableViewStylePlain] autorelease];
+  YMMessageListViewController *controller = [[[YMMessageListViewController alloc] init] autorelease];
   controller.userAccount = acct;
   
   [self.navigationController pushViewController:controller animated:YES];

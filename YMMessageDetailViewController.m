@@ -8,11 +8,12 @@
 
 #import "YMMessageDetailViewController.h"
 #import "YMWebService.h"
-
+#import "YMContactDetailViewController.h"
+#import "YMMessageListViewController.h"
 
 @implementation YMMessageDetailViewController
 
-@synthesize message;
+@synthesize message, userAccount;
 
 - (void)loadView
 {
@@ -41,11 +42,33 @@
   message = [m retain];
 }
 
+- (id)showUser:(YMContact *)contact
+{
+  YMContactDetailViewController *c = [[YMContactDetailViewController alloc]
+                                      initWithStyle:UITableViewStyleGrouped];
+  c.contact = contact;
+  c.userAccount = self.userAccount;
+  [self.navigationController pushViewController:c animated:YES];
+  return contact;
+}
+
+- (id)showTag:(NSString *)tag
+{
+  YMMessageListViewController *c = [[[YMMessageListViewController alloc] init] autorelease];
+  c.userAccount = self.userAccount;
+  c.target = YMMessageTargetTaggedWith;
+  c.targetID = nsni(intv(tag));
+  [self.navigationController pushViewController:c animated:YES];
+  return tag;
+}
+
 - (void)viewWillAppear:(BOOL)animated
 {
   [super viewWillAppear:animated];
   detailView.message = message;
   detailView.parentViewController = self;
+  detailView.onUser = callbackTS(self, showUser:);
+  detailView.onTag = callbackTS(self, showTag:);
   self.tableView.tableHeaderView = detailView;
   [self.navigationController setToolbarHidden:YES animated:YES];
 }

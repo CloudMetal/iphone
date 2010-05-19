@@ -15,9 +15,9 @@
   YMWebService *web;
   YMUserAccount *userAccount;
   NSString *target;
-  NSString *targetID;
-  NSString *olderThan;
-  NSString *newerThan;
+  NSNumber *targetID;
+  NSNumber *olderThan;
+  NSNumber *newerThan;
   NSNumber *threaded;
   NSArray *messagePKs;
   id lastView;
@@ -27,14 +27,19 @@
   BOOL shouldRearrangeWhenDeselecting;
   NSArray *titles;
   NSArray *mugshotURLs;
+  UIButton *refreshButton;
+  UIButton *moreButton;
+  UILabel *totalLoadedLabel;
+  NSDate *lastUpdated;
+  BOOL shouldScrollToTop;
 }
 
 @property(nonatomic, readwrite, retain) NSIndexPath *selectedIndexPath;
 @property(nonatomic, readwrite, retain) YMUserAccount *userAccount;
 @property(nonatomic, readwrite, retain) NSString *target;
-@property(nonatomic, readwrite, retain) NSString *targetID;
-@property(nonatomic, readwrite, retain) NSString *olderThan;
-@property(nonatomic, readwrite, retain) NSString *newerThan;
+@property(nonatomic, readwrite, retain) NSNumber *targetID;
+@property(nonatomic, readwrite, retain) NSNumber *olderThan;
+@property(nonatomic, readwrite, retain) NSNumber *newerThan;
 @property(nonatomic, readwrite, retain) NSNumber *threaded;
 
 @end

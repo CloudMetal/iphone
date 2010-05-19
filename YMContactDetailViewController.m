@@ -9,6 +9,7 @@
 #import "YMContactDetailViewController.h"
 #import "YMWebService.h"
 #import "YMContactDetailView.h"
+#import "YMMessageListViewController.h"
 
 
 @implementation YMContactDetailViewController
@@ -30,11 +31,22 @@
   if (!web) web = [YMWebService sharedWebService];
 }
 
+- (id)gotoUserFeed:(YMContact *)ct
+{
+  YMMessageListViewController *c = [[[YMMessageListViewController alloc] init] autorelease];
+  c.userAccount = self.userAccount;
+  c.target = YMMessageTargetFromUser;
+  c.targetID = ct.userID; NSLog(@"ct %@ %@", ct, ct.userID);
+  [self.navigationController pushViewController:c animated:YES];
+  return ct;
+}
+
 - (void)viewWillAppear:(BOOL)animated
 {
   YMContactDetailView *det = [YMContactDetailView contactDetailViewWithRect:
-                              CGRectMake(0, 0, 320, 176)];
+                              CGRectMake(0, 0, 320, 222)];
   det.contact = self.contact;
+  det.onFeed = callbackTS(self, gotoUserFeed:);
   self.tableView.tableHeaderView = det;
   [self.tableView reloadData];
 }
