@@ -403,25 +403,11 @@ cellForRowAtIndexPath:(NSIndexPath *)indexPath
   }
   
   int idx = [self rowForIndexPath:indexPath];
+  if (idx >= [messagePKs count]) return nil;
   
   static NSString *ident = @"YMMessageCell1";
   YMMessage *message = (YMMessage *)[YMMessage findByPK:
-         intv([messagePKs objectAtIndex:idx])];
-  
-//  YMMessageTableViewCell *cell = (YMMessageTableViewCell *)
-//    [table dequeueReusableCellWithIdentifier:ident];
-//  if (!cell) {
-//    for (UIView *v in [[NSBundle mainBundle] loadNibNamed:
-//                       @"YMMessageTableViewCell" owner:nil options:nil]) {
-//      if (![v isMemberOfClass:
-//            [YMMessageTableViewCell class]]) continue;
-//      cell = (YMMessageTableViewCell *)v;
-//      break;
-//    }
-//  }
-  
-//  cell.avatarImageView.image = [UIImage imageNamed:@"user-70.png"];
-  
+         intv([messagePKs objectAtIndex:idx])]; // TODO: sometimes this crashes
   
   YMFastMessageTableViewCell *cell = (YMFastMessageTableViewCell *)
     [table dequeueReusableCellWithIdentifier:ident];
@@ -440,34 +426,9 @@ cellForRowAtIndexPath:(NSIndexPath *)indexPath
       [mugshots replaceObjectAtIndex:idx withObject:[UIImage imageNamed:@"user-70.png"]];
     }
   } else {
-//    cell.avatarImageView.image = img;
-//    cell.image = 
     cell.avatar = img;
   }
 
-//  cell.avatarImageView.layer.masksToBounds = YES;
-//  cell.avatarImageView.layer.borderColor = [UIColor colorWithWhite:.5 alpha:1].CGColor;
-//  cell.avatarImageView.layer.cornerRadius = 3;
-//  cell.avatarImageView.layer.borderWidth = 1;
-  if (selectedIndexPath && selectedIndexPath.row == idx) {
-//    CGFloat expandedHeight = [self expandedHeightOfRow:idx];
-//    CGRect f = cell.bodyLabel.frame;
-//    cell.bodyLabel.frame = CGRectMake(f.origin.x, f.origin.y,
-//                                      f.size.width, expandedHeight - 32.0);
-//    CGRect f2 = cell.frame;
-//    cell.frame = CGRectMake(f2.origin.x, f2.origin.y, f2.size.width, expandedHeight);
-//    cell.bodyLabel.numberOfLines = 0;
-  } else {
-//    CGRect f = cell.bodyLabel.frame;
-//    cell.bodyLabel.frame = CGRectMake(f.origin.x, f.origin.y,
-//                                      f.size.width, 28.0);
-//    CGRect f2 = cell.frame;
-//    cell.frame = CGRectMake(f2.origin.x, f2.origin.y, f2.size.width, 60.0);
-//    cell.bodyLabel.numberOfLines = 2;
-  }
-//  cell.bodyLabel.text = message.bodyPlain;
-//  cell.dateLabel.text = [NSDate stringForDisplayFromDate:message.createdAt];
-//  cell.titleLabel.text = [titles objectAtIndex:idx];
   cell.body = message.bodyPlain;
   cell.date = [NSDate stringForDisplayFromDate:message.createdAt];
   cell.title = [titles objectAtIndex:idx];
@@ -480,7 +441,7 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
   self.selectedIndexPath = indexPath;
   [self.tableView reloadRowsAtIndexPaths:array_(self.selectedIndexPath)
-                        withRowAnimation:UITableViewRowAnimationFade];
+                        withRowAnimation:UITableViewRowAnimationNone];
 }
 
 - (NSIndexPath *)tableView:(UITableView *)table
@@ -503,11 +464,12 @@ willSelectRowAtIndexPath:(NSIndexPath *)indexPath
     [selectedIndexPath release];
     selectedIndexPath = nil;
     if (shouldRearrangeWhenDeselecting) {
+//      [self.tableView scr
       [self.tableView deleteRowsAtIndexPaths:
        array_([NSIndexPath indexPathForRow:previousIndexPath.row+1 inSection:0])
-                            withRowAnimation:UITableViewRowAnimationTop];
+                            withRowAnimation:UITableViewRowAnimationNone];
       [self.tableView reloadRowsAtIndexPaths:array_(previousIndexPath)
-                            withRowAnimation:UITableViewRowAnimationFade];
+                            withRowAnimation:UITableViewRowAnimationNone];
     }
     [previousIndexPath release];
   }

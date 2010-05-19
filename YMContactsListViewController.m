@@ -246,6 +246,7 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath
                         intv([contactPKs objectAtIndex:idx])];
   YMContactDetailViewController *c = [[YMContactDetailViewController alloc]
                                       initWithStyle:UITableViewStyleGrouped];
+  c.userAccount = self.userAccount;
   c.contact = contact;
   [self.navigationController pushViewController:c animated:YES];
   if ([searchBar isFirstResponder]) [searchBar resignFirstResponder];
