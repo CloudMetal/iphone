@@ -12,12 +12,15 @@
 #import "YMMessage.h"
 #import "YMContact.h"
 #import "YMWebService+Private.h"
+#import "YMGroup.h"
 
 #define WS_URL @"https://staging.yammer.com"
 #define WS_MOUNTPOINT [NSURL URLWithString:[NSString \
             stringWithFormat:@"%@%@", WS_URL, @"/api/v1"]]
 
 #define IS_TARGET(__a, __b) ([__a isEqualToString:__b])
+
+#define YMWebServiceDidUpdateMessages @"webservicedidendmessageupdates"
 
 #define YMMessageTargetAll @""
 #define YMMessageTargetSent @"sent"
@@ -36,7 +39,7 @@
 
 #define YMBodyKey @"body"
 #define YMGroupIDKey @"group_id"
-#define YMReplyToIDKey @"reply_to_id"
+#define YMReplyToIDKey @"replied_to_id"
 #define YMDirectToIDKey @"direct_to_id"
 
 @class DataCache;
@@ -87,6 +90,16 @@
  obtain this information.)
  */
 - (DKDeferred *)networksForUserAccount:(YMUserAccount *)acct;
+
+/**
+ Returns a NSDictionary structure of tag objects
+ */
+- (DKDeferred *)allTags:(YMUserAccount *)acct;
+
+/**
+ Syncs users groups to YMGroup
+ */
+- (DKDeferred *)syncGroups:(YMUserAccount *)acct;
 
 
 ///**
@@ -155,6 +168,8 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches;
 /**
  */
 - (DKDeferred *)syncUsers:(YMUserAccount *)acct;
+
+- (DKDeferred *)autocomplete:(YMUserAccount *)acct string:(NSString *)str;
 
 @end
 

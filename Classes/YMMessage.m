@@ -17,4 +17,16 @@
             threadID, bodyPlain, bodyParsed, attachmentPKs, messageType, targetID, 
             clientType, senderID, senderType, createdAt, networkPK, read, repliedToSenderID;
 
++ (NSArray *) indices
+{
+  return array_(
+                array_(@"messageID", @"repliedToID"),
+                array_(@"messageID"), // TODO: add networkPK
+                array_(@"messageID", @"senderID"),
+                array_(@"messageID", @"repliedToID", @"repliedToSenderID"),
+                array_(@"messageID", @"repliedToID", @"senderID", @"repliedToSenderID"),
+                array_(@"messageID", @"targetID", @"repliedToID", @"repliedToSenderID"),
+                array_(@"messageID", @"targetID", @"repliedToID", @"repliedToSenderID", @"senderID"));
+}
+
 @end

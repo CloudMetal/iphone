@@ -27,6 +27,7 @@
 //  self.tableView.backgroundColor = [UIColor whiteColor];
   
   self.title = @"Contact";
+  self.hidesBottomBarWhenPushed = YES;
   
   if (!web) web = [YMWebService sharedWebService];
 }

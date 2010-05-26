@@ -18,9 +18,10 @@
   NSString *permalink, *url;
   NSNumber *unseenMessageCount;
   NSString *name;
+  NSNumber *userID;
 }
 
-@property (copy) NSNumber *userAccountPK;
+@property (copy) NSNumber *userAccountPK, *userID;
 @property (copy) NSNumber *networkID, *unseenMessageCount;
 @property (copy) NSString *permalink, *url, *name;
 @property (copy) NSString *token, *secret;

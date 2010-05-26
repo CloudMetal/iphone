@@ -18,8 +18,10 @@
   UIView *currentLine;
   NSMutableDictionary *queuedViews;
   NSString *errorString;
+  CGFloat topOffset;
 }
 
+@property (assign) CGFloat topOffset;
 @property (retain) id<MappedPriorityQueue> deferredQueue;
 @property (retain) NSMutableDictionary *queuedViews;
 @property (assign) BOOL isShown;

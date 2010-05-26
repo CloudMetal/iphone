@@ -13,7 +13,7 @@
 #import "NSString+UUID.h"
 
 #define FLASH_LABEL_TAG 338
-#define TOP_OFFSET 416
+#define TOP_OFFSET 57
 #define REGULAR_BACKGROUND [UIColor colorWithWhite:.1 alpha:.9]
 #define ERROR_BACKGROUND [UIColor colorWithPatternImage: \
 [UIImage imageNamed:@"errorstatusbarbg.png"]]
@@ -27,15 +27,27 @@
 @synthesize isShown;
 @synthesize isError;
 @synthesize errorString;
+@synthesize topOffset;
 
 static StatusBarNotifier *__sharedNotifier;
 
 + (id)sharedNotifier {
   if (!__sharedNotifier) {
     __sharedNotifier = [[[StatusBarNotifier alloc] initWithFrame:
-                         CGRectMake(0, TOP_OFFSET, 320, 20)] retain];
+                         CGRectMake(0, 0, 320, 20)] retain];
+    __sharedNotifier.topOffset = TOP_OFFSET;
   }
   return __sharedNotifier;
+}
+
+- (void)setTopOffset:(CGFloat)v
+{
+  topOffset = v;
+//  UIScreen *scr = [UIScreen mainScreen];
+//  self.center = CGPointMake(self.center.x, topOffset + (self.frame.size.height / 2.0));
+  CGRect r = self.frame;
+  r.origin.y = topOffset;
+  self.frame = r;
 }
 
 - (id)initWithFrame:(CGRect)_frame {
@@ -157,7 +169,7 @@ static StatusBarNotifier *__sharedNotifier;
     [UIView setAnimationDuration:.35];
     self.currentLine.frame = CGRectOffset(self.currentLine.frame, 0, -38);
     self.currentLine.alpha = 0;
-    self.frame = CGRectMake(0, TOP_OFFSET + (self.isError ? -18 : 0), 320, self.isError ? 38 : 20);
+    self.frame = CGRectMake(0, topOffset + (self.isError ? -18 : 0), 320, self.isError ? 38 : 20);
     [self _changingSize];
     [UIView commitAnimations];
     @synchronized(self) {
@@ -184,7 +196,7 @@ static StatusBarNotifier *__sharedNotifier;
     [UIView setAnimationDuration:.35];
     self.currentLine.frame = CGRectOffset(self.currentLine.frame, 0, -38);
     self.currentLine.alpha = 1;
-    self.frame = CGRectMake(0, TOP_OFFSET + (self.isError ? -18 : 0), 320, self.isError ? 38 : 20);
+    self.frame = CGRectMake(0, topOffset + (self.isError ? -18 : 0), 320, self.isError ? 38 : 20);
     [self _changingSize];
     [UIView commitAnimations];
   }
@@ -263,7 +275,7 @@ static StatusBarNotifier *__sharedNotifier;
   [CATransaction begin];
   self.alpha = 0;
   self.backgroundColor = REGULAR_BACKGROUND;
-  self.frame = CGRectMake(0, TOP_OFFSET + (self.isError ? -18 : 0), 320, self.isError ? 38 :  20);
+  self.frame = CGRectMake(0, topOffset + (self.isError ? -18 : 0), 320, self.isError ? 38 :  20);
   [self _changingSize];
   [window insertSubview:self atIndex:0];
   [UIView beginAnimations:nil context:nil];

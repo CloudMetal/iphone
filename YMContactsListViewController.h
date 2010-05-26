@@ -22,9 +22,11 @@
   NSString *filterText;
   UISearchBar *searchBar;
   BOOL shouldHideSectionIndex;
+  UINavigationController *rootNavController;
 }
 
 @property (nonatomic, readwrite, retain) NSString *filterText;
 @property (nonatomic, readwrite, retain) YMUserAccount *userAccount;
+@property (nonatomic, assign) UINavigationController *rootNavController;
 
 @end

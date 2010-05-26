@@ -69,17 +69,17 @@
 //  self.fontSize = [LocalStorage fontSizeFromDisk];
 
 	UIWindow* window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
-	window.backgroundColor = [UIColor whiteColor];
-	UIImageView *image = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"Default.png"]];
+	window.backgroundColor = [UIColor blackColor];
+//	UIImageView *image = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"Default.png"]];
 //  UIActivityIndicatorView *act = [[[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:
 //                                   UIActivityIndicatorViewStyleWhiteLarge] autorelease];
 //  act.frame = CGRectMake((320 / 2) - (act.frame.size.width / 2), 
 //                         360, act.frame.size.width, act.frame.size.height);
-	image.frame = CGRectMake(0, 0, 320, 480);
+//	image.frame = CGRectMake(0, 0, 320, 480);
 //  [image addSubview:act];
 //  [act startAnimating];
-	[window addSubview:image];
-	[image release];
+//	[window addSubview:image];
+//	[image release];
 	[window makeKeyAndVisible];
   
   [[YMWebService sharedWebService] setShouldUpdateBadgeIcon:YES];
@@ -87,7 +87,7 @@
   UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:
                                  [[[YMNetworksViewController alloc] initWithStyle:
                                    UITableViewStylePlain] autorelease]];
-  nav.toolbarHidden = NO;
+//  nav.toolbarHidden = NO;
   [window addSubview:nav.view];
   
 //  [[TTNavigator navigator] openURL:@"yammer://networks" animated:YES];

@@ -32,14 +32,18 @@
   UILabel *totalLoadedLabel;
   NSDate *lastUpdated;
   BOOL shouldScrollToTop;
+  int limit;
+  UINavigationController *rootNavController;
 }
 
+@property(nonatomic, assign) UINavigationController *rootNavController;
+@property(nonatomic, assign) int limit;
 @property(nonatomic, readwrite, retain) NSIndexPath *selectedIndexPath;
 @property(nonatomic, readwrite, retain) YMUserAccount *userAccount;
-@property(nonatomic, readwrite, retain) NSString *target;
-@property(nonatomic, readwrite, retain) NSNumber *targetID;
-@property(nonatomic, readwrite, retain) NSNumber *olderThan;
-@property(nonatomic, readwrite, retain) NSNumber *newerThan;
-@property(nonatomic, readwrite, retain) NSNumber *threaded;
+@property(nonatomic, readwrite, copy) NSString *target;
+@property(nonatomic, readwrite, copy) NSNumber *targetID;
+@property(nonatomic, readwrite, copy) NSNumber *olderThan;
+@property(nonatomic, readwrite, copy) NSNumber *newerThan;
+@property(nonatomic, readwrite, copy) NSNumber *threaded;
 
 @end

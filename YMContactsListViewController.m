@@ -25,7 +25,7 @@
 
 @implementation YMContactsListViewController
 
-@synthesize userAccount, filterText;
+@synthesize userAccount, filterText, rootNavController;
 
 - (void)loadView
 {
@@ -68,6 +68,11 @@
     [self.tableView scrollToRowAtIndexPath:
       [NSIndexPath indexPathForRow:0 inSection:0] 
      atScrollPosition:UITableViewScrollPositionTop animated:NO];
+  
+  self.navigationItem.leftBarButtonItem =
+  [[UIBarButtonItem alloc]
+   initWithTitle:@"Networks" style:UIBarButtonItemStyleBordered target:
+   self.parentViewController action:@selector(dismissModalViewControllerAnimated:)];
 }
 
 - (void) viewDidAppear:(BOOL)animated

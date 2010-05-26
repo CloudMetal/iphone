@@ -10,6 +10,7 @@
 #import "YMWebService.h"
 #import "YMContactDetailViewController.h"
 #import "YMMessageListViewController.h"
+#import "YMComposeViewController.h"
 
 @implementation YMMessageDetailViewController
 
@@ -42,12 +43,25 @@
   message = [m retain];
 }
 
-- (id)showUser:(YMContact *)contact
+- (id)showUser:(id)contact
 {
-  YMContactDetailViewController *c = [[YMContactDetailViewController alloc]
-                                      initWithStyle:UITableViewStyleGrouped];
+  if (![contact isKindOfClass:[YMContact class]]) {
+    YMContactDetailViewController *c = [[[YMContactDetailViewController alloc] 
+                                         initWithStyle:UITableViewStyleGrouped]
+                                        autorelease];
+    c.contact = (YMContact *)[YMContact findFirstByCriteria:@"WHERE user_i_d=%i",
+                              intv(self.message.senderID)];
+    c.userAccount = self.userAccount;
+    [self.navigationController pushViewController:c animated:YES];
+    return nil;
+  }
+  
+  YMContactDetailViewController *c = [[[YMContactDetailViewController alloc]
+                                      initWithStyle:UITableViewStyleGrouped]
+                                      autorelease];
   c.contact = contact;
   c.userAccount = self.userAccount;
+  
   [self.navigationController pushViewController:c animated:YES];
   return contact;
 }
@@ -62,6 +76,26 @@
   return tag;
 }
 
+- (id)showThread:(NSString *)sender
+{
+  YMMessageListViewController *c = [[[YMMessageListViewController alloc] init] autorelease];
+  c.userAccount = self.userAccount;
+  c.target = YMMessageTargetInThread;
+  c.targetID = self.message.threadID;
+  [self.navigationController pushViewController:c animated:YES];
+  return nil;
+}
+
+- (id)showReply:(id)sender
+{
+  YMComposeViewController *c = [[[YMComposeViewController alloc] init] autorelease];
+  c.userAccount = self.userAccount;
+  c.network = (YMNetwork *)[YMNetwork findByPK:intv(self.userAccount.activeNetworkPK)];
+  c.inReplyTo = self.message;
+  [c showFromController:self animated:YES];
+  return nil;
+}
+
 - (void)viewWillAppear:(BOOL)animated
 {
   [super viewWillAppear:animated];
@@ -69,14 +103,15 @@
   detailView.parentViewController = self;
   detailView.onUser = callbackTS(self, showUser:);
   detailView.onTag = callbackTS(self, showTag:);
+  detailView.onReply = callbackTS(self, showReply:);
+  detailView.onThread = callbackTS(self, showThread:);
   self.tableView.tableHeaderView = detailView;
-  [self.navigationController setToolbarHidden:YES animated:YES];
 }
 
-- (void)viewWillDisappear:(BOOL)animated
-{
-  [self.navigationController setToolbarHidden:NO animated:YES];
-}
+//- (void)viewWillDisappear:(BOOL)animated
+//{
+////  [self.navigationController setToolbarHidden:NO animated:YES];
+//}
 
 - (NSInteger) numberOfSectionsInTableView:(UITableView *)table
 {

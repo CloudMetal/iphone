@@ -83,7 +83,7 @@ static UIColor *borderColor;
   if (self = [YMFastMessageTableViewCell class]) {
     titleFont = [[UIFont boldSystemFontOfSize:13] retain];
     bodyFont = [[UIFont systemFontOfSize:11] retain];
-    bodyColor = [[UIColor colorWithWhite:.7 alpha:1] retain];
+    bodyColor = [[UIColor colorWithWhite:.6 alpha:1] retain];
     dateColor = [[UIColor colorWithRed:.2 green:.55 blue:.7 alpha:1] retain];
     backgroundImage = [[UIImage imageNamed:@"msg-bg.png"] retain];
     borderColor = [[UIColor colorWithWhite:.5 alpha:1] retain];

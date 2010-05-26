@@ -10,11 +10,19 @@
 
 @class YMWebService;
 @class YMNetwork;
+@class YMMessageListViewController;
+@class YMContactsListViewController;
+@class YMFeedListViewController;
 
 
 @interface YMNetworksViewController : UITableViewController
 {
   YMWebService *web;
+  UITabBarController *tabs;
+  YMContactsListViewController *directoryController;
+  YMMessageListViewController *myMessagesController;
+  YMMessageListViewController *receivedMessagesController;
+  YMFeedListViewController *feedsController;
 }
 
 @property (nonatomic, readonly) YMWebService *web;

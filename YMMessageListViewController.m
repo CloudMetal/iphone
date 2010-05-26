@@ -18,6 +18,7 @@
 #import "YMMessageCompanionTableViewCell.h"
 #import "YMContactDetailViewController.h"
 #import "YMMessageDetailViewController.h"
+#import "YMComposeViewController.h"
 
 
 @interface YMMessageListViewController (PrivateStuffs)
@@ -33,7 +34,8 @@
 
 @implementation YMMessageListViewController
 
-@synthesize target, targetID, olderThan, newerThan, threaded, userAccount, selectedIndexPath;
+@synthesize target, targetID, olderThan, newerThan, threaded, 
+            userAccount, selectedIndexPath, limit, rootNavController;
 
 - (id)init
 {
@@ -48,6 +50,10 @@
     loadedAvatars = NO;
     shouldRearrangeWhenDeselecting = YES;
     shouldScrollToTop = YES;
+    limit = 50;
+    [[NSNotificationCenter defaultCenter]
+     addObserver:self selector:@selector(messagesDidUpdate:) 
+     name:YMWebServiceDidUpdateMessages object:nil];
   }
   return self;
 }
@@ -61,23 +67,6 @@
   self.tableView.delegate = self;
   self.tableView.dataSource = self;
   self.tableView.backgroundColor = [UIColor whiteColor];
-  UIBarButtonItem *space = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:
-                            UIBarButtonSystemItemFixedSpace target:nil action:nil];
-  space.width = 10;
-  self.toolbarItems = 
-    array_([[UIBarButtonItem alloc]
-            initWithImage:[UIImage imageNamed:@"104-index-cards.png"] style:UIBarButtonItemStylePlain 
-            target:self action:@selector(gotoUsers:)],
-           space,
-           [[UIBarButtonItem alloc]
-            initWithImage:[UIImage imageNamed:@"20-gear2.png"] style:UIBarButtonItemStylePlain
-            target:self action:@selector(gotoSettings:)],
-           [[UIBarButtonItem alloc]
-            initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace 
-            target:nil action:nil],
-           [[UIBarButtonItem alloc]
-            initWithBarButtonSystemItem:UIBarButtonSystemItemCompose 
-            target:self action:@selector(composeNew:)]);
   
   UIView *tf = [[[UIView alloc] initWithFrame:CGRectMake(0, 0, 320, 76)] autorelease];
   tf.autoresizingMask = UIViewAutoresizingFlexibleWidth;
@@ -118,10 +107,10 @@
 - (void) viewWillAppear:(BOOL)animated
 {
   self.selectedIndexPath = nil;
-  [self refreshMessagePKs];
-  if (!loadedAvatars)
-    [[web loadCachedContactImagesForUserAccount:self.userAccount]
-     addCallback:callbackTS(self, _imagesLoaded:)];
+  if (!messagePKs || ![messagePKs count]) {
+    [self refreshMessagePKs];
+    [self.tableView reloadData];
+  }
   [super viewWillAppear:animated];
 }
 
@@ -144,7 +133,10 @@
     lastView = [self.view retain];
     self.view = v;
   } else {
-    [self doReload:nil];
+    if (!loadedAvatars)
+      [[web loadCachedContactImagesForUserAccount:self.userAccount]
+       addCallback:callbackTS(self, _imagesLoaded:)];
+    else [self doReload:nil];
   }
   if (shouldScrollToTop && [messagePKs count]) {
     [self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0] 
@@ -157,6 +149,12 @@
 {
   [web writeCachedContactImages];
   [super viewWillDisappear:animated];
+}
+
+- (void)messagesDidUpdate:(id)note
+{
+  NSLog(@"%@ got %@", self, note);
+  [self doReload:nil];
 }
 
 - (id)doReload:(id)arg
@@ -172,16 +170,16 @@
   DKDeferred *d;
   NSMutableDictionary *opts = [NSMutableDictionary dictionary];
   
-  if (olderThan)
-    [opts setObject:[olderThan description] forKey:@"older_than"];
-  if (newerThan)
-    [opts setObject:[newerThan description] forKey:@"newer_than"];
+  if (self.olderThan)
+    [opts setObject:[self.olderThan description] forKey:@"older_than"];
+  if (self.newerThan)
+    [opts setObject:[self.newerThan description] forKey:@"newer_than"];
   if (PREF_KEY(@"lastSeenMessageID"))
     [opts setObject:[PREF_KEY(@"lastSeenMessageID") description] 
              forKey:@"last_seen_message_id"];
   
-  d = [web getMessages:self.userAccount withTarget:target withID:targetID 
-                params:opts fetchToID:newerThan];
+  d = [web getMessages:self.userAccount withTarget:target withID:self.targetID 
+                params:opts fetchToID:self.newerThan];
   [d addCallback:callbackTS(self, _gotMessages:)];
   [d addErrback:callbackTS(self, _failedGetMessages:)];
   [[StatusBarNotifier sharedNotifier] flashLoading:@"Refreshing Messages" deferred:d];
@@ -200,14 +198,21 @@
 - (void)loadMore:(id)sender
 {
   if ([messagePKs count]) {
+    int currentCount = [messagePKs count];
+    limit += 100;
+    if ([YMMessage countByCriteria:@"%@ LIMIT %i", 
+         [self listCriteria], limit] > currentCount) {
+      [self refreshMessagePKs];
+      [self.tableView reloadData];
+      return;
+    }
+    
     YMMessage *last = (YMMessage *)[YMMessage findByPK:
-                                    intv([messagePKs lastObject])];
-    if (last)
-      olderThan = [last.messageID retain];
-    else
-      olderThan = nil;
-    if (newerThan)
-      newerThan = nil;
+                              intv([messagePKs lastObject])];
+    
+    if (last) self.olderThan = last.messageID;
+    else self.olderThan = nil;
+    if (self.newerThan) self.newerThan = nil;
   }
   [self doReload:nil];
 }
@@ -217,12 +222,9 @@
   if ([messagePKs count]) {
     YMMessage *first = (YMMessage *)[YMMessage findByPK:
                                      intv([messagePKs objectAtIndex:0])];
-    if (first)
-      newerThan = [first.messageID retain];
-    else
-      newerThan = nil;
-    if (olderThan)
-      olderThan = nil;
+    if (first) self.newerThan = first.messageID;
+    else self.newerThan = nil;
+    if (self.olderThan) self.olderThan = nil;
   }
   [self doReload:nil];
 }
@@ -251,6 +253,14 @@
 
 - (void)composeNew:(id)sender
 {
+  YMComposeViewController *c = [[[YMComposeViewController alloc] init] autorelease];
+  c.userAccount = self.userAccount;
+  c.network = (YMNetwork *)[YMNetwork findByPK:intv(userAccount.activeNetworkPK)];
+  if ([self.target isEqual:YMMessageTargetInGroup]) {
+    c.inGroup = (YMGroup *)[YMGroup findFirstByCriteria:
+                            @"WHERE group_i_d=%i", intv(self.targetID)];
+  }
+  [c showFromController:self animated:YES];
 }
 
 - (id)_gotMessages:(id)results
@@ -298,16 +308,15 @@
   mugshotURLs = nil;
   if (mugshots) [mugshots release];
   mugshots = nil;
-  if (newerThan) [newerThan release];
-  newerThan = nil;
+  if (self.newerThan) self.newerThan = nil;
   
   NSArray *a = [YMMessage pairedArraySelect:[NSString stringWithFormat:
                 @"SELECT y_m_message.pk, y_m_contact.mugshot_u_r_l, y_m_contact.full_name, "
                 @"(SELECT full_name FROM y_m_contact AS ymc WHERE " 
                 @"y_m_message.replied_to_sender_i_d=ymc.user_i_d) "
                 @"FROM y_m_message INNER JOIN y_m_contact ON y_m_message.sender_i_d " 
-                @"= y_m_contact.user_i_d %@ ORDER BY y_m_message.created_at DESC ", 
-                                             [self listCriteria]] fields:4];
+                @"= y_m_contact.user_i_d %@ ORDER BY y_m_message.created_at DESC LIMIT %i", 
+                                             [self listCriteria], limit] fields:4];
   
   messagePKs = [[a objectAtIndex:0] retain];
   mugshotURLs = [[a objectAtIndex:1] retain];
@@ -332,8 +341,8 @@
   }
   titles = [_titles retain];
   if ([messagePKs count])
-    newerThan = [[(YMMessage *)[YMMessage findByPK:
-              intv([messagePKs objectAtIndex:0])] messageID] retain];
+    self.newerThan = [(YMMessage *)[YMMessage findByPK:
+              intv([messagePKs objectAtIndex:0])] messageID];
   else newerThan = nil;
   
   totalLoadedLabel.text = [NSString stringWithFormat:@"%i messages loaded",
@@ -399,6 +408,7 @@ cellForRowAtIndexPath:(NSIndexPath *)indexPath
     cell.onUser = curryTS(self, @selector(gotoUserIndexPath:sender:), onActionIndex);
     cell.onMore = curryTS(self, @selector(gotoMessageIndexPath:sender:), onActionIndex);
     cell.onThread = curryTS(self, @selector(gotoThreadIndexPath:sender:), onActionIndex);
+    cell.onReply = curryTS(self, @selector(gotoReplyIndexPath:sender:), onActionIndex);
     return cell;
   }
   
@@ -423,7 +433,8 @@ cellForRowAtIndexPath:(NSIndexPath *)indexPath
       [[web contactImageForURL:ms]
        addCallback:curryTS(self, @selector(_gotMugshot::), indexPath)];
     } else {
-      [mugshots replaceObjectAtIndex:idx withObject:[UIImage imageNamed:@"user-70.png"]];
+      [mugshots replaceObjectAtIndex:idx withObject:
+       [UIImage imageNamed:@"user-70.png"]];
     }
   } else {
     cell.avatar = img;
@@ -532,6 +543,17 @@ willSelectRowAtIndexPath:(NSIndexPath *)indexPath
   c.target = YMMessageTargetInThread;
   c.targetID = m.threadID;
   [self.navigationController pushViewController:c animated:YES];
+  return nil;
+}
+
+- (id)gotoReplyIndexPath:(NSIndexPath *)indexPath sender:(id)s
+{
+  YMComposeViewController *c = [[[YMComposeViewController alloc] init] autorelease];
+  c.userAccount = self.userAccount;
+  c.network = (YMNetwork *)[YMNetwork findByPK:intv(userAccount.activeNetworkPK)];
+  c.inReplyTo = (YMMessage *)[YMMessage findByPK:intv([messagePKs objectAtIndex:indexPath.row])];
+  
+  [c showFromController:self animated:YES];
   return nil;
 }
 

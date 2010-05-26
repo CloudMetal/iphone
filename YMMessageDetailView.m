@@ -20,7 +20,8 @@
 @implementation YMMessageDetailView
 
 @synthesize message, parentViewController;
-@synthesize onUser, onTag;
+@synthesize onUser, onTag, onLike, onThread, onReply, onBookmark, 
+            onAttachments, onSend, onFollow;
 
 - (void)setMessage:(YMMessage *)m
 {
@@ -109,14 +110,14 @@
   return NO;
 }
 
-- (IBAction)user:(id)sender {}
-- (IBAction)like:(id)sender {}
-- (IBAction)thread:(id)sender {}
-- (IBAction)reply:(id)sender {}
-- (IBAction)bookmark:(id)sender {}
-- (IBAction)attachments:(id)sender {}
-- (IBAction)send:(id)sender {}
-- (IBAction)follow:(id)sender {}
+- (IBAction)user:(id)sender { if (self.onUser) [self.onUser :self]; }
+- (IBAction)like:(id)sender { if (self.onLike) [self.onLike :self]; }
+- (IBAction)thread:(id)sender { if (self.onThread) [self.onThread :self]; }
+- (IBAction)reply:(id)sender { if (self.onReply) [self.onReply :self]; }
+- (IBAction)bookmark:(id)sender { if (self.onBookmark) [self.onBookmark :self]; }
+- (IBAction)attachments:(id)sender { if (self.onAttachments) [self.onAttachments :self]; }
+- (IBAction)send:(id)sender { if (self.onSend) [self.onSend :self]; }
+- (IBAction)follow:(id)sender { if (self.onFollow) [self.onFollow :self]; }
 
 - (void)dealloc
 {

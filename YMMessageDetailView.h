@@ -23,13 +23,16 @@
   YMContact *fromContact;
   YMContact *toContact;
   YMWebService *web;
-  id<DKCallback> onUser, onTag;
+  id<DKCallback> onUser, onTag, onLike, onThread, onReply, 
+                 onBookmark, onAttachments, onSend, onFollow;
 }
 
 @property(nonatomic, readwrite, retain) YMMessage *message;
 @property(nonatomic, readonly) NSString *htmlValue;
 @property(nonatomic, assign) UIViewController *parentViewController;
-@property(nonatomic, readwrite, retain) id<DKCallback> onUser, onTag;
+@property(nonatomic, readwrite, retain) id<DKCallback> 
+    onUser, onTag, onLike, onThread, onReply, onBookmark, 
+    onAttachments, onSend, onFollow;
 
 - (IBAction)user:(id)sender;
 - (IBAction)like:(id)sender;

@@ -15,6 +15,8 @@
 #import "CFPrettyView.h"
 #import "StatusBarNotifier.h"
 #import "UIColor+Extensions.h"
+#import "YMContactsListViewController.h"
+#import "YMFeedListViewController.h"
 
 #import "YammerAppDelegate.h"
 
@@ -76,8 +78,63 @@
   if (!web) web = [YMWebService sharedWebService];
 }
 
+- (UITabBarController *)tabs
+{
+  if (!tabs) {
+    tabs = [[[UITabBarController alloc] init] retain];
+    myMessagesController = [[[YMMessageListViewController alloc] init] retain];
+    myMessagesController.tabBarItem = 
+    [[[UITabBarItem alloc] initWithTitle:@"My Feed" image:
+      [UIImage imageNamed:@"home.png"] tag:0] autorelease];
+    
+    receivedMessagesController = [[[YMMessageListViewController alloc] init] retain];
+    receivedMessagesController.tabBarItem = 
+    [[[UITabBarItem alloc] initWithTitle:@"Received" image:
+      [UIImage imageNamed:@"received.png"] tag:1] autorelease];
+    
+    directoryController = [[[YMContactsListViewController alloc] init] retain];
+    directoryController.tabBarItem =
+    [[[UITabBarItem alloc] initWithTitle:@"Directory" image:
+      [UIImage imageNamed:@"directory.png"] tag:2] autorelease];
+    
+    feedsController = [[[YMFeedListViewController alloc] init] retain];
+    feedsController.tabBarItem = 
+    [[[UITabBarItem alloc] initWithTitle:@"Feeds" image:
+      [UIImage imageNamed:@"feeds.png"] tag:3] autorelease];
+    
+    NSMutableArray *a = [NSMutableArray array];
+    for (UIViewController *c in array_(myMessagesController, receivedMessagesController,
+                                       feedsController, directoryController)) {
+      UINavigationController *nav = [[[UINavigationController alloc] 
+                                      initWithRootViewController:c] autorelease];
+      nav.navigationBar.tintColor = self.navigationController.navigationBar.tintColor;
+      [a addObject:nav];
+      
+      c.navigationItem.leftBarButtonItem =
+      [[UIBarButtonItem alloc]
+       initWithTitle:@"Networks" style:UIBarButtonItemStyleBordered target:
+       self.navigationController action:@selector(dismissModalViewControllerAnimated:)];
+    }
+    tabs.viewControllers = a;
+  }
+  return tabs;
+}
+
 - (void) viewDidAppear:(BOOL)animated
 {
+  [[StatusBarNotifier sharedNotifier] setTopOffset:460];
+  
+  if (tabs) [tabs release];
+  tabs = nil;
+  if (myMessagesController) [myMessagesController release];
+  myMessagesController = nil;
+  if (receivedMessagesController) [receivedMessagesController release];
+  receivedMessagesController = nil;
+  if (directoryController) [directoryController release];
+  directoryController = nil;
+  if (feedsController) [feedsController release];
+  feedsController = nil;
+  
   self.navigationController.navigationBar.tintColor 
     = [UIColor colorWithRed:0.27 green:0.34 blue:0.39 alpha:1.0];
   self.navigationController.toolbar.tintColor 
@@ -140,18 +197,33 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath
   [web updateUIApplicationBadge];
   
   [table deselectRowAtIndexPath:indexPath animated:YES];
-  [table reloadRowsAtIndexPaths:array_(indexPath) 
-               withRowAnimation:UITableViewRowAnimationNone];
+//  [table reloadRowsAtIndexPaths:array_(indexPath) 
+//               withRowAnimation:UITableViewRowAnimationNone];
   
   YMUserAccount *acct = (YMUserAccount *)[YMUserAccount findByPK:
                                           intv(network.userAccountPK)];
   acct.activeNetworkPK = nsni(network.pk);
   [acct save];
+
+  UITabBarController *c = [self tabs];
   
-  YMMessageListViewController *controller = [[[YMMessageListViewController alloc] init] autorelease];
-  controller.userAccount = acct;
+  myMessagesController.userAccount = acct;
+  myMessagesController.target = YMMessageTargetFollowing;
+  receivedMessagesController.userAccount = acct;
+  receivedMessagesController.target = YMMessageTargetReceived;
+  directoryController.userAccount = acct;
+  feedsController.userAccount = acct;
+  feedsController.network = network;
   
-  [self.navigationController pushViewController:controller animated:YES];
+  c.modalTransitionStyle = UIModalTransitionStyleCrossDissolve;
+  [self.navigationController presentModalViewController:c animated:YES];
+
+  myMessagesController.navigationItem.rightBarButtonItem = 
+  [[UIBarButtonItem alloc]
+   initWithBarButtonSystemItem:UIBarButtonSystemItemCompose 
+   target:myMessagesController action:@selector(composeNew:)];
+  
+  [[StatusBarNotifier sharedNotifier] setTopOffset:411];
 }
 
 - (BOOL)shouldAutorotateToInterfaceOrientation:
