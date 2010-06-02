@@ -74,9 +74,9 @@
 - (NSArray *) builtinFeeds 
 {
   return array_(
-                array_(YMMessageTargetAll, [NSNull null], @"All", @"world.png"),
-                array_(YMMessageTargetSent, [NSNull null], @"Sent", @"page_edit.png"),
-                array_(YMMessageTargetFavoritesOf, network.userID, @"Favorites", @"heart.png"));
+    array_(YMMessageTargetAll, [NSNull null], @"All", @"world.png"),
+    array_(YMMessageTargetSent, [NSNull null], @"Sent", @"page_edit.png"),
+    array_(YMMessageTargetFavoritesOf, network.userID, @"Favorites", @"heart.png"));
 }
 
 - (NSInteger) numberOfSectionsInTableView:(UITableView *)tableView

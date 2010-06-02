@@ -29,8 +29,10 @@
   NSString *date;
   UIImage *avatar;
   UIImageView *imageView;
+  BOOL unread;
 }
 
+@property(nonatomic, assign) BOOL unread;
 @property(nonatomic, copy) NSString *title, *body, *date;
 @property(nonatomic, retain) UIImage *avatar;
 

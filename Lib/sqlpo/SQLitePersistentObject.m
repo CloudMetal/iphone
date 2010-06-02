@@ -218,7 +218,14 @@ NSMutableArray *checkedTables;
 }
 +(SQLitePersistentObject *)findByPK:(int)inPk
 {
-  return [self findFirstByCriteria:[NSString stringWithFormat:@"WHERE pk = %d", inPk]];
+  SQLitePersistentObject *ret = nil;
+  NSString *k = [SQLitePersistentObject memoryMapKeyForObject:inPk];
+  if ([[objectMap allKeys] containsObject:k])
+    ret = [objectMap objectForKey:k];
+  if (ret == nil)
+    ret = [self findFirstByCriteria:
+           [NSString stringWithFormat:@"WHERE pk = %d", inPk]];
+  return ret;
 }
 
 +(NSArray *)findByCriteria:(NSString *)criteriaString, ...

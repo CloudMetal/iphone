@@ -17,23 +17,20 @@
 #import "DataCache.h"
 
 static YMWebService *__sharedWebService;
+static NSRecursiveLock *__dbLock;
 
 @interface YMWebService (PrivateStuffs)
 
-- (id)mutableRequestWithMethod:(id)method 
-account:(YMUserAccount *)acct defaults:(NSDictionary *)defaults;
-
-- (id)mutableMultipartRequestWithMethod:(id)method 
-account:(YMUserAccount *)acct defaults:(NSDictionary *)defs;
-
-- (NSString *)parseMessageBody:(NSString *)parsedBody 
-withReferences:(NSDictionary *)refs;
-
-- (id)messageFromDictionary:(NSDictionary *)m 
-withReferences:(NSDictionary *)refs;
+- (id)mutableRequestWithMethod:(id)method account:(YMUserAccount *)acct defaults:(NSDictionary *)defaults;
+- (id)mutableMultipartRequestWithMethod:(id)method account:(YMUserAccount *)acct defaults:(NSDictionary *)defs;
+- (NSString *)parseMessageBody:(NSString *)parsedBody withReferences:(NSDictionary *)refs;
+- (id)messageFromDictionary:(NSDictionary *)m withReferences:(NSDictionary *)refs;
 
 - (id)contactImageCache;
 - (id)deferredDiskCache;
+
+@property(readonly) NSRecursiveLock *dbLock;
+@property(readonly) DKDeferredPool *loadingPool;
 
 @end
 
@@ -102,6 +99,16 @@ id _nil(id r)
 @synthesize mountPoint, appKey, appSecret;
 @synthesize shouldUpdateBadgeIcon;
 
+- (NSRecursiveLock *)dbLock
+{
+  NSRecursiveLock *ret;
+  @synchronized(self) {
+    if (!__dbLock)
+      __dbLock = [[[NSRecursiveLock alloc] init] retain];
+    ret = __dbLock;
+  }
+  return ret;
+}
 
 ///
 /// constructors
@@ -220,6 +227,7 @@ id _nil(id r)
     // remove existing networks and their associated data
     int i;
     SQLiteInstanceManager *db = [SQLiteInstanceManager sharedManager];
+    @synchronized(self)  {
     [db executeUpdateSQL:@"BEGIN TRANSACTION;"];
     
     // create networks from request, saving auth info
@@ -254,6 +262,7 @@ id _nil(id r)
       [networks addObject:n];
     }
     [db executeUpdateSQL:@"COMMIT TRANSACTION;"];
+    }
     if (self.shouldUpdateBadgeIcon) {
       [self updateUIApplicationBadge];
     }
@@ -311,10 +320,31 @@ withID:(NSNumber *)targetID params:(NSDictionary *)params fetchToID:(NSNumber *)
 - (id)_gotMessages:(YMUserAccount *)acct target:(id)target targetID:(id)targetID
 page:(id)page fetchToID:(id)toID results:(id)results
 {
+  return [[DKDeferred deferInThread:
+          curryTS(self, @selector(_saveMessagesThread:target:targetID:page:fetchToID:results:),
+                  acct, target, targetID, page, toID)
+                         withObject:results] addCallback:callbackTS(self, iCallbackWithYourShit:)] ;
+}
+
+- (id)iCallbackWithYourShit:(id)r
+{
+  NSLog(@"icallback %@", r);
+  if ([r isKindOfClass:[NSDictionary class]]) {
+    return [self getMessages:[r objectForKey:@"acct"] withTarget:[r objectForKey:@"target"] 
+    withID:[r objectForKey:@"targetID"] params:[r objectForKey:@"params"] fetchToID:[r objectForKey:@"toID"]];
+  }
+  return r;
+}
+
+- (id)_saveMessagesThread:(YMUserAccount *)acct target:(id)target targetID:(id)targetID
+page:(id)page fetchToID:(id)toID results:(id)results
+{
   NSMutableArray *ret = [NSMutableArray array];
 
   BOOL fetchToIdFound = NO;
   BOOL fetchingTo = ![toID isEqual:[NSNull null]];
+  
+//  NSLog(@" save messages thread %@ %@ %@ %@ %@ %i %@", acct, target, targetID, page, toID, fetchingTo);
   
   if (![results isKindOfClass:[NSDictionary class]]) return ret;
   
@@ -328,47 +358,54 @@ page:(id)page fetchToID:(id)toID results:(id)results
         (![targetID isEqual:[NSNull null]] 
          ? [NSString stringWithFormat:@" AND target_i_d='%@'", targetID] 
          : @"")]];
-    
+    YMMessage *lastSeen = nil;
+    if (PREF_KEY(YMLastSeenMessageID))
+      lastSeen = (YMMessage *)[YMMessage findFirstByCriteria:@"WHERE message_i_d=%@", 
+                               PREF_KEY(YMLastSeenMessageID)];
     NSMutableArray *existings = [NSMutableArray array];
     for (NSString *existingIDAsString in [existingMessageIDs objectAtIndex:1])
       [existings addObject:nsni([existingIDAsString intValue])];
-//    if (fetchingTo)
-//      fetchToIdFound = [existings containsObject:toID];
-    
+
+    @synchronized(self) {
     [db executeUpdateSQL:@"BEGIN TRANSACTION;"];
     
-    for (NSDictionary *m in [results objectForKey:@"messages"]) {      
+    for (NSDictionary *m in [results objectForKey:@"messages"]) {     
       if (![existings containsObject:[m objectForKey:@"id"]]) {
         YMMessage *message = [self messageFromDictionary:m 
                               withReferences:[results objectForKey:@"references"]];
         message.networkPK = acct.activeNetworkPK;
         message.target = target;
         message.targetID = (![targetID isEqual:[NSNull null]] ? targetID : nil);
+        BOOL new = (lastSeen == nil || [lastSeen.createdAt 
+                    compare:message.createdAt] == NSOrderedAscending);
+        message.read = nsnb(!new);   
+        NSLog(@"read %@", message.read);
         [message save];
         [ret addObject:message];
-        if (fetchingTo && !fetchToIdFound && intv([m objectForKey:@"id"]) == intv(toID))
-          fetchToIdFound = YES;
       } else {
         [ret addObject:[YMMessage findFirstByCriteria:@"WHERE message_i_d=%@", 
                         [m objectForKey:@"id"]]];
       }
+      if (fetchingTo && !fetchToIdFound && intv([m objectForKey:@"id"]) == intv(toID))
+        fetchToIdFound = YES;
     }
     [db executeUpdateSQL:@"COMMIT TRANSACTION;"];
+    }
   }
   
-  if (fetchingTo && !fetchToIdFound && intv(page) < 5 && [ret count]) {
+  if (fetchingTo && !fetchToIdFound && [[results objectForKey:@"messages"] count]) {
     NSMutableDictionary *params = [NSMutableDictionary dictionary];
     YMMessage *lastFetched = [ret lastObject];
     [params setObject:[lastFetched.messageID description] forKey:@"older_than"];
     [params setObject:[toID description] forKey:@"newer_than"];
-    [params setObject:[[[ret objectAtIndex:0] messageID] description] 
-               forKey:@"last_seen_message_id"];
+    return dict_(acct, @"acct", target, @"target", targetID, @"targetID", 
+                 params, @"params", toID, @"toID");
+//    DKDeferred *d = [self getMessages:acct withTarget:target withID:targetID
+//                               params:params fetchToID:toID];
+//    return [d addCallback:
+//     curryTS(self, @selector(_gotMessages:target:targetID:page:fetchToID:results:),
+//             acct, target, targetID, nsni(intv(page)+1), toID)];
     
-    DKDeferred *d = [self getMessages:acct withTarget:target withID:targetID
-                               params:params fetchToID:toID];
-    return [d addCallback:
-     curryTS(self, @selector(_gotMessages:target:targetID:page:fetchToID:results:),
-             acct, target, targetID, nsni(intv(page)+1), toID)];
   }
   
   return [NSArray array];
@@ -397,7 +434,7 @@ page:(id)page fetchToID:(id)toID results:(id)results
   message.senderID = [m objectForKey:@"sender_id"];
   message.senderType = [m objectForKey:@"sender_type"];
   message.createdAt = [formatter dateFromString:[m objectForKey:@"created_at"]];
-  message.read = nsni(0);
+//  message.read = nsni(0);
   message.attachmentPKs = [NSArray array];
   
   // connect important references
@@ -483,6 +520,7 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches
                             [results objectForKey:@"references"]];
       message.target = YMMessageTargetSent;
       message.networkPK = acct.activeNetworkPK;
+      message.read = nsni(1);
       [message save];
     }
   }
@@ -516,22 +554,6 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches
   return results;
 }
 
-/**
- <group>
- <type>group</type>
- <id>1</id>
- <full-name>Sales Team</full-name>
- <name>salesteam</name>
- <privacy>public</privacy>
- <url>https://www.yammer.com/api/v1/groups/1</url>
- <web-url>https://www.yammer.com/groups/salesteam</web-url>
- <stats>
- <members>5</members>
- <updates>102</updates>
- </stats>
- </group>
- */
-
 - (DKDeferred *)syncGroups:(YMUserAccount *)acct
 {
   return [[[DKDeferredURLConnection alloc]
@@ -549,6 +571,7 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches
     fetchMore = YES;
     SQLiteInstanceManager *db = [SQLiteInstanceManager sharedManager];
     YMNetwork *network = (YMNetwork *)[YMNetwork findByPK:intv(acct.activeNetworkPK)];
+    @synchronized(self) {
     [db executeUpdateSQL:@"BEGIN TRANSACTION;"];
     for (NSDictionary *g in results) {
       YMGroup *group;
@@ -566,6 +589,7 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches
       [group save];
     }
     [db executeUpdateSQL:@"COMMIT TRANSACTION;"];
+    }
   }
   if (fetchMore) {
     NSNumber *nextPage = nsni(intv(page)+1);
@@ -604,6 +628,7 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches
   if ([results isKindOfClass:[NSArray class]] && [results count]) {
     fetchMore = YES;
     SQLiteInstanceManager *db = [SQLiteInstanceManager sharedManager];
+    @synchronized(self) {
     [db executeUpdateSQL:@"BEGIN TRANSACTION;"];
     for (NSDictionary *u in results) {
       //      NSLog(@"u %@", u);
@@ -651,6 +676,7 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches
       [contact save];
     }
     [db executeUpdateSQL:@"COMMIT TRANSACTION;"];
+    }
   }
   if (fetchMore) {
     NSNumber *nextPage = nsni((intv(page)+1));
@@ -699,10 +725,10 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches
   
   DKDeferredCache *cache = [self deferredDiskCache];
   DKDeferred *d = [cache getManyValues:fetchKeys];
-  return [d addCallback:curryTS(self, @selector(_gotContactImages::), fetchKeys)];
+  return [d addCallback:curryTS(self, @selector(_gotContactImages:::), fetchKeys, acct)];
 }
 
-- (id)_gotContactImages:(NSArray *)keys :(NSArray *)values
+- (id)_gotContactImages:(NSArray *)keys :(YMUserAccount *)acct :(NSArray *)values 
 {
   int i = 0;
 //  NSLog(@"_gotContactImages %@ %@", keys, values);
@@ -714,7 +740,14 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches
     }
     i++;
   }
+  if (userAccountForCachedContactImages) [userAccountForCachedContactImages release];
+  userAccountForCachedContactImages = [acct retain];
   return nil;
+}
+
+- (BOOL)didLoadContactImagesForUserAccount:(YMUserAccount *)acct
+{
+  return userAccountForCachedContactImages == acct;
 }
 
 - (void) purgeCachedContactImages
@@ -741,6 +774,10 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches
     if (removeFromMem)
       [mem invalidateKey:k];
   }
+  if (removeFromMem) {
+    [userAccountForCachedContactImages release];
+    userAccountForCachedContactImages = nil;
+  }
   return nil;
 }
 
@@ -751,8 +788,9 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches
   
   id ret = [[self contactImageCache] objectForKey:url];
   if (ret) return [DKDeferred succeed:ret];
-  return [[DKDeferred loadImage:url sizeTo:CGSizeMake(44, 44) cached:NO] 
-          addCallback:curryTS(self, @selector(_placeLoadedImageInCache::), url)];
+  return [self.loadingPool add:
+          [[DKDeferred loadImage:url sizeTo:CGSizeMake(44, 44) cached:NO paused:YES] 
+           addCallback:curryTS(self, @selector(_placeLoadedImageInCache::), url)] key:url];
 }
 
 - (id)imageForURLInMemoryCache:(NSString *)url
@@ -783,8 +821,18 @@ static DKDeferredCache *__diskCache;
 - (id)deferredDiskCache
 {
   if (!__diskCache)
-    __diskCache = [[[DKDeferredCache alloc] initWithDirectory:@"cc" maxEntries:1000 cullFrequency:20] retain];
+    __diskCache = [[[DKDeferredCache alloc] initWithDirectory:
+                    @"cc" maxEntries:1000 cullFrequency:20] retain];
   return __diskCache;
+}
+
+- (DKDeferredPool *)loadingPool
+{
+  if (!loadingPool) {
+    loadingPool = [[[DKDeferredPool alloc] init] retain];
+    [loadingPool setConcurrency:2];
+  }
+  return loadingPool;
 }
 
 /**

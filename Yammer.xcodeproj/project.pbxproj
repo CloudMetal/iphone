@@ -51,6 +51,7 @@
 		1D60589F0D05DD5A006BFB54 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1D30AB110D05D00D00671497 /* Foundation.framework */; };
 		1DF5F4E00D08C38300B7A737 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1DF5F4DF0D08C38300B7A737 /* UIKit.framework */; };
 		22131F9C11936C860092F094 /* YMMessage.m in Sources */ = {isa = PBXBuildFile; fileRef = 22131F9B11936C860092F094 /* YMMessage.m */; };
+		2220A1B911ADD44D00DB3714 /* unread-msg-bg.png in Resources */ = {isa = PBXBuildFile; fileRef = 2220A1B811ADD44D00DB3714 /* unread-msg-bg.png */; };
 		22235CA91190E533007F2255 /* StatusBarNotifier.m in Sources */ = {isa = PBXBuildFile; fileRef = 22235CA81190E533007F2255 /* StatusBarNotifier.m */; };
 		22235CCD1190E578007F2255 /* Images in Resources */ = {isa = PBXBuildFile; fileRef = 22235CCC1190E578007F2255 /* Images */; };
 		223F76BC11AC90AE0076940E /* YMFeedListViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 223F76BB11AC90AE0076940E /* YMFeedListViewController.m */; };
@@ -59,6 +60,10 @@
 		223F76D411AC9F640076940E /* world.png in Resources */ = {isa = PBXBuildFile; fileRef = 223F76D311AC9F640076940E /* world.png */; };
 		223F76D611AC9FDE0076940E /* page_edit.png in Resources */ = {isa = PBXBuildFile; fileRef = 223F76D511AC9FDE0076940E /* page_edit.png */; };
 		2240CB7511AB6FF300B92DC1 /* YMGroup.m in Sources */ = {isa = PBXBuildFile; fileRef = 2240CB7411AB6FF300B92DC1 /* YMGroup.m */; };
+		2257943711B1A3F400EEEDF2 /* selected-msg-bg.png in Resources */ = {isa = PBXBuildFile; fileRef = 2257943611B1A3F400EEEDF2 /* selected-msg-bg.png */; };
+		225794F311B1CCA500EEEDF2 /* inline-button-bg-blue.png in Resources */ = {isa = PBXBuildFile; fileRef = 225794F111B1CCA500EEEDF2 /* inline-button-bg-blue.png */; };
+		225794F411B1CCA500EEEDF2 /* inline-button-bg.png in Resources */ = {isa = PBXBuildFile; fileRef = 225794F211B1CCA500EEEDF2 /* inline-button-bg.png */; };
+		2257950E11B1CFDD00EEEDF2 /* refresh-tiny.png in Resources */ = {isa = PBXBuildFile; fileRef = 2257950D11B1CFDD00EEEDF2 /* refresh-tiny.png */; };
 		225FA8F7119A6D1F003579E0 /* YMContactDetailViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 225FA8F6119A6D1F003579E0 /* YMContactDetailViewController.m */; };
 		225FA97E119A8881003579E0 /* YMContactDetailView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 225FA97D119A8881003579E0 /* YMContactDetailView.xib */; };
 		225FA982119A8AAD003579E0 /* YMContactDetailView.m in Sources */ = {isa = PBXBuildFile; fileRef = 225FA981119A8AAD003579E0 /* YMContactDetailView.m */; };
@@ -360,6 +365,7 @@
 		1DF5F4DF0D08C38300B7A737 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		22131F9A11936C860092F094 /* YMMessage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = YMMessage.h; path = Classes/YMMessage.h; sourceTree = "<group>"; };
 		22131F9B11936C860092F094 /* YMMessage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = YMMessage.m; path = Classes/YMMessage.m; sourceTree = "<group>"; };
+		2220A1B811ADD44D00DB3714 /* unread-msg-bg.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "unread-msg-bg.png"; path = "Resources/unread-msg-bg.png"; sourceTree = "<group>"; };
 		22235CA71190E533007F2255 /* StatusBarNotifier.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = StatusBarNotifier.h; path = Lib/StatusBarNotifier.h; sourceTree = "<group>"; };
 		22235CA81190E533007F2255 /* StatusBarNotifier.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = StatusBarNotifier.m; path = Lib/StatusBarNotifier.m; sourceTree = "<group>"; };
 		22235CCC1190E578007F2255 /* Images */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Images; sourceTree = "<group>"; };
@@ -371,6 +377,10 @@
 		223F76D511AC9FDE0076940E /* page_edit.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = page_edit.png; sourceTree = "<group>"; };
 		2240CB7311AB6FF300B92DC1 /* YMGroup.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YMGroup.h; sourceTree = "<group>"; };
 		2240CB7411AB6FF300B92DC1 /* YMGroup.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = YMGroup.m; sourceTree = "<group>"; };
+		2257943611B1A3F400EEEDF2 /* selected-msg-bg.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "selected-msg-bg.png"; path = "Resources/selected-msg-bg.png"; sourceTree = "<group>"; };
+		225794F111B1CCA500EEEDF2 /* inline-button-bg-blue.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "inline-button-bg-blue.png"; path = "Resources/inline-button-bg-blue.png"; sourceTree = "<group>"; };
+		225794F211B1CCA500EEEDF2 /* inline-button-bg.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "inline-button-bg.png"; path = "Resources/inline-button-bg.png"; sourceTree = "<group>"; };
+		2257950D11B1CFDD00EEEDF2 /* refresh-tiny.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "refresh-tiny.png"; path = "Resources/refresh-tiny.png"; sourceTree = "<group>"; };
 		225FA8F5119A6D1F003579E0 /* YMContactDetailViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YMContactDetailViewController.h; sourceTree = "<group>"; };
 		225FA8F6119A6D1F003579E0 /* YMContactDetailViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = YMContactDetailViewController.m; sourceTree = "<group>"; };
 		225FA97D119A8881003579E0 /* YMContactDetailView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = YMContactDetailView.xib; sourceTree = "<group>"; };
@@ -1111,9 +1121,9 @@
 				22CDE910118F7A8B00323FA1 /* YMNetworkTableViewCell.m */,
 				22FBAF921199125F00751A72 /* YMMessageTableViewCell.h */,
 				22FBAF931199125F00751A72 /* YMMessageTableViewCell.m */,
+				225FAA10119AB0F7003579E0 /* YMMessageTableViewCell.xib */,
 				2293CDB6119A363100AB0DD2 /* YMContactTableViewCell.h */,
 				2293CDB7119A363100AB0DD2 /* YMContactTableViewCell.m */,
-				225FAA10119AB0F7003579E0 /* YMMessageTableViewCell.xib */,
 				225FAAF3119B7B90003579E0 /* YMMessageCompanionTableViewCell.h */,
 				225FAAF4119B7B90003579E0 /* YMMessageCompanionTableViewCell.m */,
 				225FAAE4119B6856003579E0 /* YMMessageCompanionTableViewCell.xib */,
@@ -1171,6 +1181,11 @@
 		29B97317FDCFA39411CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				2257950D11B1CFDD00EEEDF2 /* refresh-tiny.png */,
+				225794F111B1CCA500EEEDF2 /* inline-button-bg-blue.png */,
+				225794F211B1CCA500EEEDF2 /* inline-button-bg.png */,
+				2257943611B1A3F400EEEDF2 /* selected-msg-bg.png */,
+				2220A1B811ADD44D00DB3714 /* unread-msg-bg.png */,
 				223F76D511AC9FDE0076940E /* page_edit.png */,
 				223F76D311AC9F640076940E /* world.png */,
 				223F76D111AC9F2C0076940E /* group.png */,
@@ -1358,6 +1373,11 @@
 				223F76D211AC9F2C0076940E /* group.png in Resources */,
 				223F76D411AC9F640076940E /* world.png in Resources */,
 				223F76D611AC9FDE0076940E /* page_edit.png in Resources */,
+				2220A1B911ADD44D00DB3714 /* unread-msg-bg.png in Resources */,
+				2257943711B1A3F400EEEDF2 /* selected-msg-bg.png in Resources */,
+				225794F311B1CCA500EEEDF2 /* inline-button-bg-blue.png in Resources */,
+				225794F411B1CCA500EEEDF2 /* inline-button-bg.png in Resources */,
+				2257950E11B1CFDD00EEEDF2 /* refresh-tiny.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1526,7 +1546,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				CODE_SIGN_IDENTITY = "iPhone Distribution: Geni, Inc.";
+				CODE_SIGN_IDENTITY = "iPhone Distribution";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				COPY_PHASE_STRIP = NO;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -1540,8 +1561,9 @@
 					"-ObjC",
 				);
 				PRODUCT_NAME = Yammer;
-				PROVISIONING_PROFILE = "AE632FB8-F029-42E1-A0DA-298066604A4F";
-				SDKROOT = iphoneos3.0;
+				PROVISIONING_PROFILE = "";
+				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
+				SDKROOT = iphoneos3.1.3;
 			};
 			name = AdHoc;
 		};

@@ -22,6 +22,8 @@
 
 #define YMWebServiceDidUpdateMessages @"webservicedidendmessageupdates"
 
+#define YMLastSeenMessageID @"lastSeenMessageID"
+
 #define YMMessageTargetAll @""
 #define YMMessageTargetSent @"sent"
 #define YMMessageTargetReceived @"received"
@@ -51,6 +53,8 @@
   NSString *appSecret;
   BOOL shouldUpdateBadgeIcon;
   DataCache *_contactImageCache;
+  DKDeferredPool *loadingPool;
+  YMUserAccount *userAccountForCachedContactImages;
 }
 
 + (id)sharedWebService;
@@ -70,6 +74,7 @@
 - (void)writeCachedContactImages;
 - (id)imageForURLInMemoryCache:(NSString *)url;
 - (DKDeferred *)contactImageForURL:(NSString *)url;
+- (BOOL)didLoadContactImagesForUserAccount:(YMUserAccount *)acct;
 
 /** 
  Takes a YMUserAccount and authenticates it against the yammer

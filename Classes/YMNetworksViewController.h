@@ -23,10 +23,12 @@
   YMMessageListViewController *myMessagesController;
   YMMessageListViewController *receivedMessagesController;
   YMFeedListViewController *feedsController;
+  BOOL animateNetworkTransition;
 }
 
 @property (nonatomic, readonly) YMWebService *web;
 
 - (void)refreshNetworks;
+- (void)gotoNetwork:(YMNetwork *)network;
 
 @end

@@ -23,6 +23,9 @@
   id lastView;
   BOOL loadedAvatars;
   NSMutableArray *mugshots;
+  NSMutableArray *reads;
+  NSArray *bodies;
+  NSArray *dates;
   NSIndexPath *selectedIndexPath;
   BOOL shouldRearrangeWhenDeselecting;
   NSArray *titles;
@@ -34,6 +37,9 @@
   BOOL shouldScrollToTop;
   int limit;
   UINavigationController *rootNavController;
+  NSMutableIndexSet *newlyReadMessageIndexes;
+  BOOL viewHasAppeared;
+  BOOL shouldUpdateBadge;
 }
 
 @property(nonatomic, assign) UINavigationController *rootNavController;
@@ -45,5 +51,8 @@
 @property(nonatomic, readwrite, copy) NSNumber *olderThan;
 @property(nonatomic, readwrite, copy) NSNumber *newerThan;
 @property(nonatomic, readwrite, copy) NSNumber *threaded;
+@property(nonatomic, assign) BOOL loadedAvatars, shouldUpdateBadge;
+
+- (id)doReload:(id)arg;
 
 @end

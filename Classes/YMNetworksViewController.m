@@ -56,6 +56,7 @@
 {
   if ((self = [super init])) {
     self.title = @"Networks";
+    animateNetworkTransition = YES;
   }
   return self;
 }
@@ -86,11 +87,13 @@
     myMessagesController.tabBarItem = 
     [[[UITabBarItem alloc] initWithTitle:@"My Feed" image:
       [UIImage imageNamed:@"home.png"] tag:0] autorelease];
+    myMessagesController.shouldUpdateBadge = YES;
     
     receivedMessagesController = [[[YMMessageListViewController alloc] init] retain];
     receivedMessagesController.tabBarItem = 
     [[[UITabBarItem alloc] initWithTitle:@"Received" image:
       [UIImage imageNamed:@"received.png"] tag:1] autorelease];
+    receivedMessagesController.shouldUpdateBadge = YES;
     
     directoryController = [[[YMContactsListViewController alloc] init] retain];
     directoryController.tabBarItem =
@@ -120,9 +123,21 @@
   return tabs;
 }
 
-- (void) viewDidAppear:(BOOL)animated
+- (void) viewWillAppear:(BOOL)animated
 {
+  [super viewWillAppear:animated];
+  self.view; // haha..
   [[StatusBarNotifier sharedNotifier] setTopOffset:460];
+  self.navigationController.navigationBar.tintColor 
+  = [UIColor colorWithRed:0.27 green:0.34 blue:0.39 alpha:1.0];
+  self.navigationController.toolbar.tintColor 
+  = [UIColor colorWithHexString:@"353535"];
+  if (![[self.web loggedInUsers] count])
+    [self.navigationController pushViewController:
+     [[[YMAccountsViewController alloc] init] autorelease] animated:NO];
+  else
+    [self refreshNetworks];
+  [web purgeCachedContactImages];
   
   if (tabs) [tabs release];
   tabs = nil;
@@ -135,16 +150,24 @@
   if (feedsController) [feedsController release];
   feedsController = nil;
   
-  self.navigationController.navigationBar.tintColor 
-    = [UIColor colorWithRed:0.27 green:0.34 blue:0.39 alpha:1.0];
-  self.navigationController.toolbar.tintColor 
-    = [UIColor colorWithHexString:@"353535"];
-  if (![[self.web loggedInUsers] count])
-    [self.navigationController pushViewController:
-     [[[YMAccountsViewController alloc] init] autorelease] animated:NO];
-  else
-    [self refreshNetworks];
-  [web purgeCachedContactImages];
+  if (PREF_KEY(@"lastNetworkPK")) {
+    YMNetwork *n = (YMNetwork *)[YMNetwork findByPK:
+                                 intv(PREF_KEY(@"lastNetworkPK"))];
+    YMUserAccount *u = (YMUserAccount *)[YMUserAccount findByPK:intv(n.userAccountPK)];
+    waitForDeferred([[YMWebService sharedWebService] 
+                     loadCachedContactImagesForUserAccount:u]);
+    animateNetworkTransition = NO;
+    [self gotoNetwork:n];
+    animateNetworkTransition = YES;
+  }
+}
+
+- (void) viewDidAppear:(BOOL)animated
+{
+  NSLog(@"networks appeared");
+  [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"lastNetworkPK"];
+  [[StatusBarNotifier sharedNotifier] setTopOffset:460];
+  [super viewDidAppear:animated];
 }
 
 - (NSInteger) numberOfSectionsInTableView:(UITableView *)table
@@ -193,6 +216,7 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath
                         objectAtIndex:0];
   network.unseenMessageCount = nsni(0);
   [network save];
+  PREF_SET(@"lastNetworkPK", nsni(network.pk));
   
   [web updateUIApplicationBadge];
   
@@ -200,11 +224,18 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 //  [table reloadRowsAtIndexPaths:array_(indexPath) 
 //               withRowAnimation:UITableViewRowAnimationNone];
   
+  [self gotoNetwork:network];
+}
+
+- (void)gotoNetwork:(YMNetwork *)network
+{
   YMUserAccount *acct = (YMUserAccount *)[YMUserAccount findByPK:
                                           intv(network.userAccountPK)];
   acct.activeNetworkPK = nsni(network.pk);
   [acct save];
-
+  
+  [web loadCachedContactImagesForUserAccount:acct]; // TODO: this needs to publish a notification when finished
+  
   UITabBarController *c = [self tabs];
   
   myMessagesController.userAccount = acct;
@@ -216,12 +247,14 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath
   feedsController.network = network;
   
   c.modalTransitionStyle = UIModalTransitionStyleCrossDissolve;
-  [self.navigationController presentModalViewController:c animated:YES];
-
+  [self.navigationController presentModalViewController:c animated:animateNetworkTransition];
+  
   myMessagesController.navigationItem.rightBarButtonItem = 
   [[UIBarButtonItem alloc]
    initWithBarButtonSystemItem:UIBarButtonSystemItemCompose 
    target:myMessagesController action:@selector(composeNew:)];
+  
+  [receivedMessagesController doReload:nil];
   
   [[StatusBarNotifier sharedNotifier] setTopOffset:411];
 }

@@ -72,21 +72,25 @@ static UIColor *bodyColor = nil;
 static UIColor *dateColor = nil;
 static UIImage *backgroundImage = nil;
 static UIColor *borderColor;
+static UIImage *unreadBackgroundImage = nil;
+static UIImage *selectedBackgroundImage = nil;
 
 
 @implementation YMFastMessageTableViewCell
 
-@synthesize title, body, date, avatar;
+@synthesize title, body, date, avatar, unread;
 
 + (void)initialize
 {
   if (self = [YMFastMessageTableViewCell class]) {
     titleFont = [[UIFont boldSystemFontOfSize:13] retain];
-    bodyFont = [[UIFont systemFontOfSize:11] retain];
-    bodyColor = [[UIColor colorWithWhite:.6 alpha:1] retain];
+    bodyFont = [[UIFont systemFontOfSize:12] retain];
+    bodyColor = [[UIColor colorWithWhite:.35 alpha:1] retain];
     dateColor = [[UIColor colorWithRed:.2 green:.55 blue:.7 alpha:1] retain];
     backgroundImage = [[UIImage imageNamed:@"msg-bg.png"] retain];
     borderColor = [[UIColor colorWithWhite:.5 alpha:1] retain];
+    unreadBackgroundImage = [[UIImage imageNamed:@"unread-msg-bg.png"] retain];
+    selectedBackgroundImage = [[UIImage imageNamed:@"selected-msg-bg.png"] retain];
   }
 }
 
@@ -108,8 +112,21 @@ static UIColor *borderColor;
     [contentView addSubview:imageView];
     [imageView release];
     
+    unread = NO;
   }
   return self;
+}
+
+- (void)setUnread:(BOOL)u
+{
+  unread = u;
+  [self setNeedsDisplay];
+}
+
+- (void) setSelected:(BOOL)s
+{
+  [super setSelected:s];
+  [self setNeedsDisplay];
 }
 
 - (void)setBody:(NSString *)b
@@ -170,11 +187,12 @@ static UIColor *borderColor;
   [[UIColor whiteColor] set];
   CGContextFillRect(ctx, r);
   
-  [backgroundImage drawInRect:r];
+  [(self.selected ? selectedBackgroundImage : 
+    (unread ? unreadBackgroundImage : backgroundImage)) drawInRect:r];
   
-  CGRect titleSize = CGRectMake(62, 3, r.size.width - 137.0, 21);
-  CGRect bodySize = CGRectMake(62, 24.0, r.size.width - 72.0, r.size.height - 32.0);
-  CGRect dateLabel = CGRectMake(r.size.width - 73.0, 3, 63, 21);
+  CGRect titleSize = CGRectMake(62, 4, r.size.width - 137.0, 21);
+  CGRect bodySize = CGRectMake(62, 23.0, r.size.width - 72.0, r.size.height - 32.0);
+  CGRect dateLabel = CGRectMake(r.size.width - 73.0, 4, 63, 21);
   
   [[UIColor blackColor] set];
   [title drawInRect:titleSize withFont:titleFont 

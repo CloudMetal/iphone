@@ -19,6 +19,8 @@
 // ----------------------------------------------------------------------
 #import "NSDate-SQLitePersistence.h"
 
+static NSDateFormatter *dateFormatter1 = nil;
+static NSDateFormatter *dateFormatter2 = nil;
 
 @implementation NSDate(SQLitePersistence)
 + (id)objectWithSqlColumnRepresentation:(NSString *)columnData;
@@ -30,9 +32,12 @@
   assert(cvt);
   return d;
 #else
-  NSDateFormatter *dateFormatter = [[[NSDateFormatter alloc] init] autorelease];
-  [dateFormatter setDateFormat:@"yyyy-MM-dd HH:mm:ss.SSSS"];
-  return [dateFormatter dateFromString:columnData];
+  
+  if (!dateFormatter1) {
+    dateFormatter1 = [[[NSDateFormatter alloc] init] retain];
+    [dateFormatter1 setDateFormat:@"yyyy-MM-dd HH:mm:ss.SSSS"];
+  }
+  return [dateFormatter1 dateFromString:columnData];
 #endif
 }
 - (NSString *)sqlColumnRepresentationOfSelf
@@ -41,11 +46,13 @@
   NSDateFormatter *dateFormatter = [[[NSDateFormatter alloc] initWithDateFormat:@"%Y-%m-%d %H:%M:%S.%F" allowNaturalLanguage:NO] autorelease];
   return [dateFormatter stringForObjectValue:self];
 #else
-  NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
-  [dateFormatter setDateFormat:@"yyyy-MM-dd HH:mm:ss.SSSS"];
   
-  NSString *formattedDateString = [dateFormatter stringFromDate:self];
-  [dateFormatter release];
+  if (!dateFormatter2) {
+    dateFormatter2 = [[[NSDateFormatter alloc] init] retain];
+    [dateFormatter2 setDateFormat:@"yyyy-MM-dd HH:mm:ss.SSSS"];
+  }
+  
+  NSString *formattedDateString = [dateFormatter2 stringFromDate:self];
   
   return formattedDateString;
 #endif

@@ -66,6 +66,7 @@
                    withCriteria:@"WHERE network_i_d=%i", intv(network.networkID)]
                   objectAtIndex:1] retain];
   if (!hashes) hashes = [EMPTY_ARRAY retain];
+
   [self refreshData];
 }
 

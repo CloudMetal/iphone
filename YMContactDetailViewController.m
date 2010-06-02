@@ -37,7 +37,7 @@
   YMMessageListViewController *c = [[[YMMessageListViewController alloc] init] autorelease];
   c.userAccount = self.userAccount;
   c.target = YMMessageTargetFromUser;
-  c.targetID = ct.userID; NSLog(@"ct %@ %@", ct, ct.userID);
+  c.targetID = ct.userID;   NSLog(@"ct %@ %@", ct, ct.userID);
   [self.navigationController pushViewController:c animated:YES];
   return ct;
 }

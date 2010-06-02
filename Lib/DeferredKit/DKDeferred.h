@@ -221,6 +221,7 @@
   NSThread *thread;
   NSThread *parentThread;
   id<DKCallback> action;
+  id __result;
 }
 
 @property(readonly) NSThread *thread;

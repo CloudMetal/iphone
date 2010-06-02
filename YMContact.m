@@ -19,6 +19,7 @@
 + (NSArray *) indices
 {
   return array_(
+                array_(@"pk"),
                 array_(@"userID"), 
                 array_(@"userID", @"username"),
                 array_(@"userID", @"username", @"mugshotURL"));

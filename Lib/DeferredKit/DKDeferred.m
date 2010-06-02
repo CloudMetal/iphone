@@ -598,7 +598,15 @@ id _gatherResultsCallback(id results) {
   [pool drain];
 }
 
-- (void)_cbReturnFromThread:(id)result {
+- (id)_cbReturnDeferredFromThread:(id)r
+{
+  id ret = [[__result retain] autorelease];
+  [__result release];
+  __result = nil;
+  return ret;
+}
+
+- (void)_cbReturnFromThread:(id)result {  
   if ([result isKindOfClass:[NSError class]])
     [self errback:result];
   else if ([result isKindOfClass:[DKDeferred class]])

@@ -124,4 +124,41 @@
   return [displayFormatter stringFromDate:date];
 }
 
++ (NSString *)fastStringForDisplayFromDate:(NSDate *)date {
+  /* 
+   * if the date is in today, display 12-hour time with meridian,
+   * if it is within the last 7 days, display weekday name (Friday)
+   * if within the calendar year, display as Jan 23
+   * else display as Nov 11, 2008
+   */
+  
+  static NSDateFormatter *formatter = nil;
+  static NSCalendar *calendar;
+  static NSDateComponents *offset;
+  static NSDate *midnight, *lastweek;
+  NSUInteger units = (NSYearCalendarUnit | NSMonthCalendarUnit | 
+                      NSDayCalendarUnit);
+  
+  if (! formatter) {
+    formatter = [[NSDateFormatter alloc] init];
+    calendar = [[NSCalendar currentCalendar] retain];
+    offset = [[calendar components:units fromDate:[NSDate date]] retain];
+    midnight = [[calendar dateFromComponents:offset] retain];
+    NSDateComponents *c = [[[NSDateComponents alloc] init] autorelease];
+    [c setDay:-7];
+    lastweek = [[calendar dateByAddingComponents:c toDate:[NSDate date]
+                                         options:0] retain];
+  }
+  
+  if ([date compare:midnight] == NSOrderedDescending) // after midnight?
+    [formatter setDateFormat:@"h:mm a"]; // 11:30 am
+  else if ([date compare:lastweek] == NSOrderedDescending) // within last 7 days
+    [formatter setDateFormat:@"EEEE"]; // Tuesday
+  else if ([[calendar components:units fromDate:date] year] >= [offset year])
+    [formatter setDateFormat:@"MMM d"];
+  else [formatter setDateFormat:@"MMM d, YYYY"];
+  
+  return [formatter stringFromDate:date];
+}
+
 @end

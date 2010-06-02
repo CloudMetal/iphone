@@ -20,6 +20,7 @@
 + (NSArray *) indices
 {
   return array_(
+                array_(@"pk"),
                 array_(@"messageID", @"repliedToID"),
                 array_(@"messageID"), // TODO: add networkPK
                 array_(@"messageID", @"senderID"),
