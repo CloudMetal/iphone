@@ -19,11 +19,17 @@
   NSNumber *unseenMessageCount;
   NSString *name;
   NSNumber *userID;
+  
+  NSArray *groupSubscriptionIds;
+  NSArray *tagSubscriptionIds;
+  NSArray *userSubscriptionIds;
 }
 
 @property (copy) NSNumber *userAccountPK, *userID;
 @property (copy) NSNumber *networkID, *unseenMessageCount;
 @property (copy) NSString *permalink, *url, *name;
 @property (copy) NSString *token, *secret;
+@property (nonatomic, readwrite, retain) NSArray 
+  *groupSubscriptionIds, *tagSubscriptionIds, *userSubscriptionIds;
 
 @end

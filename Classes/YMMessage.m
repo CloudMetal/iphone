@@ -14,7 +14,7 @@
 @implementation YMMessage
 
 @synthesize messageID, groupID, directToID, url, webURL, repliedToID, target, 
-            threadID, bodyPlain, bodyParsed, attachmentPKs, messageType, targetID, 
+            threadID, bodyPlain, bodyParsed, messageType, targetID, liked, hasAttachments, 
             clientType, senderID, senderType, createdAt, networkPK, read, repliedToSenderID;
 
 + (NSArray *) indices

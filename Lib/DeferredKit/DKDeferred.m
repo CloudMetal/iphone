@@ -1240,8 +1240,8 @@ static DKDeferredCache *__sharedCache;
   if (ret) {
     [d addBoth:curryTS(self, @selector(_cbRemoveDeferred::), k)];
   } else {
-    ret = d;
-    [ret cancel];
+    ret = [(id)_queue objForKey:k];
+    [d cancel];
   }
   [self _resumeWaiting];
   return ret;

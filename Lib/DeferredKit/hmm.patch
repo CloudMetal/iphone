@@ -1,0 +1,3832 @@
+diff -rupN /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKCallback.h ./DKCallback.h
+--- /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKCallback.h	2009-11-18 13:04:31.000000000 -0800
++++ ./DKCallback.h	2010-05-10 16:07:54.000000000 -0700
+@@ -7,31 +7,11 @@
+ 
+ #import <Foundation/Foundation.h>
+ 
+-/**
+- * Shorthand for [DKCallback fromSelector:]
+- */
+ #define callbackS(sel) [DKCallback fromSelector:@selector(sel)]
+-/** 
+- * Shorthand for [DKCallback fromSelector:target:]
+- */
+ #define callbackTS(tgt, sel) [DKCallback fromSelector:@selector(sel) target:tgt]
+-/**
+- * Shorthand for [DKCallback fromPointer:]
+- */
+ #define callbackP(fp) [DKCallback fromPointer:fp]
+-/**
+- * Shorthand for [DKCallback fromInvocation:parameterIndex:]
+- */
+ #define callbackI(inv, i) [DKCallback fromInvocation:inv parameterIndex:i]
+ 
+-
+-/**
+- * DKCallback (protocol)
+- * 
+- * Provides a unified function object. Callbacks can be made any 
+- * target but must take a single <code>(id)</code> argument and return
+- * an <code>(id)</code>.
+- */
+ @protocol DKCallback <NSObject>
+ 
+ - (id):(id)arg;
+@@ -40,53 +20,13 @@
+ 
+ typedef id (*dkCallback)(id);
+ 
+-
+-/**
+- * DKCallback (interface)
+- * 
+- * Provides implementations of DKCallback for.
+- * <pre>
+- * -[arg selector]
+- * -[target selector:arg]
+- * functionPointer(arg)
+- * NSInvocation objects
+- * </pre>
+- */
+ @interface DKCallback : NSObject <DKCallback>
+ 
+-/**
+- * Returns a DKCallback which will get it's result from performing <code>selector</code>
+- * on the argument it's called with.
+- */
+ + (DKCallback *)fromSelector:(SEL)s;
+-
+-/**
+- * Returns a DKCallback that will get it's result from
+- * performing <code>selector</code> on <code>target</code>. <code>selector</code>
+- * must always take exactly one <code>id</code> arg and return <code>id</code>.
+- */
+ + (DKCallback *)fromSelector:(SEL)s target:(NSObject *)target;
+-
+-/**
+- * Returns a DKCallback from a function pointer. It must have the signature 
+- * <code>id f(id arg) { }</code>
+- */
+ + (DKCallback *)fromPointer:(dkCallback)f;
+-
+-/**
+- * Returns a DKCallback from an NSInvocation parameter index must always be at least 2
+- * to accomidate for <code>_cmd</code> and <code>self</code>.
+- */
+ + (DKCallback *)fromInvocation:(NSInvocation *)inv parameterIndex:(NSUInteger)i;
+-
+-/**
+- * Returns a DKCallback that calls <code>other</code> with the result of <code>self</code>
+- */
+ - (DKCallback *)andThen:(DKCallback *)other;
+-
+-/**
+- * Returns a DKCallback that calls <code>self</code> with the result of <code>other</code>
+- */
+ - (DKCallback *)composeWith:(DKCallback *)other;
+ 
+ @end
+diff -rupN /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKDeferred+CoreLocation.m ./DKDeferred+CoreLocation.m
+--- /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKDeferred+CoreLocation.m	2010-05-23 17:24:03.000000000 -0700
++++ ./DKDeferred+CoreLocation.m	2010-05-10 16:07:54.000000000 -0700
+@@ -58,9 +58,12 @@
+   if (updates > 1) {
+     [manager stopUpdatingLocation];
+     [manager autorelease];
++    if (location) [location release];
+     location = [newLocation retain];
+-    if (!failed) {
++    if (!failed && fired == -1) {
++      NSLog(@"got location %@ %@", self, location);
+       [self callback:location];
++//      return [DKDeferred wait:0.2 value:location];
+     }
+   }
+ }
+@@ -73,8 +76,8 @@
+ }
+ 
+ - (void)dealloc {
+-  [_manager release];
+-  [location release];
++//  [_manager release];
++//  [location release];
+   [super dealloc];
+ }
+ 
+diff -rupN /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKDeferred+JSON.h ./DKDeferred+JSON.h
+--- /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKDeferred+JSON.h	2010-05-23 17:33:00.000000000 -0700
++++ ./DKDeferred+JSON.h	2010-05-10 16:07:54.000000000 -0700
+@@ -6,37 +6,23 @@
+ //
+ 
+ #import <Foundation/Foundation.h>
+-#import "JSON/JSON.h"
++#import "JSON.h"
+ #import "DKDeferred.h"
+ 
++
+ @interface DKDeferred (JSONAdditions)
+ 
+-/**
+- * Returns a Deferred which will callback with the native representation
+- * of the JSON document at <code>aUrl</code>.
+- */
+ + (id)loadJSONDoc:(NSString *)aUrl;
+-
+-/**
+- * Returns a DKJSONServiceProxy which you can use to transparently call
+- * JSON-RPC methods on your web service. 
+- */
+ + (id)jsonService:(NSString *)aUrl;
+-
+-/**
+- * Returns a DKJSONServiceProxy which you can use to transparently call
+- * JSON-RPC methods on your web service located at <code>aUrl</code>. It will be 
+- * preconfigured to use <code>serviceName</code> as the method.
+- */
+ + (id)jsonService:(NSString *)aUrl name:(NSString *)serviceName;
+ 
+ @end
+ 
+ /**
+- * DKJSONServiceProxy
+- *
++ * = DKJSONServiceProxy =
++ * 
+  * Adds some syntatic sugar to interacting with a JSON-RPC Service
+- *  <pre>
++ *    
+  *    id _fromJSONResponse(id result) { // result will be an NSDictionary or NSArray
+  *      // do some stuff
+  *      return nil;
+@@ -49,9 +35,8 @@
+  *    }
+  *
+  *    id service = [DKDeferred jsonService:@"http://url.net/j" name:@""];
+- *    [[[service someNamespace] someMethod:array_(arg1, arg2)]
++ *    [[[service someNamespace] someMethod]
+  *     addCallbacks:callbackP(_fromJSONResponse) :callbackP(_fromJSONResponseError)];
+- *  </pre>
+  */
+ @interface DKJSONServiceProxy : NSObject
+ {
+@@ -59,29 +44,8 @@
+   NSString *serviceName;
+ }
+ 
+-/**
+- * Returns an initialized DKJSONServiceProxy which will direct method calls to 
+- * <code>url</code>
+- */
+ - (id)initWithURL:(NSString *)url;
+-
+-/**
+- * Returns an initialized DKJSONServiceProxy which will direct method calls to 
+- * <code>url</code> with the method preconfigred to <code>serviceName</code>.
+- */
+ - (id)initWithURL:(NSString *)aUrl serviceName:(NSString *)aService;
+-
+-/**
+- * Executes a JSON-RPC call on the server. Returns a deferred which will callback
+- * with the native representation of the method results.
+- */
+-- (id):(NSArray *)args;
+-
+-@end
+-
+-
+-@interface NSDate (JSONCustomization)
+-
+-- (id)proxyForJson;
++- (id):(NSArray *)args; // returns deferred
+ 
+ @end
+\ No newline at end of file
+diff -rupN /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKDeferred+JSON.m ./DKDeferred+JSON.m
+--- /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKDeferred+JSON.m	2010-05-23 17:30:54.000000000 -0700
++++ ./DKDeferred+JSON.m	2010-05-10 16:07:54.000000000 -0700
+@@ -87,20 +87,11 @@ id _decodeJSONResonse(id results) {
+ }
+ 
+ - (id):(NSArray *)args {
+-  NSDictionary *methodCall = dict_(serviceName, @"method", 
+-                                   args, @"params", 
+-                                   _uuid1(), @"id", 
+-                                   @"1.1", @"version");
+-  NSError *error = nil;
+-  NSString *post = [[[SBJSON alloc] init] stringWithObject:methodCall error:&error];
+-  if (error)
+-    return [DKDeferred fail:error];
+-  
++  NSDictionary *methodCall = dict_(serviceName, @"method", args, @"params", _uuid1(), @"id");
++  //NSLog(@"methodCall:%@", methodCall);
++  NSString *post = [[[SBJSON alloc] init] stringWithObject:methodCall];
+   NSMutableURLRequest *req = [[NSMutableURLRequest alloc] 
+                               initWithURL:[NSURL URLWithString:serviceURL]];
+-  [req setValue:@"application/json" forHTTPHeaderField:@"Accept"];
+-  [req setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
+-  [req setValue:@"DeferredKit JSON-RPC Proxy 1.0" forHTTPHeaderField:@"User-Agent"];
+   [req setHTTPMethod:@"POST"];
+   [req setHTTPBody:[post dataUsingEncoding:NSUTF8StringEncoding]];
+   DKDeferred *d = [[DKDeferredURLConnection alloc] 
+@@ -150,10 +141,3 @@ id _decodeJSONResonse(id results) {
+ }
+ 
+ @end
+-
+-
+-@implementation NSDate (JSONCustomization)
+-
+-- (id)proxyForJson { return [self description]; }
+-
+-@end
+diff -rupN /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKDeferred+UIKit.h ./DKDeferred+UIKit.h
+--- /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKDeferred+UIKit.h	2010-05-23 17:32:25.000000000 -0700
++++ ./DKDeferred+UIKit.h	2010-05-10 16:07:54.000000000 -0700
+@@ -8,33 +8,13 @@
+ #import <UIKit/UIKit.h>
+ #import "DKDeferred.h"
+ 
++//@class UIImage;
++
+ @interface DKDeferred (UIKitAdditions)
+ 
+-/**
+- * Returns a DKDeferred that will callback with UIImage containing the image
+- * at <code>aUrl</code>. Can optionally cache it's results in the <code>+[DKDeferredCache sharedCache]</code>
+- * for <code>-[DKDeferredCache defaultTimeout]</code>.
+- */
+ + (id)loadImage:(NSString *)aUrl cached:(BOOL)cached;
+-
+-/**
+- * Returns a DKDeferred that will callback with a UIImage containing the image
+- * at <code>aUrl</code> proportionally scaled to meet the requirements of <code>size</code>.
+- * Can optionally cache the resized image in the <code>+[DKDeferredCache sharedCache]</code>
+- * for <code>-[DKDeferredCache defaultTimeout]</code>.
+- */
+ + (id)loadImage:(NSString *)aUrl sizeTo:(CGSize)size cached:(BOOL)cached;
+-
+-/**
+- * Same as loadImage:cached: except that it may be started paused. If <code>paused</code> is <code>YES</code>
+- * to initiate the network connection or to check the cache you must call [deferred callback:nil]
+- */
+ + (id)loadImage:(NSString *)aUrl cached:(BOOL)cached paused:(BOOL)_paused;
+-
+-/**
+- * Same as loadImage:sizeTo:cached: except that it may be started paused. If <code>paused is <code>YES</code>
+- * to initilize the network connection or to check the cache you must call [deferred callback:nil]
+- */
+ + (id)loadImage:(NSString *)aUrl sizeTo:(CGSize)size cached:(BOOL)cached paused:(BOOL)_paused;
+ 
+ 
+diff -rupN /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKDeferred+UIKit.m ./DKDeferred+UIKit.m
+--- /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKDeferred+UIKit.m	2010-05-23 17:32:31.000000000 -0700
++++ ./DKDeferred+UIKit.m	2010-05-10 16:07:54.000000000 -0700
+@@ -70,7 +70,7 @@
+     if (boolv(shouldCache)) {
+       [[DKDeferredCache sharedCache] 
+        setValue:UIImagePNGRepresentation(img)
+-       forKey:url timeout:[[DKDeferredCache sharedCache] defaultTimeout]];
++       forKey:url timeout:7200.0];
+     }
+     return img;
+   }
+diff -rupN /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKDeferred.h ./DKDeferred.h
+--- /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKDeferred.h	2010-05-23 17:28:49.000000000 -0700
++++ ./DKDeferred.h	2010-05-10 16:07:54.000000000 -0700
+@@ -70,19 +70,7 @@
+   *     // tell the user the internet is down.
+   *     return nil;
+   * }
+-  * </pre>   
+-  *
+-  * DKDeferred, much like the NSDate class is an aggregate class. Many of the public
+-  * constructors you use through this class will return classes that inherit from
+-  * DKDeferred. Initializers may sometimes return objects that do not directly represent
+-  * the object you're initializing (for instance, some paused deferreds). Therefore
+-  * it is crucial when typing your deferred symbols it is best to use <code>id</code> or
+-  * <code>DKDeferred*</code> like so:
+-  * <pre>
+-  * DKDeferred *d = [DKDeferred deferInThread:callbackP(_run) withObject:self];
+-  * --or--
+-  * id d = [DKDeferred deferInThread:callbackP(_run) withObject:self];
+-  * </pre>
++  *  </pre>   
+   */
+ 
+ @interface DKDeferred : NSObject {
+@@ -204,14 +192,7 @@
+  * timers and events to continue being processed in the same thread.
+  *
+  * It's not normally recommended to use this method but functions as a 
+- * great way to prototype. It does however allow you to do some cool things,
+- * like calling JSON-RPC methods inline:
+- *
+- * <pre>
+- * id ret = waitForDeferred(
+- *           [[[DKDeferred jsonService:WS_URL]
+- *            myNamespace] myMethod:array_(username, password, arg1)]);
+- * </pre>         
++ * great way to prototype.
+  */
+ @interface DKWaitForDeferred : NSObject
+ {
+@@ -378,12 +359,10 @@
+   int maxEntries;
+   int cullFrequency;
+   NSString *dir;
+-  NSTimeInterval defaultTimeout;
++  NSTimeInterval *defaultTimeout;
+   NSOperationQueue *operationQueue;
+ }
+ 
+-@property(assign) NSTimeInterval defaultTimeout;
+-
+ + (id)sharedCache;
+ - (id)initWithDirectory:(NSString *)_dir 
+              maxEntries:(int)_maxEntries
+diff -rupN /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKDeferred.m ./DKDeferred.m
+--- /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKDeferred.m	2010-05-23 17:27:59.000000000 -0700
++++ ./DKDeferred.m	2010-05-17 16:52:33.000000000 -0700
+@@ -151,9 +151,7 @@ id _gatherResultsCallback(id results) {
+     return [[DKDeferredURLConnection loadURL:url] 
+             addBoth:curryTS((id)self, @selector(_cachedLoadURLCallback:results:), url)];
+   } else {
+-    [[DKDeferredCache sharedCache] 
+-     setValue:_results forKey:url
+-     timeout:[[DKDeferredCache sharedCache] defaultTimeout]];
++    [[DKDeferredCache sharedCache] setValue:_results forKey:url timeout:7200.0f];
+     return _results;
+   }
+   return nil;
+@@ -164,6 +162,17 @@ id _gatherResultsCallback(id results) {
+ }
+ 
+ + (id)loadURL:(NSString *)aUrl paused:(BOOL)_paused { 
++//  id ret;
++//  if (_paused) {
++//    ret = [DKDeferred deferred];
++//    [ret addBoth:callbackTS((id)self, _cbStartConnection:)];
++//    [ret pause];
++//    [ret callback:aUrl];
++//  } else {
++//  id ret = [DKDeferredURLConnection deferredURLConnection:aUrl];
++//  if (_paused)
++//    [ret pause];
++//  }
+   return [[[DKDeferredURLConnection alloc] initWithURL:aUrl paused:_paused] autorelease];
+ }
+ 
+@@ -866,8 +875,6 @@ static DKDeferredCache *__sharedCache;
+ 
+ @implementation DKDeferredCache
+ 
+-@synthesize defaultTimeout;
+-
+ /// DKCache Protocol
+ - (id)setValue:(NSObject *)value forKey:(NSString *)key timeout:(NSTimeInterval)timeout {
+   return [DKDeferred defer:
+@@ -925,12 +932,15 @@ static DKDeferredCache *__sharedCache;
+   for (NSString *key in keys) {
+     val = [self _getValue:key];
+     [ret addObject:((val == nil) ? [NSNull null] : val)];
++    val = nil;
+   }
+-  return [NSDictionary dictionaryWithObjects:ret forKeys:keys];
++  return ret; //[NSDictionary dictionaryWithObjects:ret forKeys:keys];
+ }
+ 
+ // should always be executed in a thread
+ - (id)_getValue:(NSString *)key { 
++  if (key == (id)[NSNull null])
++    return nil;
+   NSString *fname = [dir stringByAppendingPathComponent:md5(key)];
+   NSFileManager *fm = [NSFileManager defaultManager];
+   if ([fm fileExistsAtPath:fname]) {
+@@ -976,7 +986,6 @@ static DKDeferredCache *__sharedCache;
+     maxEntries = (_maxEntries < 1) ? 300 : _maxEntries;
+     cullFrequency = (_cullFrequency < 1) ? 3 : _cullFrequency;
+     operationQueue = [[NSOperationQueue alloc] init];
+-    self.defaultTimeout = 7200.0;
+     // init cache directory
+     NSFileManager *fm = [NSFileManager defaultManager];
+     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDirectory, YES);
+diff -rupN /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKMacros.h ./DKMacros.h
+--- /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKMacros.h	2010-05-23 17:24:03.000000000 -0700
++++ ./DKMacros.h	2010-05-10 16:07:54.000000000 -0700
+@@ -6,7 +6,7 @@
+  */
+ 
+ #ifdef __OBJC__
+-//#import "FK/FKFunction.h"
++//#import "FKFunction.h"
+ #import "DKCallback.h"
+ 
+ /** Curries a target->selector into an DKCallback 
+diff -rupN /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKMacros.h.orig ./DKMacros.h.orig
+--- /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKMacros.h.orig	2009-11-18 13:04:31.000000000 -0800
++++ ./DKMacros.h.orig	1969-12-31 16:00:00.000000000 -0800
+@@ -1,79 +0,0 @@
+-/*
+- *  DKMacros.h
+- *  DeferredKit
+- *
+- *  Created by Samuel Sutch on 7/25/09.
+- */
+-
+-#ifdef __OBJC__
+-//#import "FK/FKFunction.h"
+-#import "DKCallback.h"
+-
+-/** Curries a target->selector into an DKCallback 
+- *
+- * ``target``   is the object the selector will be sent to
+- * ``selector`` is the message sent to ``target``
+- * ``numargs``  must be the length of args supplied to the
+- *              curried method. The last argument must be free
+- *              for an argument when the function is called.
+- * ``...``      any aditional arguments, (the same number of arguments
+- *              as provided to ``numargs``
+- **/
+-static inline id<DKCallback> _curryTS(id target, SEL selector, ...) {
+-  NSMethodSignature *sig = ([target isKindOfClass:[NSObject class]] ? 
+-                            [target methodSignatureForSelector:selector] :
+-                            [[target class] instanceMethodSignatureForSelector:selector]);
+-  NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:sig];
+-  [invocation setTarget:target];
+-  [invocation setSelector:selector];
+-  va_list argumentList;
+-  va_start(argumentList, selector);
+-  id arg;
+-  int i = 0;
+-  while (arg = va_arg(argumentList, id)) {
+-    //NSLog(@"arg:%@", arg);
+-    [invocation setArgument:&arg atIndex:i + 2];
+-    i++;
+-  }
+-  if (! (i == ([sig numberOfArguments] - 3))) {
+-    @throw [NSException exceptionWithName:@"CurryArgumentCountException" 
+-                                   reason:@"The number of arguments supplied to curry must be one "
+-            @"less than the total number of arguments for the given implementation"
+-                                 userInfo:nil];
+-  }
+-  va_end(argumentList);
+-  [invocation retainArguments];
+-  return [DKCallback fromInvocation:invocation parameterIndex:i];
+-}
+-
+-#define curryTS(__target, __selector, args...) _curryTS(__target, __selector, args, nil)
+-#define isDeferred(__obj) [__obj isKindOfClass:[DKDeferred class]]
+-#define waitForDeferred(__d) [[[[[[DKWaitForDeferred alloc] initWithDeferred:__d] autorelease] result] retain] autorelease]
+-#define pauseDeferred(__d) [[[DKDeferredWrapper alloc] initWithDeferred:__d] autorelease]
+-#define nsni(__i) [NSNumber numberWithInt:__i]
+-#define nsnd(__d) [NSNumber numberWithDouble:__d]
+-#define nsnf(__f) [NSNumber numberWithFloat:__f]
+-#define nsnb(__b) nsni(__b)
+-#define intv(__o) [__o intValue]
+-#define doublev(__o) [__o doubleValue]
+-#define floatv(__o) [__o floatValue]
+-#define boolv(__o) [__o boolValue]
+-#define array_(__args...) [NSArray arrayWithObjects:__args, nil]
+-#define dict_(__args...) [NSDictionary dictionaryWithObjectsAndKeys:__args, nil]
+-#ifndef EMPTY_DICT
+-#define EMPTY_DICT [NSDictionary dictionary]
+-#endif
+-#ifndef EMPTY_ARRAY
+-#define EMPTY_ARRAY [NSArray array]
+-#endif
+-
+-/**
+-  * Creates a new NSString containing a UUID
+-  **/
+-static inline NSString* _uuid1() {
+-  CFUUIDRef uuid = CFUUIDCreate(nil);
+-  NSString *uuidString = (NSString *)CFUUIDCreateString(nil, uuid);
+-  CFRelease(uuid);
+-  return [uuidString autorelease];
+-}
+-#endif
+\ No newline at end of file
+diff -rupN /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DeferredKit.h ./DeferredKit.h
+--- /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DeferredKit.h	2009-11-18 13:09:16.000000000 -0800
++++ ./DeferredKit.h	2010-05-10 16:07:54.000000000 -0700
+@@ -8,168 +8,4 @@
+ #import "DKDeferred.h"
+ #import "DKDeferred+UIKit.h"
+ #import "DKDeferred+JSON.h"
+-
+-/*! \mainpage DKDeferred - Deferred objects for Objective-C
+-  <p>DeferredKit is an asynchronous library for cocoa built around the idea of a <a href="http://twistedmatrix.com/projects/core/documentation/howto/defer.html">Deferred Object</a> - that is, "an object created to encapsulate a sequence of callbacks in response to an object that may not yet be available." Besides the core class, DKDeferred, much other functionality is included in this project, including an asynchronous URL loading API, an asynchronous disk cache, and a JSON-RPC implementation.</p>
+-
+-  <p>DeferredKit is modeled after the deferred class by  <a href="http://twistedmatrix.com/">TwistedMatrix</a> and inspired by <a href="http://www.mochikit.com/doc/html/MochiKit/Async.html#fn-deferred">MochiKit's</a> implementation of Deferred. DKCallback - the function object is mostly taken from a pre-blocks version of <a href="http://github.com/mogeneration/functionalkit">FunctionalKit</a>.</p>
+-
+-  <p>The DKDeferred implementation is not dependent upon threads or any other form of concurrency for it's operation (however, you may create threaded Deferred's) and operates in the same environment as the rest of your Objective-C program.</p>
+-
+-  <p><strong>NOTE:</strong> DeferredKit bundles <a href="http://code.google.com/p/json-framework/">json-framework</a>, and will need to be removed from your project before adding DeferredKit using the following method. Otherwise, embedding the code works just as well.</p>
+-
+-  <p>More:
+-    1. <a href="http://samuraiblog.com/wordpress/2009/11/06/json-rpc-in-objective-c/">JSON-RPC in Objective-C</a></p>
+-
+-  <h2>Installing DeferredKit</h2>
+-
+-  <ol>
+-  <li>Copy the entire source tree into your projects directory.</li>
+-  <li>Add DeferredKit to your project.
+-
+-  <ul>
+-  <li>Copy <code>"{PROJECT_ROOT}/DeferredKit/CocoaDeferred/CocoaDeferred.xcodeproj"</code> to the <strong>Groups and Files</strong> pane of Xcode.</li>
+-  <li>In the window presented by Xcode, uncheck "Copy items...". Reference type should be "Relative to Project"</li>
+-  <li>Uncheck any targets Xcode might automatically assume.</li>
+-  </ul>
+-  </li>
+-  <li>Add DeferredKit to your header search paths.
+-
+-  <ul>
+-  <li>Under your target's build settings, search for find "Header Search Paths" and add <code>"DeferredKit/CocoaDeferred/Source"</code></li>
+-  </ul>
+-  </li>
+-  <li>Add DeferredKit to your Target
+-
+-  <ul>
+-  <li>Under your target's general settings, under Direct Dependancies click the "+" button and choose "DeferredKit"</li>
+-  </ul>
+-  </li>
+-  <li>Expand your <code>"CocoaDeferred.xcodeproj"</code> and drag <code>"libDeferredKit.a"</code> to your target's "Link Binary with Library"</li>
+-  </ol>
+-
+-
+-  <h2>Example Usage</h2>
+-
+-  <h3>Asynchronous URL Loading</h3>
+-
+-  <p>All methods in DeferredKit return Deferred objects. This is the same basic interface used to access all functionality provided by DeferredKit.</p>
+-
+-  <pre><code>\code id cbGotResource(id results) {
+-    [[Resource resourceWithData:results] save];
+-    return nil;
+-  }
+-
+-  id cbGetResourceFailed(id error) {
+-    // alert user resource is unavailable.
+-    return nil;
+-  }
+-
+-  DKDeferred *d = [DKDeferred loadURL:@"http://addr.net/resource/"];
+-  [d addCallback:callbackP(cbGotResource)];
+-  [d addCallback:callbackP(cbGetResourceFailed)];
+-  \endcode</code></pre>
+-
+-  <h3>Asynchronous processing</h3>
+-
+-  <p>You can generate Deferred objects which encapsulate the execution of a method or function in a thread. The Deferred automatically returns the result to the correct thread.</p>
+-
+-  <pre><code>\code id cbDoneProcessing(id results) {
+-    if (content) {
+-      [content release];
+-      content = nil;
+-    }
+-    content = [results retain];
+-    [tableView reloadData];
+-    return nil;
+-  }
+-
+-  DKDefered *d =[DKDeferred deferInThread:
+-                 callbackTS((id)[Resource class], updateAllResources:)];
+-  [d addCallback:cbDoneProcessing];
+-  \endcode</code></pre>
+-
+-  <h3>Combining Asynchronous tasks</h3>
+-
+-  <p>These two Deferred objects may return almost immediately if loaded from the cache.</p>
+-
+-  <pre><code>\code- (IBAction)loadResource:(id)sender {
+-    DKDeferred *html = [DKDeferred loadURL:@"http://url1.com/resource" cached:YES];
+-    DKDeferred *header = [DKDeferred loadImage:@"http://url1.com/resource-img.png" cached:YES];
+-
+-    DKDeferred *d = [DKDeferred gatherResults:array_(html, header)];
+-    [d addCalback:callbackTS(self, cbDoneLoading:)];
+-  }
+-
+-  - (id)cbDoneLoading:(id)results {
+-    [self showHTML:[results objectAtIndex:0]];
+-    [self showHeaderImage:[results objectAtIndex:1]];
+-    return nil;
+-  }
+-  \endcode</code></pre>
+-
+-  <h3>Interacting with a JSON-RPC Service</h3>
+-
+-  <p>DeferredKit provides a JSON-RPC implementation using DKDeferred.</p>
+-
+-  <pre><code>\code id myservice = [DKDeferred jsonService:@"" name:@"myservice"]
+-  DKDeferred *d = [myservice someMethod:array(arg1, arg2)]
+-  [d addCallbacks:callbackTS(self, cbGotResults:) :callbackTS(cbGetResultsFailed:)];
+-  \endcode</code></pre>
+-
+-  <h3>Asynchronous processing chain</h3>
+-
+-  <p>Each callback added to a DKDeferred results in a chain of callbacks - the last callback added will be called with the result returned by the previous callback.</p>
+-
+-  <pre><code>\code- (IBAction)fetchResources:(id)sender {
+-    id _parseResults:(id results) {
+-      // _parseResults can return an NSError at which point the deferred
+-      // will begin it's error callback chain
+-      return [Resource arrayWithJSONResponse:results];
+-    }
+-
+-    DKDeferred *d = [DKDeferred loadJSONDoc:@"http://whereitsat.net/resource/"]
+-    [d addCallback:callbackP(_parseResults)];
+-    [d addCallback:callbackTS(self, _presentResources:)];
+-    [d addErrback:callbackTS(self, _getResourcesFailed:)];
+-  }
+-
+-  - (id)_presentResources:(id)results {
+-    if (resources) {
+-      [resources release];
+-      resources = nil;
+-    }
+-    resources = [results retain];
+-    [tableView reloadData];
+-  }
+-  \endcode</code></pre>
+-
+-  <h3>Asynchronous disk cache</h3>
+-
+-  <p>Since the disk cache utilizes a deferred object interface, access to cached results can implement caching in only a few lines.</p>
+-
+-  <pre><code>\code- (IBAction)fetchSomeStuff:(id)sender {
+-    id _gotKey(id results) {
+-      if (results == [NSNull null]) { // cache miss
+-        return [DKDeferred deferInThread:[Resource getResources] withObject:nil];
+-      } else { // cache hit
+-        return results;
+-      }
+-    }
+-    DKDeferred *d = [[DKDeferredCache sharedCache] valueForKey:@"someKey"];
+-    [d addCallback:callbackP(_gotKey)];
+-    [d addCallback:callbackTS(self, cbGotResults:)];
+-  }
+-
+-  - (id)cbGotResults:(id)results {
+-    if (isDeferred(results)) // in the event of a cache miss
+-      return [results addCallback:callbackTS(self, cbGotResults:)];
+-    if (resources) {
+-      [resources release];
+-      resources = nil;
+-    }
+-    resources = [results retain];
+-    [tableView reloadData];
+-  }
+-  \endcode</code></pre>
+-*/
++//#import "DKDeferred+CoreLocation.h"
+\ No newline at end of file
+diff -rupN /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/Reachability.h ./Reachability.h
+--- /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/Reachability.h	1969-12-31 16:00:00.000000000 -0800
++++ ./Reachability.h	2010-05-10 16:07:54.000000000 -0700
+@@ -0,0 +1,122 @@
++/*
++
++File: Reachability.h
++Abstract: SystemConfiguration framework wrapper.
++
++Version: 1.5
++
++Disclaimer: IMPORTANT:  This Apple software is supplied to you by Apple Inc.
++("Apple") in consideration of your agreement to the following terms, and your
++use, installation, modification or redistribution of this Apple software
++constitutes acceptance of these terms.  If you do not agree with these terms,
++please do not use, install, modify or redistribute this Apple software.
++
++In consideration of your agreement to abide by the following terms, and subject
++to these terms, Apple grants you a personal, non-exclusive license, under
++Apple's copyrights in this original Apple software (the "Apple Software"), to
++use, reproduce, modify and redistribute the Apple Software, with or without
++modifications, in source and/or binary forms; provided that if you redistribute
++the Apple Software in its entirety and without modifications, you must retain
++this notice and the following text and disclaimers in all such redistributions
++of the Apple Software.
++Neither the name, trademarks, service marks or logos of Apple Inc. may be used
++to endorse or promote products derived from the Apple Software without specific
++prior written permission from Apple.  Except as expressly stated in this notice,
++no other rights or licenses, express or implied, are granted by Apple herein,
++including but not limited to any patent rights that may be infringed by your
++derivative works or by other works in which the Apple Software may be
++incorporated.
++
++The Apple Software is provided by Apple on an "AS IS" basis.  APPLE MAKES NO
++WARRANTIES, EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE IMPLIED
++WARRANTIES OF NON-INFRINGEMENT, MERCHANTABILITY AND FITNESS FOR A PARTICULAR
++PURPOSE, REGARDING THE APPLE SOFTWARE OR ITS USE AND OPERATION ALONE OR IN
++COMBINATION WITH YOUR PRODUCTS.
++
++IN NO EVENT SHALL APPLE BE LIABLE FOR ANY SPECIAL, INDIRECT, INCIDENTAL OR
++CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
++GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
++ARISING IN ANY WAY OUT OF THE USE, REPRODUCTION, MODIFICATION AND/OR
++DISTRIBUTION OF THE APPLE SOFTWARE, HOWEVER CAUSED AND WHETHER UNDER THEORY OF
++CONTRACT, TORT (INCLUDING NEGLIGENCE), STRICT LIABILITY OR OTHERWISE, EVEN IF
++APPLE HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++
++Copyright (C) 2008 Apple Inc. All Rights Reserved.
++
++*/
++
++#import <UIKit/UIKit.h>
++#import <SystemConfiguration/SystemConfiguration.h>
++
++@class Reachability;
++
++@interface Reachability : NSObject {
++    
++@private
++	BOOL _networkStatusNotificationsEnabled;
++	
++	NSString *_hostName;
++	NSString *_address;
++    
++	NSMutableDictionary *_reachabilityQueries;
++}
++
++/*
++ An enumeration that defines the return values of the network state
++ of the device.
++ */
++typedef enum {
++	NotReachable = 0,
++	ReachableViaCarrierDataNetwork,
++	ReachableViaWiFiNetwork
++} NetworkStatus;
++
++
++// Set to YES to register for changes in network status. Otherwise reachability queries
++// will be handled synchronously.
++@property BOOL networkStatusNotificationsEnabled;
++// The remote host whose reachability will be queried.
++// Either this or 'addressName' must be set.
++@property (nonatomic, retain) NSString *hostName;
++// The IP address of the remote host whose reachability will be queried.
++// Either this or 'hostName' must be set.
++@property (nonatomic, retain) NSString *address;
++// A cache of ReachabilityQuery objects, which encapsulate a SCNetworkReachabilityRef, a host or address, and a run loop. The keys are host names or addresses.
++@property (nonatomic, assign) NSMutableDictionary *reachabilityQueries;
++
++// This class is intended to be used as a singleton.
+++ (Reachability *)sharedReachability;
++
++// Is self.hostName is not nil, determines its reachability.
++// If self.hostName is nil and self.address is not nil, determines the reachability of self.address.
++- (NetworkStatus)remoteHostStatus;
++// Is the device able to communicate with Internet hosts? If so, through which network interface?
++- (NetworkStatus)internetConnectionStatus;
++// Is the device able to communicate with hosts on the local WiFi network? (Typically these are Bonjour hosts).
++- (NetworkStatus)localWiFiConnectionStatus;
++
++/*
++ When reachability change notifications are posted, the callback method 'ReachabilityCallback' is called
++ and posts a notification that the client application can observe to learn about changes.
++ */
++static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReachabilityFlags flags, void *info);
++
++@end
++
++@interface ReachabilityQuery : NSObject
++{
++@private
++	SCNetworkReachabilityRef _reachabilityRef;
++	CFMutableArrayRef _runLoops;
++	NSString *_hostNameOrAddress;
++}
++// Keep around each network reachability query object so that we can
++// register for updates from those objects.
++@property (nonatomic) SCNetworkReachabilityRef reachabilityRef;
++@property (nonatomic, retain) NSString *hostNameOrAddress;
++@property (nonatomic) CFMutableArrayRef runLoops;
++
++- (void)scheduleOnRunLoop:(NSRunLoop *)inRunLoop;
++
++@end
++
+diff -rupN /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/Reachability.m ./Reachability.m
+--- /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/Reachability.m	1969-12-31 16:00:00.000000000 -0800
++++ ./Reachability.m	2010-05-10 16:07:54.000000000 -0700
+@@ -0,0 +1,585 @@
++/*
++
++File: Reachability.m
++Abstract: SystemConfiguration framework wrapper.
++
++Version: 1.5
++
++Disclaimer: IMPORTANT:  This Apple software is supplied to you by Apple Inc.
++("Apple") in consideration of your agreement to the following terms, and your
++use, installation, modification or redistribution of this Apple software
++constitutes acceptance of these terms.  If you do not agree with these terms,
++please do not use, install, modify or redistribute this Apple software.
++
++In consideration of your agreement to abide by the following terms, and subject
++to these terms, Apple grants you a personal, non-exclusive license, under
++Apple's copyrights in this original Apple software (the "Apple Software"), to
++use, reproduce, modify and redistribute the Apple Software, with or without
++modifications, in source and/or binary forms; provided that if you redistribute
++the Apple Software in its entirety and without modifications, you must retain
++this notice and the following text and disclaimers in all such redistributions
++of the Apple Software.
++Neither the name, trademarks, service marks or logos of Apple Inc. may be used
++to endorse or promote products derived from the Apple Software without specific
++prior written permission from Apple.  Except as expressly stated in this notice,
++no other rights or licenses, express or implied, are granted by Apple herein,
++including but not limited to any patent rights that may be infringed by your
++derivative works or by other works in which the Apple Software may be
++incorporated.
++
++The Apple Software is provided by Apple on an "AS IS" basis.  APPLE MAKES NO
++WARRANTIES, EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE IMPLIED
++WARRANTIES OF NON-INFRINGEMENT, MERCHANTABILITY AND FITNESS FOR A PARTICULAR
++PURPOSE, REGARDING THE APPLE SOFTWARE OR ITS USE AND OPERATION ALONE OR IN
++COMBINATION WITH YOUR PRODUCTS.
++
++IN NO EVENT SHALL APPLE BE LIABLE FOR ANY SPECIAL, INDIRECT, INCIDENTAL OR
++CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
++GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
++ARISING IN ANY WAY OUT OF THE USE, REPRODUCTION, MODIFICATION AND/OR
++DISTRIBUTION OF THE APPLE SOFTWARE, HOWEVER CAUSED AND WHETHER UNDER THEORY OF
++CONTRACT, TORT (INCLUDING NEGLIGENCE), STRICT LIABILITY OR OTHERWISE, EVEN IF
++APPLE HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++
++Copyright (C) 2008 Apple Inc. All Rights Reserved.
++
++*/
++
++#import <sys/socket.h>
++#import <netinet/in.h>
++#import <netinet6/in6.h>
++#import <arpa/inet.h>
++#import <ifaddrs.h>
++#include <netdb.h>
++
++#import "Reachability.h"
++#import <SystemConfiguration/SCNetworkReachability.h>
++
++static NSString *kLinkLocalAddressKey = @"169.254.0.0";
++static NSString *kDefaultRouteKey = @"0.0.0.0";
++
++static Reachability *_sharedReachability;
++
++// A class extension that declares internal methods for this class.
++@interface Reachability()
++- (BOOL)isAdHocWiFiNetworkAvailableFlags:(SCNetworkReachabilityFlags *)outFlags;
++- (BOOL)isNetworkAvailableFlags:(SCNetworkReachabilityFlags *)outFlags;
++- (BOOL)isReachableWithoutRequiringConnection:(SCNetworkReachabilityFlags)flags;
++- (SCNetworkReachabilityRef)reachabilityRefForHostName:(NSString *)hostName;
++- (SCNetworkReachabilityRef)reachabilityRefForAddress:(NSString *)address;
++- (BOOL)addressFromString:(NSString *)IPAddress address:(struct sockaddr_in *)outAddress;
++- (void)stopListeningForReachabilityChanges;
++@end
++
++@implementation Reachability
++
++@synthesize networkStatusNotificationsEnabled = _networkStatusNotificationsEnabled;
++@synthesize hostName = _hostName;
++@synthesize address = _address;
++@synthesize reachabilityQueries = _reachabilityQueries;
++
+++ (Reachability *)sharedReachability
++{
++	if (!_sharedReachability) {
++		_sharedReachability = [[Reachability alloc] init];
++		// Clients of Reachability will typically call [[Reachability sharedReachability] setHostName:]
++		// before calling one of the status methods.
++        _sharedReachability.hostName = nil;
++		_sharedReachability.address = nil;
++		_sharedReachability.networkStatusNotificationsEnabled = NO;
++		_sharedReachability.reachabilityQueries = [[NSMutableDictionary alloc] init];
++	}
++	return _sharedReachability;
++}
++
++- (void) dealloc
++{	
++    [self stopListeningForReachabilityChanges];
++    
++	[_sharedReachability.reachabilityQueries release];
++	[_sharedReachability release];
++	[super dealloc];
++}
++
++- (BOOL)isReachableWithoutRequiringConnection:(SCNetworkReachabilityFlags)flags
++{
++    // kSCNetworkReachabilityFlagsReachable indicates that the specified nodename or address can
++	// be reached using the current network configuration.
++	BOOL isReachable = flags & kSCNetworkReachabilityFlagsReachable;
++	
++	// This flag indicates that the specified nodename or address can
++	// be reached using the current network configuration, but a
++	// connection must first be established.
++	//
++	// If the flag is false, we don't have a connection. But because CFNetwork
++    // automatically attempts to bring up a WWAN connection, if the WWAN reachability
++    // flag is present, a connection is not required.
++	BOOL noConnectionRequired = !(flags & kSCNetworkReachabilityFlagsConnectionRequired);
++	if ((flags & kSCNetworkReachabilityFlagsIsWWAN)) {
++		noConnectionRequired = YES;
++	}
++	
++	return (isReachable && noConnectionRequired) ? YES : NO;
++}
++
++// Returns whether or not the current host name is reachable with the current network configuration.
++- (BOOL)isHostReachable:(NSString *)host
++{
++    if (!host || ![host length]) {
++        return NO;
++    }
++    
++    SCNetworkReachabilityFlags		flags;
++    SCNetworkReachabilityRef reachability =  SCNetworkReachabilityCreateWithName(NULL, [host UTF8String]);
++	BOOL gotFlags = SCNetworkReachabilityGetFlags(reachability, &flags);
++    
++	CFRelease(reachability);
++    
++    if (!gotFlags) {
++        return NO;
++    }
++    
++	return [self isReachableWithoutRequiringConnection:flags];
++}
++
++// This returns YES if the address 169.254.0.0 is reachable without requiring a connection.
++- (BOOL)isAdHocWiFiNetworkAvailableFlags:(SCNetworkReachabilityFlags *)outFlags
++{		
++    // Look in the cache of reachability queries for one that matches this query.
++	ReachabilityQuery *query = [self.reachabilityQueries objectForKey:kLinkLocalAddressKey];
++	SCNetworkReachabilityRef adHocWiFiNetworkReachability = query.reachabilityRef;
++	
++    // If a cached reachability query was not found, create one.
++    if (!adHocWiFiNetworkReachability) {
++        
++        // Build a sockaddr_in that we can pass to the address reachability query.
++        struct sockaddr_in sin;
++        
++        bzero(&sin, sizeof(sin));
++        sin.sin_len = sizeof(sin);
++        sin.sin_family = AF_INET;
++        // IN_LINKLOCALNETNUM is defined in <netinet/in.h> as 169.254.0.0
++        sin.sin_addr.s_addr = htonl(IN_LINKLOCALNETNUM);
++        
++        adHocWiFiNetworkReachability = SCNetworkReachabilityCreateWithAddress(NULL, (struct sockaddr *)&sin);
++		
++		query = [[[ReachabilityQuery alloc] init] autorelease];
++		query.hostNameOrAddress = kLinkLocalAddressKey;
++		query.reachabilityRef = adHocWiFiNetworkReachability;
++		
++        // Add the reachability query to the cache.
++		[self.reachabilityQueries setObject:query forKey:kLinkLocalAddressKey];
++    }
++	
++	// If necessary, register for notifcations for the SCNetworkReachabilityRef on the current run loop.
++	// If an existing SCNetworkReachabilityRef was found in the cache, we can reuse it and register
++	// to receive notifications from it in the current run loop, which may be different than the run loop
++	// that was previously used when registering the SCNetworkReachabilityRef for notifications.
++    // -scheduleOnRunLoop: will schedule only if network status notifications are enabled in the Reachability instance.
++    // By default, they are not enabled. 
++	[query scheduleOnRunLoop:[NSRunLoop currentRunLoop]];
++    
++    SCNetworkReachabilityFlags addressReachabilityFlags;
++    BOOL gotFlags = SCNetworkReachabilityGetFlags(adHocWiFiNetworkReachability, &addressReachabilityFlags);
++    if (!gotFlags) {
++        // There was an error getting the reachability flags.
++        return NO;
++    }
++    
++    // Callers of this method might want to use the reachability flags, so if an 'out' parameter
++    // was passed in, assign the reachability flags to it.
++    if (outFlags) {
++        *outFlags = addressReachabilityFlags;
++    }
++    
++    return [self isReachableWithoutRequiringConnection:addressReachabilityFlags];
++}
++
++// ReachabilityCallback is registered as the callback for network state changes in startListeningForReachabilityChanges.
++static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReachabilityFlags flags, void *info)
++{
++	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
++    
++    // Post a notification to notify the client that the network reachability changed.
++    [[NSNotificationCenter defaultCenter] postNotificationName:@"kNetworkReachabilityChangedNotification" object:nil];
++	
++	[pool release];
++}
++
++// Perform a reachability query for the address 0.0.0.0. If that address is reachable without
++// requiring a connection, a network interface is available. We'll have to do more work to
++// determine which network interface is available.
++- (BOOL)isNetworkAvailableFlags:(SCNetworkReachabilityFlags *)outFlags
++{
++	ReachabilityQuery *query = [self.reachabilityQueries objectForKey:kDefaultRouteKey];
++	SCNetworkReachabilityRef defaultRouteReachability = query.reachabilityRef;
++	
++    // If a cached reachability query was not found, create one.
++    if (!defaultRouteReachability) {
++        
++        struct sockaddr_in zeroAddress;
++        bzero(&zeroAddress, sizeof(zeroAddress));
++        zeroAddress.sin_len = sizeof(zeroAddress);
++        zeroAddress.sin_family = AF_INET;
++        
++        defaultRouteReachability = SCNetworkReachabilityCreateWithAddress(NULL, (struct sockaddr *)&zeroAddress);
++		
++		ReachabilityQuery *query = [[[ReachabilityQuery alloc] init] autorelease];
++		query.hostNameOrAddress = kDefaultRouteKey;
++		query.reachabilityRef = defaultRouteReachability;
++		
++		[self.reachabilityQueries setObject:query forKey:kDefaultRouteKey];
++    }
++	
++	// If necessary, register for notifcations for the SCNetworkReachabilityRef on the current run loop.
++	// If an existing SCNetworkReachabilityRef was found in the cache, we can reuse it and register
++	// to receive notifications from it in the current run loop, which may be different than the run loop
++	// that was previously used when registering the SCNetworkReachabilityRef for notifications. 
++    // -scheduleOnRunLoop: will schedule only if network status notifications are enabled in the Reachability instance.
++    // By default, they are not enabled. 
++	[query scheduleOnRunLoop:[NSRunLoop currentRunLoop]];
++	
++	SCNetworkReachabilityFlags flags;
++	BOOL gotFlags = SCNetworkReachabilityGetFlags(defaultRouteReachability, &flags);
++	if (!gotFlags) {
++        return NO;
++    }
++    
++	BOOL isReachable = [self isReachableWithoutRequiringConnection:flags];
++	
++	// Callers of this method might want to use the reachability flags, so if an 'out' parameter
++	// was passed in, assign the reachability flags to it.
++	if (outFlags) {
++		*outFlags = flags;
++	}
++	
++	return isReachable;
++}
++
++// Be a good citizen and unregister for network state changes when the application terminates.
++- (void)stopListeningForReachabilityChanges
++{
++	// Walk through the cache that holds SCNetworkReachabilityRefs for reachability
++	// queries to particular hosts or addresses.
++	NSEnumerator *enumerator = [self.reachabilityQueries objectEnumerator];
++	ReachabilityQuery *reachabilityQuery;
++    
++	while (reachabilityQuery = [enumerator nextObject]) {
++		
++		CFArrayRef runLoops = reachabilityQuery.runLoops;
++		NSUInteger runLoopCounter, maxRunLoops = CFArrayGetCount(runLoops);
++        
++		for (runLoopCounter = 0; runLoopCounter < maxRunLoops; runLoopCounter++) {
++			CFRunLoopRef nextRunLoop = (CFRunLoopRef)CFArrayGetValueAtIndex(runLoops, runLoopCounter);
++			
++			SCNetworkReachabilityUnscheduleFromRunLoop(reachabilityQuery.reachabilityRef, nextRunLoop, kCFRunLoopDefaultMode);
++		}
++        
++        CFArrayRemoveAllValues(reachabilityQuery.runLoops);
++	}
++}
++
++/*
++ Create a SCNetworkReachabilityRef for hostName, which lets us determine if hostName
++ is currently reachable, and lets us register to receive notifications when the 
++ reachability of hostName changes.
++ */
++- (SCNetworkReachabilityRef)reachabilityRefForHostName:(NSString *)hostName
++{
++	if (!hostName || ![hostName length]) {
++		return NULL;
++	}
++	
++	// Look in the cache for an existing SCNetworkReachabilityRef for hostName.
++	ReachabilityQuery *cachedQuery = [self.reachabilityQueries objectForKey:hostName];
++	SCNetworkReachabilityRef reachabilityRefForHostName = cachedQuery.reachabilityRef;
++	
++	if (reachabilityRefForHostName) {
++		return reachabilityRefForHostName;
++	}
++	
++	// Didn't find an existing SCNetworkReachabilityRef for hostName, so create one ...
++	reachabilityRefForHostName = SCNetworkReachabilityCreateWithName(kCFAllocatorDefault, [hostName UTF8String]);
++    
++    NSAssert1(reachabilityRefForHostName != NULL, @"Failed to create SCNetworkReachabilityRef for host: %@", hostName);
++    
++	ReachabilityQuery *query = [[[ReachabilityQuery alloc] init] autorelease];
++	query.hostNameOrAddress = hostName;
++	query.reachabilityRef = reachabilityRefForHostName;
++	
++    // If necessary, register for notifcations for the SCNetworkReachabilityRef on the current run loop.
++    // If an existing SCNetworkReachabilityRef was found in the cache, we can reuse it and register
++    // to receive notifications from it in the current run loop, which may be different than the run loop
++    // that was previously used when registering the SCNetworkReachabilityRef for notifications.
++    // -scheduleOnRunLoop: will schedule only if network status notifications are enabled in the Reachability instance.
++    // By default, they are not enabled. 
++    [query scheduleOnRunLoop:[NSRunLoop currentRunLoop]];
++    
++    // ... and add it to the cache.
++    [self.reachabilityQueries setObject:query forKey:hostName];
++    return reachabilityRefForHostName;
++}
++
++/*
++ Create a SCNetworkReachabilityRef for the IP address in addressString, which lets us determine if 
++ the address is currently reachable, and lets us register to receive notifications when the 
++ reachability of the address changes.
++ */
++- (SCNetworkReachabilityRef)reachabilityRefForAddress:(NSString *)addressString
++{
++	if (!addressString || ![addressString length]) {
++		return NULL;
++	}
++	
++	struct sockaddr_in address;
++	
++	BOOL gotAddress = [self addressFromString:addressString address:&address];
++	if (!gotAddress) {
++        // The attempt to convert addressString to a sockaddr_in failed.
++        NSAssert1(gotAddress != NO, @"Failed to convert an IP address string to a sockaddr_in: %@", addressString);
++		return NULL;
++	}
++	
++	// Look in the cache for an existing SCNetworkReachabilityRef for addressString.
++	ReachabilityQuery *cachedQuery = [self.reachabilityQueries objectForKey:addressString];
++	SCNetworkReachabilityRef reachabilityRefForAddress = cachedQuery.reachabilityRef;
++	
++	if (reachabilityRefForAddress) {
++		return reachabilityRefForAddress;
++	}
++	
++	// Didn't find an existing SCNetworkReachabilityRef for addressString, so create one.
++	reachabilityRefForAddress = SCNetworkReachabilityCreateWithAddress(kCFAllocatorDefault, (struct sockaddr *)&address);
++    
++    NSAssert1(reachabilityRefForAddress != NULL, @"Failed to create SCNetworkReachabilityRef for address: %@", addressString);
++    
++	ReachabilityQuery *query = [[[ReachabilityQuery alloc] init] autorelease];
++	query.hostNameOrAddress = addressString;
++	query.reachabilityRef = reachabilityRefForAddress;
++    
++    // If necessary, register for notifcations for the SCNetworkReachabilityRef on the current run loop.
++    // If an existing SCNetworkReachabilityRef was found in the cache, we can reuse it and register
++    // to receive notifications from it in the current run loop, which may be different than the run loop
++    // that was previously used when registering the SCNetworkReachabilityRef for notifications.
++    // -scheduleOnRunLoop: will schedule only if network status notifications are enabled in the Reachability instance.
++    // By default, they are not enabled. 
++    [query scheduleOnRunLoop:[NSRunLoop currentRunLoop]];
++    
++    // ... and add it to the cache.
++    [self.reachabilityQueries setObject:query forKey:addressString];
++    return reachabilityRefForAddress;
++}
++
++- (NetworkStatus)remoteHostStatus
++{
++	/*
++     If the current host name or address is reachable, determine which network interface it is reachable through.
++     If the host is reachable and the reachability flags include kSCNetworkReachabilityFlagsIsWWAN, it
++     is reachable through the carrier data network. If the host is reachable and the reachability
++     flags do not include kSCNetworkReachabilityFlagsIsWWAN, it is reachable through the WiFi network.
++     */
++    
++	SCNetworkReachabilityRef reachabilityRef = nil;
++	if (self.hostName) {
++		reachabilityRef = [self reachabilityRefForHostName:self.hostName];
++		
++	} else if (self.address) {
++		reachabilityRef = [self reachabilityRefForAddress:self.address];
++		
++	} else {
++		NSAssert(self.hostName != nil && self.address != nil, @"No hostName or address specified. Cannot determine reachability.");
++		return NotReachable;
++	}
++	
++	if (!reachabilityRef) {
++		return NotReachable;
++	}
++	
++	SCNetworkReachabilityFlags reachabilityFlags;
++	BOOL gotFlags = SCNetworkReachabilityGetFlags(reachabilityRef, &reachabilityFlags);
++    if (!gotFlags) {
++        return NotReachable;
++    }
++    
++	BOOL reachable = [self isReachableWithoutRequiringConnection:reachabilityFlags];
++	
++	if (!reachable) {
++		return NotReachable;
++	}
++	if (reachabilityFlags & ReachableViaCarrierDataNetwork) {
++		return ReachableViaCarrierDataNetwork;
++	}
++	
++	return ReachableViaWiFiNetwork;
++}
++
++- (NetworkStatus)internetConnectionStatus
++{
++	/*
++     To determine if the device has an Internet connection, query the address
++     0.0.0.0. If it's reachable without requiring a connection, first check
++     for the kSCNetworkReachabilityFlagsIsDirect flag, which tell us if the connection
++     is to an ad-hoc WiFi network. If it is not, the device can access the Internet.
++     The next thing to determine is how the device can access the Internet, which
++     can either be through the carrier data network (EDGE or other service) or through
++     a WiFi connection.
++     
++     Note: Knowing that the device has an Internet connection is not the same as
++     knowing if the device can reach a particular host. To know that, use
++     -[Reachability remoteHostStatus].
++     */
++	
++	SCNetworkReachabilityFlags defaultRouteFlags;
++	BOOL defaultRouteIsAvailable = [self isNetworkAvailableFlags:&defaultRouteFlags];
++	if (defaultRouteIsAvailable) {
++        
++		if (defaultRouteFlags & kSCNetworkReachabilityFlagsIsDirect) {
++            
++			// The connection is to an ad-hoc WiFi network, so Internet access is not available.
++			return NotReachable;
++		}
++		else if (defaultRouteFlags & ReachableViaCarrierDataNetwork) {
++			return ReachableViaCarrierDataNetwork;
++		}
++		
++		return ReachableViaWiFiNetwork;
++	}
++	
++	return NotReachable;
++}
++
++- (NetworkStatus)localWiFiConnectionStatus
++{
++	SCNetworkReachabilityFlags selfAssignedAddressFlags;
++	
++	/*
++     To determine if the WiFi connection is to a local ad-hoc network,
++     check the availability of the address 169.254.x.x. That's an address
++     in the self-assigned range, and the device will have a self-assigned IP
++     when it's connected to a ad-hoc WiFi network. So to test if the device
++     has a self-assigned IP, look for the kSCNetworkReachabilityFlagsIsDirect flag
++     in the address query. If it's present, we know that the WiFi connection
++     is to an ad-hoc network.
++     */
++	// This returns YES if the address 169.254.0.0 is reachable without requiring a connection.
++	BOOL hasLinkLocalNetworkAccess = [self isAdHocWiFiNetworkAvailableFlags:&selfAssignedAddressFlags];
++    
++	if (hasLinkLocalNetworkAccess && (selfAssignedAddressFlags & kSCNetworkReachabilityFlagsIsDirect)) {
++		return ReachableViaWiFiNetwork;
++	}
++	
++	return NotReachable;
++}
++
++// Convert an IP address from an NSString to a sockaddr_in * that can be used to create
++// the reachability request.
++- (BOOL)addressFromString:(NSString *)IPAddress address:(struct sockaddr_in *)address
++{
++	if (!IPAddress || ![IPAddress length]) {
++		return NO;
++	}
++	
++	memset((char *) address, sizeof(struct sockaddr_in), 0);
++	address->sin_family = AF_INET;
++	address->sin_len = sizeof(struct sockaddr_in);
++	
++	int conversionResult = inet_aton([IPAddress UTF8String], &address->sin_addr);
++	if (conversionResult == 0) {
++		NSAssert1(conversionResult != 1, @"Failed to convert the IP address string into a sockaddr_in: %@", IPAddress);
++		return NO;
++	}
++	
++	return YES;
++}
++
++@end
++
++@interface ReachabilityQuery ()
++- (CFRunLoopRef)startListeningForReachabilityChanges:(SCNetworkReachabilityRef)reachability onRunLoop:(CFRunLoopRef)runLoop;
++@end
++
++@implementation ReachabilityQuery
++
++@synthesize reachabilityRef = _reachabilityRef;
++@synthesize runLoops = _runLoops;
++@synthesize hostNameOrAddress = _hostNameOrAddress;
++
++- (id)init
++{
++	self = [super init];
++	if (self != nil) {
++		self.runLoops = CFArrayCreateMutable(kCFAllocatorDefault, 0, NULL);
++	}
++	return self;
++}
++
++- (void)dealloc
++{
++	CFRelease(self.runLoops);
++	[super dealloc];
++}
++
++- (BOOL)isScheduledOnRunLoop:(CFRunLoopRef)runLoop
++{
++	NSUInteger runLoopCounter, maxRunLoops = CFArrayGetCount(self.runLoops);
++	
++	for (runLoopCounter = 0; runLoopCounter < maxRunLoops; runLoopCounter++) {
++		CFRunLoopRef nextRunLoop = (CFRunLoopRef)CFArrayGetValueAtIndex(self.runLoops, runLoopCounter);
++		
++		if (nextRunLoop == runLoop) {
++			return YES;
++		}
++	}
++	
++	return NO;
++}
++
++- (void)scheduleOnRunLoop:(NSRunLoop *)inRunLoop
++{
++	// Only register for network state changes if the client has specifically enabled them.
++	if ([[Reachability sharedReachability] networkStatusNotificationsEnabled] == NO) {
++		return;
++	}
++	
++	if (!inRunLoop) {
++		return;
++	}
++	
++	CFRunLoopRef runLoop = [inRunLoop getCFRunLoop];
++	
++	// Notifications of status changes for each reachability query can be scheduled on multiple run loops.
++	// To support that, register for notifications for each runLoop.
++	// -isScheduledOnRunLoop: iterates over all of the run loops that have previously been used
++	// to register for notifications. If one is found that matches the passed in runLoop argument, there's
++	// no need to register for notifications again. If one is not found, register for notifications
++	// using the current runLoop.
++	if (![self isScheduledOnRunLoop:runLoop]) {
++        
++		CFRunLoopRef notificationRunLoop = [self startListeningForReachabilityChanges:self.reachabilityRef onRunLoop:runLoop];
++		if (notificationRunLoop) {
++			CFArrayAppendValue(self.runLoops, notificationRunLoop);
++		}
++	}
++}
++
++// Register to receive changes to the 'reachability' query so that we can update the
++// user interface when the network state changes.
++- (CFRunLoopRef)startListeningForReachabilityChanges:(SCNetworkReachabilityRef)reachability onRunLoop:(CFRunLoopRef)runLoop
++{	
++	if (!reachability) {
++		return NULL;
++	}
++	
++	if (!runLoop) {
++		return NULL;
++	}
++    
++	SCNetworkReachabilityContext	context = {0, self, NULL, NULL, NULL};
++	SCNetworkReachabilitySetCallback(reachability, ReachabilityCallback, &context);
++	SCNetworkReachabilityScheduleWithRunLoop(reachability, runLoop, kCFRunLoopDefaultMode);
++	
++	return runLoop;
++}
++
++
++@end
+diff -rupN /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/changes1.patch ./changes1.patch
+--- /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/changes1.patch	2010-05-23 17:23:02.000000000 -0700
++++ ./changes1.patch	1969-12-31 16:00:00.000000000 -0800
+@@ -1,509 +0,0 @@
+-diff -rupN /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKDeferred+CoreLocation.h ./DKDeferred+CoreLocation.h
+---- /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKDeferred+CoreLocation.h	2009-11-18 13:04:31.000000000 -0800
+-+++ ./DKDeferred+CoreLocation.h	2010-01-01 16:46:18.000000000 -0800
+-@@ -30,6 +30,7 @@
+-   CLLocation *location;
+-   CLLocationManager *_manager;
+-   BOOL onlyOne;
+-+  BOOL failed;
+-   int updates;
+- }
+- 
+-diff -rupN /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKDeferred+CoreLocation.m ./DKDeferred+CoreLocation.m
+---- /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKDeferred+CoreLocation.m	2009-11-18 13:04:31.000000000 -0800
+-+++ ./DKDeferred+CoreLocation.m	2010-03-18 14:56:18.000000000 -0700
+-@@ -37,6 +37,7 @@
+- - (void)_timeout:(id)arg {
+-   if (fired == -1) {
+-     [_manager stopUpdatingLocation];
+-+    failed = YES;
+-     [self errback:
+-      [NSError
+-       errorWithDomain:@"DKDeferredLocation"
+-@@ -56,15 +57,25 @@
+-   updates += 1;
+-   if (updates > 1) {
+-     [manager stopUpdatingLocation];
+-+    [manager autorelease];
+-     location = [newLocation retain];
+--    [self callback:location];
+-+    if (!failed) {
+-+      [self callback:location];
+-+    }
+-   }
+- }
+- 
+- - (void)locationManager:(CLLocationManager *)manager 
+-        didFailWithError:(NSError *)error {
+-+  NSLog(@"locationManager:%@ didFailWithError:%@ %@", manager, error, [error userInfo]);
+-   [manager stopUpdatingLocation];
+-   [self errback:error];
+- }
+- 
+-+- (void)dealloc {
+-+  [_manager release];
+-+  [location release];
+-+  [super dealloc];
+-+}
+-+
+- @end
+-\ No newline at end of file
+-diff -rupN /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKDeferred+JSON.h ./DKDeferred+JSON.h
+---- /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKDeferred+JSON.h	2009-11-18 13:50:26.000000000 -0800
+-+++ ./DKDeferred+JSON.h	2010-04-04 16:58:01.000000000 -0700
+-@@ -6,37 +6,22 @@
+- //
+- 
+- #import <Foundation/Foundation.h>
+--#import "JSON/JSON.h"
+-+#import "JSON.h"
+- #import "DKDeferred.h"
+- 
+- @interface DKDeferred (JSONAdditions)
+- 
+--/**
+-- * Returns a Deferred which will callback with the native representation
+-- * of the JSON document at <code>aUrl</code>.
+-- */
+- + (id)loadJSONDoc:(NSString *)aUrl;
+--
+--/**
+-- * Returns a DKJSONServiceProxy which you can use to transparently call
+-- * JSON-RPC methods on your web service. 
+-- */
+- + (id)jsonService:(NSString *)aUrl;
+--
+--/**
+-- * Returns a DKJSONServiceProxy which you can use to transparently call
+-- * JSON-RPC methods on your web service located at <code>aUrl</code>. It will be 
+-- * preconfigured to use <code>serviceName</code> as the method.
+-- */
+- + (id)jsonService:(NSString *)aUrl name:(NSString *)serviceName;
+- 
+- @end
+- 
+- /**
+-- * DKJSONServiceProxy
+-- *
+-+ * = DKJSONServiceProxy =
+-+ * 
+-  * Adds some syntatic sugar to interacting with a JSON-RPC Service
+-- *  <pre>
+-+ *    
+-  *    id _fromJSONResponse(id result) { // result will be an NSDictionary or NSArray
+-  *      // do some stuff
+-  *      return nil;
+-@@ -49,9 +34,8 @@
+-  *    }
+-  *
+-  *    id service = [DKDeferred jsonService:@"http://url.net/j" name:@""];
+-- *    [[[service someNamespace] someMethod:array_(arg1, arg2)]
+-+ *    [[[service someNamespace] someMethod]
+-  *     addCallbacks:callbackP(_fromJSONResponse) :callbackP(_fromJSONResponseError)];
+-- *  </pre>
+-  */
+- @interface DKJSONServiceProxy : NSObject
+- {
+-@@ -59,22 +43,14 @@
+-   NSString *serviceName;
+- }
+- 
+--/**
+-- * Returns an initialized DKJSONServiceProxy which will direct method calls to 
+-- * <code>url</code>
+-- */
+- - (id)initWithURL:(NSString *)url;
+--
+--/**
+-- * Returns an initialized DKJSONServiceProxy which will direct method calls to 
+-- * <code>url</code> with the method preconfigred to <code>serviceName</code>.
+-- */
+- - (id)initWithURL:(NSString *)aUrl serviceName:(NSString *)aService;
+-+- (id):(NSArray *)args; // returns deferred
+- 
+--/**
+-- * Executes a JSON-RPC call on the server. Returns a deferred which will callback
+-- * with the native representation of the method results.
+-- */
+--- (id):(NSArray *)args;
+-+@end
+-+
+-+@interface NSDate (JSONCustomization)
+-+
+-+- (id)proxyForJson;
+- 
+- @end
+-\ No newline at end of file
+-diff -rupN /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKDeferred+JSON.m ./DKDeferred+JSON.m
+---- /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKDeferred+JSON.m	2009-11-18 13:04:31.000000000 -0800
+-+++ ./DKDeferred+JSON.m	2010-05-07 16:12:47.000000000 -0700
+-@@ -11,8 +11,10 @@
+-  * == DKDeferredURLConnection Decode Functions
+-  */
+- id _decodeJSON(id results) {
+-+//  NSLog(@"_decodeJSON results %@", results);
+-   if (results && ! (results == [NSNull null])) {
+-     NSString *objstr = [[NSString alloc] initWithData:results encoding:NSUTF8StringEncoding];
+-+//    NSLog(@"_decodeJSON objstr %@", objstr);
+-     NSError *error = nil;
+-     id ret = [[[SBJSON alloc] init]
+-               objectWithString:objstr error:&error];
+-@@ -87,11 +89,25 @@ id _decodeJSONResonse(id results) {
+- }
+- 
+- - (id):(NSArray *)args {
+--  NSDictionary *methodCall = dict_(serviceName, @"method", args, @"params", _uuid1(), @"id");
+--  //NSLog(@"methodCall:%@", methodCall);
+--  NSString *post = [[[SBJSON alloc] init] stringWithObject:methodCall];
+-+//  NSLog 
+-+  NSDictionary *methodCall = dict_(serviceName, @"method", 
+-+                                   args, @"params", 
+-+                                   _uuid1(), @"id", 
+-+                                   @"1.1", @"version");
+-+//  NSLog(@"methodCall:%@", methodCall);
+-+//  NSString *post = [[[SBJSON alloc] init] stringWithObject:methodCall];
+-+//  NSString *post = [methodCall JSONRepresentation];
+-+//  NSLog(@"args: %@", 
+-+  NSError *error = nil;
+-+  NSString *post = [[[SBJSON alloc] init] stringWithObject:methodCall error:&error];
+-+  if (error)
+-+    return [DKDeferred fail:error];
+-+//  NSLog(@"method call post %@", post);
+-   NSMutableURLRequest *req = [[NSMutableURLRequest alloc] 
+-                               initWithURL:[NSURL URLWithString:serviceURL]];
+-+  [req setValue:@"application/json" forHTTPHeaderField:@"Accept"];
+-+  [req setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
+-+  [req setValue:@"DeferredKit JSON-RPC Proxy 1.0" forHTTPHeaderField:@"User-Agent"];
+-   [req setHTTPMethod:@"POST"];
+-   [req setHTTPBody:[post dataUsingEncoding:NSUTF8StringEncoding]];
+-   DKDeferred *d = [[DKDeferredURLConnection alloc] 
+-@@ -141,3 +157,10 @@ id _decodeJSONResonse(id results) {
+- }
+- 
+- @end
+-+
+-+
+-+@implementation NSDate (JSONCustomization)
+-+
+-+- (id)proxyForJson { return [self description]; }
+-+
+-+@end
+-diff -rupN /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKDeferred+UIKit.h ./DKDeferred+UIKit.h
+---- /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKDeferred+UIKit.h	2009-11-18 13:50:02.000000000 -0800
+-+++ ./DKDeferred+UIKit.h	2009-11-18 03:04:28.000000000 -0800
+-@@ -8,33 +8,13 @@
+- #import <UIKit/UIKit.h>
+- #import "DKDeferred.h"
+- 
+-+//@class UIImage;
+-+
+- @interface DKDeferred (UIKitAdditions)
+- 
+--/**
+-- * Returns a DKDeferred that will callback with UIImage containing the image
+-- * at <code>aUrl</code>. Can optionally cache it's results in the <code>+[DKDeferredCache sharedCache]</code>
+-- * for <code>-[DKDeferredCache defaultTimeout]</code>.
+-- */
+- + (id)loadImage:(NSString *)aUrl cached:(BOOL)cached;
+--
+--/**
+-- * Returns a DKDeferred that will callback with a UIImage containing the image
+-- * at <code>aUrl</code> proportionally scaled to meet the requirements of <code>size</code>.
+-- * Can optionally cache the resized image in the <code>+[DKDeferredCache sharedCache]</code>
+-- * for <code>-[DKDeferredCache defaultTimeout]</code>.
+-- */
+- + (id)loadImage:(NSString *)aUrl sizeTo:(CGSize)size cached:(BOOL)cached;
+--
+--/**
+-- * Same as loadImage:cached: except that it may be started paused. If <code>paused</code> is <code>YES</code>
+-- * to initiate the network connection or to check the cache you must call [deferred callback:nil]
+-- */
+- + (id)loadImage:(NSString *)aUrl cached:(BOOL)cached paused:(BOOL)_paused;
+--
+--/**
+-- * Same as loadImage:sizeTo:cached: except that it may be started paused. If <code>paused is <code>YES</code>
+-- * to initilize the network connection or to check the cache you must call [deferred callback:nil]
+-- */
+- + (id)loadImage:(NSString *)aUrl sizeTo:(CGSize)size cached:(BOOL)cached paused:(BOOL)_paused;
+- 
+- 
+-diff -rupN /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKDeferred+UIKit.m ./DKDeferred+UIKit.m
+---- /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKDeferred+UIKit.m	2009-11-18 13:41:51.000000000 -0800
+-+++ ./DKDeferred+UIKit.m	2010-03-18 14:56:18.000000000 -0700
+-@@ -70,7 +70,7 @@
+-     if (boolv(shouldCache)) {
+-       [[DKDeferredCache sharedCache] 
+-        setValue:UIImagePNGRepresentation(img)
+--       forKey:url timeout:[[DKDeferredCache sharedCache] defaultTimeout]];
+-+       forKey:url timeout:7200.0];
+-     }
+-     return img;
+-   }
+-diff -rupN /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKDeferred.h ./DKDeferred.h
+---- /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKDeferred.h	2009-11-18 14:06:04.000000000 -0800
+-+++ ./DKDeferred.h	2010-01-12 12:04:44.000000000 -0800
+-@@ -70,19 +70,7 @@
+-   *     // tell the user the internet is down.
+-   *     return nil;
+-   * }
+--  * </pre>   
+--  *
+--  * DKDeferred, much like the NSDate class is an aggregate class. Many of the public
+--  * constructors you use through this class will return classes that inherit from
+--  * DKDeferred. Initializers may sometimes return objects that do not directly represent
+--  * the object you're initializing (for instance, some paused deferreds). Therefore
+--  * it is crucial when typing your deferred symbols it is best to use <code>id</code> or
+--  * <code>DKDeferred*</code> like so:
+--  * <pre>
+--  * DKDeferred *d = [DKDeferred deferInThread:callbackP(_run) withObject:self];
+--  * --or--
+--  * id d = [DKDeferred deferInThread:callbackP(_run) withObject:self];
+--  * </pre>
+-+  *  </pre>   
+-   */
+- 
+- @interface DKDeferred : NSObject {
+-@@ -139,6 +127,7 @@
+- // comparison
+- - (NSComparisonResult)compare:(DKDeferred *)otherDeferred;
+- - (NSComparisonResult)compareDates:(DKDeferred *)otherDeferred;
+-+- (NSComparisonResult)reverseCompareDates:(DKDeferred *)otherDeferred;
+- 
+- @end
+- 
+-@@ -203,14 +192,7 @@
+-  * timers and events to continue being processed in the same thread.
+-  *
+-  * It's not normally recommended to use this method but functions as a 
+-- * great way to prototype. It does however allow you to do some cool things,
+-- * like calling JSON-RPC methods inline:
+-- *
+-- * <pre>
+-- * id ret = waitForDeferred(
+-- *           [[[DKDeferred jsonService:WS_URL]
+-- *            myNamespace] myMethod:array_(username, password, arg1)]);
+-- * </pre>         
+-+ * great way to prototype.
+-  */
+- @interface DKWaitForDeferred : NSObject
+- {
+-@@ -377,12 +359,10 @@
+-   int maxEntries;
+-   int cullFrequency;
+-   NSString *dir;
+--  NSTimeInterval defaultTimeout;
+-+  NSTimeInterval *defaultTimeout;
+-   NSOperationQueue *operationQueue;
+- }
+- 
+--@property(assign) NSTimeInterval defaultTimeout;
+--
+- + (id)sharedCache;
+- - (id)initWithDirectory:(NSString *)_dir 
+-              maxEntries:(int)_maxEntries
+-@@ -434,6 +414,8 @@
+- - (int)concurrency;
+- - (void)setTimeout:(double)concurrentDeferredTimeout;
+- - (double)timeout;
+-+- (SEL)comparisonSelector;
+-+- (void)setComparisonSelector:(SEL)selecter;
+- 
+- @end
+- 
+-@@ -494,6 +476,7 @@
+-   double timeout;
+-   id<DKCallback> finalizeFunc;
+-   NSLock *wLock;
+-+  SEL comparisonSelector;
+- }
+- 
+- + (id)pool;
+-diff -rupN /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKDeferred.m ./DKDeferred.m
+---- /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKDeferred.m	2009-11-18 13:44:34.000000000 -0800
+-+++ ./DKDeferred.m	2010-03-18 14:56:18.000000000 -0700
+-@@ -151,9 +151,7 @@ id _gatherResultsCallback(id results) {
+-     return [[DKDeferredURLConnection loadURL:url] 
+-             addBoth:curryTS((id)self, @selector(_cachedLoadURLCallback:results:), url)];
+-   } else {
+--    [[DKDeferredCache sharedCache] 
+--     setValue:_results forKey:url
+--     timeout:[[DKDeferredCache sharedCache] defaultTimeout]];
+-+    [[DKDeferredCache sharedCache] setValue:_results forKey:url timeout:7200.0f];
+-     return _results;
+-   }
+-   return nil;
+-@@ -164,6 +162,17 @@ id _gatherResultsCallback(id results) {
+- }
+- 
+- + (id)loadURL:(NSString *)aUrl paused:(BOOL)_paused { 
+-+//  id ret;
+-+//  if (_paused) {
+-+//    ret = [DKDeferred deferred];
+-+//    [ret addBoth:callbackTS((id)self, _cbStartConnection:)];
+-+//    [ret pause];
+-+//    [ret callback:aUrl];
+-+//  } else {
+-+//  id ret = [DKDeferredURLConnection deferredURLConnection:aUrl];
+-+//  if (_paused)
+-+//    [ret pause];
+-+//  }
+-   return [[[DKDeferredURLConnection alloc] initWithURL:aUrl paused:_paused] autorelease];
+- }
+- 
+-@@ -368,6 +377,10 @@ id _gatherResultsCallback(id results) {
+- }
+- 
+- - (NSComparisonResult)compareDates:(DKDeferred *)otherDeferred {
+-+  return -[self.started compare:otherDeferred.started];
+-+}
+-+
+-+- (NSComparisonResult)reverseCompareDates:(DKDeferred *)otherDeferred {
+-   return [self.started compare:otherDeferred.started];
+- }
+- 
+-@@ -433,6 +446,10 @@ id _gatherResultsCallback(id results) {
+- }
+- 
+- - (id)_cbDeferred:(id)index succeeded:(id)succeeded result:(id)result {
+-+  if (isDeferred(result)) {
+-+    return [result addBoth:curryTS(self, 
+-+      @selector(_cbDeferred:succeeded:result:), index, succeeded)];
+-+  }
+-   int _index = [(NSNumber *)index intValue];
+-   BOOL _succeeded = [(NSNumber *)succeeded boolValue];
+-   result = (result == nil) ? [NSNull null] : result;
+-@@ -461,7 +478,7 @@ id _gatherResultsCallback(id results) {
+- @synthesize result, d;
+- 
+- - (id)initWithDeferred:(DKDeferred *)deferred {
+--  if (self = [super init]) {
+-+  if ((self = [super init])) {
+-     d = [[deferred addBoth:callbackTS(self, _get:)] retain];
+-   }
+-   return self;
+-@@ -572,6 +589,8 @@ id _gatherResultsCallback(id results) {
+-   NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+-   id result;
+-   result = [action :arg];
+-+  if (!result)
+-+    result = [NSNull null];
+-   [self performSelector:@selector(_cbReturnFromThread:) 
+-                onThread:parentThread
+-              withObject:result
+-@@ -784,11 +803,14 @@ didReceiveResponse:(NSURLResponse *)resp
+- 
+- - (void)connection:(NSURLConnection *)aConnection
+-   didFailWithError:(NSError *)error {
+-+  if (aConnection == connection) connection = nil;
+-   [aConnection release];
+-   NSLog(@"didFailWithError:%@", error);
+-   [self _cbProgressUpdate];
+--  [self errback:error];
+--  __urlConnectionCount -= 1;
+-+  if (self.fired == -1) { // could be multiple errors, only errback on the first
+-+    [self errback:error];
+-+    __urlConnectionCount -= 1;
+-+  }
+- }
+- 
+- - (void)connectionDidFinishLoading:(NSURLConnection *)aConnection {
+-@@ -817,7 +839,7 @@ didReceiveResponse:(NSURLResponse *)resp
+- }
+- 
+- - (void)dealloc {
+--  [connection release];
+-+  if (connection) [connection release];
+-   [request release];
+-   [progressCallback release];
+-   [url release];
+-@@ -853,8 +875,6 @@ static DKDeferredCache *__sharedCache;
+- 
+- @implementation DKDeferredCache
+- 
+--@synthesize defaultTimeout;
+--
+- /// DKCache Protocol
+- - (id)setValue:(NSObject *)value forKey:(NSString *)key timeout:(NSTimeInterval)timeout {
+-   return [DKDeferred defer:
+-@@ -913,11 +933,13 @@ static DKDeferredCache *__sharedCache;
+-     val = [self _getValue:key];
+-     [ret addObject:((val == nil) ? [NSNull null] : val)];
+-   }
+--  return [NSDictionary dictionaryWithObjects:ret forKeys:keys];
+-+  return ret; //[NSDictionary dictionaryWithObjects:ret forKeys:keys];
+- }
+- 
+- // should always be executed in a thread
+- - (id)_getValue:(NSString *)key { 
+-+  if (key == (id)[NSNull null])
+-+    return key;
+-   NSString *fname = [dir stringByAppendingPathComponent:md5(key)];
+-   NSFileManager *fm = [NSFileManager defaultManager];
+-   if ([fm fileExistsAtPath:fname]) {
+-@@ -963,7 +985,6 @@ static DKDeferredCache *__sharedCache;
+-     maxEntries = (_maxEntries < 1) ? 300 : _maxEntries;
+-     cullFrequency = (_cullFrequency < 1) ? 3 : _cullFrequency;
+-     operationQueue = [[NSOperationQueue alloc] init];
+--    self.defaultTimeout = 7200.0;
+-     // init cache directory
+-     NSFileManager *fm = [NSFileManager defaultManager];
+-     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDirectory, YES);
+-@@ -1170,13 +1191,28 @@ static DKDeferredCache *__sharedCache;
+-   if ((self = [super init])) {
+-     _queue = [[[DKMappedPriorityQueue alloc] init] retain];
+-     _runningDeferreds = [[[NSMutableDictionary alloc] init] retain];
+--    concurrency = 10;
+-+    concurrency = 4;
+-     timeout = 10.0;
+-     wLock = [[[NSLock alloc] init] retain];
+-+    comparisonSelector = @selector(compareDates:);
+-   }
+-   return self;
+- }
+- 
+-+- (SEL)comparisonSelector {
+-+  SEL ret;
+-+  @synchronized(self) {
+-+    ret = comparisonSelector;
+-+  }
+-+  return ret;
+-+}
+-+
+-+- (void)setComparisonSelector:(SEL)selecter {
+-+  @synchronized(self) {
+-+    comparisonSelector = selecter;
+-+  }
+-+}
+-+
+- - (void)setFinalizeFunc:(id<DKCallback>)f {
+-   finalizeFunc = [f retain];
+- }
+-@@ -1190,7 +1226,7 @@ static DKDeferredCache *__sharedCache;
+- - (id)add:(DKDeferred *)d key:(id)k {
+-   id ret;
+-   [wLock lock];
+--  ret = [_queue enqueue:d key:k prioritySelector:@selector(compareDates:)];
+-+  ret = [_queue enqueue:d key:k prioritySelector:comparisonSelector];
+-   [wLock unlock];
+-   if (ret) {
+-     [d addBoth:curryTS(self, @selector(_cbRemoveDeferred::), k)];
+-@@ -1231,6 +1267,7 @@ static DKDeferredCache *__sharedCache;
+-     if (!item || ![item count]) {
+-       break;
+-     }
+-+//    NSLog(@"resumeWaiting: %@ %@", [item objectAtIndex:0], [item objectAtIndex:1]);
+-     [[item retain] autorelease];
+-     [resumables addObject:item];
+-     [_runningDeferreds setObject:[item objectAtIndex:0]
+-diff -rupN /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKMacros.h ./DKMacros.h
+---- /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKMacros.h	2009-11-18 13:04:31.000000000 -0800
+-+++ ./DKMacros.h	2010-03-18 14:56:18.000000000 -0700
+-@@ -59,7 +59,7 @@ static inline id<DKCallback> _curryTS(id
+- #define floatv(__o) [__o floatValue]
+- #define boolv(__o) [__o boolValue]
+- #define array_(__args...) [NSArray arrayWithObjects:__args, nil]
+--#define dict_(__args...) [NSDictionary dictionaryWithObjectsAndKeys:__args, nil]
+-+#define dict_(...) [NSDictionary dictionaryWithObjectsAndKeys:__VA_ARGS__, nil]
+- #ifndef EMPTY_DICT
+- #define EMPTY_DICT [NSDictionary dictionary]
+- #endif
+\ No newline at end of file
+diff -rupN /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/hmm.patch ./hmm.patch
+--- /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/hmm.patch	1969-12-31 16:00:00.000000000 -0800
++++ ./hmm.patch	2010-05-23 17:40:26.000000000 -0700
+@@ -0,0 +1,1914 @@
++diff -rupN /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKCallback.h ./DKCallback.h
++--- /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKCallback.h	2009-11-18 13:04:31.000000000 -0800
+++++ ./DKCallback.h	2010-05-10 16:07:54.000000000 -0700
++@@ -7,31 +7,11 @@
++ 
++ #import <Foundation/Foundation.h>
++ 
++-/**
++- * Shorthand for [DKCallback fromSelector:]
++- */
++ #define callbackS(sel) [DKCallback fromSelector:@selector(sel)]
++-/** 
++- * Shorthand for [DKCallback fromSelector:target:]
++- */
++ #define callbackTS(tgt, sel) [DKCallback fromSelector:@selector(sel) target:tgt]
++-/**
++- * Shorthand for [DKCallback fromPointer:]
++- */
++ #define callbackP(fp) [DKCallback fromPointer:fp]
++-/**
++- * Shorthand for [DKCallback fromInvocation:parameterIndex:]
++- */
++ #define callbackI(inv, i) [DKCallback fromInvocation:inv parameterIndex:i]
++ 
++-
++-/**
++- * DKCallback (protocol)
++- * 
++- * Provides a unified function object. Callbacks can be made any 
++- * target but must take a single <code>(id)</code> argument and return
++- * an <code>(id)</code>.
++- */
++ @protocol DKCallback <NSObject>
++ 
++ - (id):(id)arg;
++@@ -40,53 +20,13 @@
++ 
++ typedef id (*dkCallback)(id);
++ 
++-
++-/**
++- * DKCallback (interface)
++- * 
++- * Provides implementations of DKCallback for.
++- * <pre>
++- * -[arg selector]
++- * -[target selector:arg]
++- * functionPointer(arg)
++- * NSInvocation objects
++- * </pre>
++- */
++ @interface DKCallback : NSObject <DKCallback>
++ 
++-/**
++- * Returns a DKCallback which will get it's result from performing <code>selector</code>
++- * on the argument it's called with.
++- */
++ + (DKCallback *)fromSelector:(SEL)s;
++-
++-/**
++- * Returns a DKCallback that will get it's result from
++- * performing <code>selector</code> on <code>target</code>. <code>selector</code>
++- * must always take exactly one <code>id</code> arg and return <code>id</code>.
++- */
++ + (DKCallback *)fromSelector:(SEL)s target:(NSObject *)target;
++-
++-/**
++- * Returns a DKCallback from a function pointer. It must have the signature 
++- * <code>id f(id arg) { }</code>
++- */
++ + (DKCallback *)fromPointer:(dkCallback)f;
++-
++-/**
++- * Returns a DKCallback from an NSInvocation parameter index must always be at least 2
++- * to accomidate for <code>_cmd</code> and <code>self</code>.
++- */
++ + (DKCallback *)fromInvocation:(NSInvocation *)inv parameterIndex:(NSUInteger)i;
++-
++-/**
++- * Returns a DKCallback that calls <code>other</code> with the result of <code>self</code>
++- */
++ - (DKCallback *)andThen:(DKCallback *)other;
++-
++-/**
++- * Returns a DKCallback that calls <code>self</code> with the result of <code>other</code>
++- */
++ - (DKCallback *)composeWith:(DKCallback *)other;
++ 
++ @end
++diff -rupN /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKDeferred+CoreLocation.m ./DKDeferred+CoreLocation.m
++--- /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKDeferred+CoreLocation.m	2010-05-23 17:24:03.000000000 -0700
+++++ ./DKDeferred+CoreLocation.m	2010-05-10 16:07:54.000000000 -0700
++@@ -58,9 +58,12 @@
++   if (updates > 1) {
++     [manager stopUpdatingLocation];
++     [manager autorelease];
+++    if (location) [location release];
++     location = [newLocation retain];
++-    if (!failed) {
+++    if (!failed && fired == -1) {
+++      NSLog(@"got location %@ %@", self, location);
++       [self callback:location];
+++//      return [DKDeferred wait:0.2 value:location];
++     }
++   }
++ }
++@@ -73,8 +76,8 @@
++ }
++ 
++ - (void)dealloc {
++-  [_manager release];
++-  [location release];
+++//  [_manager release];
+++//  [location release];
++   [super dealloc];
++ }
++ 
++diff -rupN /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKDeferred+JSON.h ./DKDeferred+JSON.h
++--- /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKDeferred+JSON.h	2010-05-23 17:33:00.000000000 -0700
+++++ ./DKDeferred+JSON.h	2010-05-10 16:07:54.000000000 -0700
++@@ -6,37 +6,23 @@
++ //
++ 
++ #import <Foundation/Foundation.h>
++-#import "JSON/JSON.h"
+++#import "JSON.h"
++ #import "DKDeferred.h"
++ 
+++
++ @interface DKDeferred (JSONAdditions)
++ 
++-/**
++- * Returns a Deferred which will callback with the native representation
++- * of the JSON document at <code>aUrl</code>.
++- */
++ + (id)loadJSONDoc:(NSString *)aUrl;
++-
++-/**
++- * Returns a DKJSONServiceProxy which you can use to transparently call
++- * JSON-RPC methods on your web service. 
++- */
++ + (id)jsonService:(NSString *)aUrl;
++-
++-/**
++- * Returns a DKJSONServiceProxy which you can use to transparently call
++- * JSON-RPC methods on your web service located at <code>aUrl</code>. It will be 
++- * preconfigured to use <code>serviceName</code> as the method.
++- */
++ + (id)jsonService:(NSString *)aUrl name:(NSString *)serviceName;
++ 
++ @end
++ 
++ /**
++- * DKJSONServiceProxy
++- *
+++ * = DKJSONServiceProxy =
+++ * 
++  * Adds some syntatic sugar to interacting with a JSON-RPC Service
++- *  <pre>
+++ *    
++  *    id _fromJSONResponse(id result) { // result will be an NSDictionary or NSArray
++  *      // do some stuff
++  *      return nil;
++@@ -49,9 +35,8 @@
++  *    }
++  *
++  *    id service = [DKDeferred jsonService:@"http://url.net/j" name:@""];
++- *    [[[service someNamespace] someMethod:array_(arg1, arg2)]
+++ *    [[[service someNamespace] someMethod]
++  *     addCallbacks:callbackP(_fromJSONResponse) :callbackP(_fromJSONResponseError)];
++- *  </pre>
++  */
++ @interface DKJSONServiceProxy : NSObject
++ {
++@@ -59,29 +44,8 @@
++   NSString *serviceName;
++ }
++ 
++-/**
++- * Returns an initialized DKJSONServiceProxy which will direct method calls to 
++- * <code>url</code>
++- */
++ - (id)initWithURL:(NSString *)url;
++-
++-/**
++- * Returns an initialized DKJSONServiceProxy which will direct method calls to 
++- * <code>url</code> with the method preconfigred to <code>serviceName</code>.
++- */
++ - (id)initWithURL:(NSString *)aUrl serviceName:(NSString *)aService;
++-
++-/**
++- * Executes a JSON-RPC call on the server. Returns a deferred which will callback
++- * with the native representation of the method results.
++- */
++-- (id):(NSArray *)args;
++-
++-@end
++-
++-
++-@interface NSDate (JSONCustomization)
++-
++-- (id)proxyForJson;
+++- (id):(NSArray *)args; // returns deferred
++ 
++ @end
++\ No newline at end of file
++diff -rupN /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKDeferred+JSON.m ./DKDeferred+JSON.m
++--- /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKDeferred+JSON.m	2010-05-23 17:30:54.000000000 -0700
+++++ ./DKDeferred+JSON.m	2010-05-10 16:07:54.000000000 -0700
++@@ -87,20 +87,11 @@ id _decodeJSONResonse(id results) {
++ }
++ 
++ - (id):(NSArray *)args {
++-  NSDictionary *methodCall = dict_(serviceName, @"method", 
++-                                   args, @"params", 
++-                                   _uuid1(), @"id", 
++-                                   @"1.1", @"version");
++-  NSError *error = nil;
++-  NSString *post = [[[SBJSON alloc] init] stringWithObject:methodCall error:&error];
++-  if (error)
++-    return [DKDeferred fail:error];
++-  
+++  NSDictionary *methodCall = dict_(serviceName, @"method", args, @"params", _uuid1(), @"id");
+++  //NSLog(@"methodCall:%@", methodCall);
+++  NSString *post = [[[SBJSON alloc] init] stringWithObject:methodCall];
++   NSMutableURLRequest *req = [[NSMutableURLRequest alloc] 
++                               initWithURL:[NSURL URLWithString:serviceURL]];
++-  [req setValue:@"application/json" forHTTPHeaderField:@"Accept"];
++-  [req setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
++-  [req setValue:@"DeferredKit JSON-RPC Proxy 1.0" forHTTPHeaderField:@"User-Agent"];
++   [req setHTTPMethod:@"POST"];
++   [req setHTTPBody:[post dataUsingEncoding:NSUTF8StringEncoding]];
++   DKDeferred *d = [[DKDeferredURLConnection alloc] 
++@@ -150,10 +141,3 @@ id _decodeJSONResonse(id results) {
++ }
++ 
++ @end
++-
++-
++-@implementation NSDate (JSONCustomization)
++-
++-- (id)proxyForJson { return [self description]; }
++-
++-@end
++diff -rupN /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKDeferred+UIKit.h ./DKDeferred+UIKit.h
++--- /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKDeferred+UIKit.h	2010-05-23 17:32:25.000000000 -0700
+++++ ./DKDeferred+UIKit.h	2010-05-10 16:07:54.000000000 -0700
++@@ -8,33 +8,13 @@
++ #import <UIKit/UIKit.h>
++ #import "DKDeferred.h"
++ 
+++//@class UIImage;
+++
++ @interface DKDeferred (UIKitAdditions)
++ 
++-/**
++- * Returns a DKDeferred that will callback with UIImage containing the image
++- * at <code>aUrl</code>. Can optionally cache it's results in the <code>+[DKDeferredCache sharedCache]</code>
++- * for <code>-[DKDeferredCache defaultTimeout]</code>.
++- */
++ + (id)loadImage:(NSString *)aUrl cached:(BOOL)cached;
++-
++-/**
++- * Returns a DKDeferred that will callback with a UIImage containing the image
++- * at <code>aUrl</code> proportionally scaled to meet the requirements of <code>size</code>.
++- * Can optionally cache the resized image in the <code>+[DKDeferredCache sharedCache]</code>
++- * for <code>-[DKDeferredCache defaultTimeout]</code>.
++- */
++ + (id)loadImage:(NSString *)aUrl sizeTo:(CGSize)size cached:(BOOL)cached;
++-
++-/**
++- * Same as loadImage:cached: except that it may be started paused. If <code>paused</code> is <code>YES</code>
++- * to initiate the network connection or to check the cache you must call [deferred callback:nil]
++- */
++ + (id)loadImage:(NSString *)aUrl cached:(BOOL)cached paused:(BOOL)_paused;
++-
++-/**
++- * Same as loadImage:sizeTo:cached: except that it may be started paused. If <code>paused is <code>YES</code>
++- * to initilize the network connection or to check the cache you must call [deferred callback:nil]
++- */
++ + (id)loadImage:(NSString *)aUrl sizeTo:(CGSize)size cached:(BOOL)cached paused:(BOOL)_paused;
++ 
++ 
++diff -rupN /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKDeferred+UIKit.m ./DKDeferred+UIKit.m
++--- /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKDeferred+UIKit.m	2010-05-23 17:32:31.000000000 -0700
+++++ ./DKDeferred+UIKit.m	2010-05-10 16:07:54.000000000 -0700
++@@ -70,7 +70,7 @@
++     if (boolv(shouldCache)) {
++       [[DKDeferredCache sharedCache] 
++        setValue:UIImagePNGRepresentation(img)
++-       forKey:url timeout:[[DKDeferredCache sharedCache] defaultTimeout]];
+++       forKey:url timeout:7200.0];
++     }
++     return img;
++   }
++diff -rupN /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKDeferred.h ./DKDeferred.h
++--- /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKDeferred.h	2010-05-23 17:28:49.000000000 -0700
+++++ ./DKDeferred.h	2010-05-10 16:07:54.000000000 -0700
++@@ -70,19 +70,7 @@
++   *     // tell the user the internet is down.
++   *     return nil;
++   * }
++-  * </pre>   
++-  *
++-  * DKDeferred, much like the NSDate class is an aggregate class. Many of the public
++-  * constructors you use through this class will return classes that inherit from
++-  * DKDeferred. Initializers may sometimes return objects that do not directly represent
++-  * the object you're initializing (for instance, some paused deferreds). Therefore
++-  * it is crucial when typing your deferred symbols it is best to use <code>id</code> or
++-  * <code>DKDeferred*</code> like so:
++-  * <pre>
++-  * DKDeferred *d = [DKDeferred deferInThread:callbackP(_run) withObject:self];
++-  * --or--
++-  * id d = [DKDeferred deferInThread:callbackP(_run) withObject:self];
++-  * </pre>
+++  *  </pre>   
++   */
++ 
++ @interface DKDeferred : NSObject {
++@@ -204,14 +192,7 @@
++  * timers and events to continue being processed in the same thread.
++  *
++  * It's not normally recommended to use this method but functions as a 
++- * great way to prototype. It does however allow you to do some cool things,
++- * like calling JSON-RPC methods inline:
++- *
++- * <pre>
++- * id ret = waitForDeferred(
++- *           [[[DKDeferred jsonService:WS_URL]
++- *            myNamespace] myMethod:array_(username, password, arg1)]);
++- * </pre>         
+++ * great way to prototype.
++  */
++ @interface DKWaitForDeferred : NSObject
++ {
++@@ -378,12 +359,10 @@
++   int maxEntries;
++   int cullFrequency;
++   NSString *dir;
++-  NSTimeInterval defaultTimeout;
+++  NSTimeInterval *defaultTimeout;
++   NSOperationQueue *operationQueue;
++ }
++ 
++-@property(assign) NSTimeInterval defaultTimeout;
++-
++ + (id)sharedCache;
++ - (id)initWithDirectory:(NSString *)_dir 
++              maxEntries:(int)_maxEntries
++diff -rupN /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKDeferred.m ./DKDeferred.m
++--- /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKDeferred.m	2010-05-23 17:27:59.000000000 -0700
+++++ ./DKDeferred.m	2010-05-17 16:52:33.000000000 -0700
++@@ -151,9 +151,7 @@ id _gatherResultsCallback(id results) {
++     return [[DKDeferredURLConnection loadURL:url] 
++             addBoth:curryTS((id)self, @selector(_cachedLoadURLCallback:results:), url)];
++   } else {
++-    [[DKDeferredCache sharedCache] 
++-     setValue:_results forKey:url
++-     timeout:[[DKDeferredCache sharedCache] defaultTimeout]];
+++    [[DKDeferredCache sharedCache] setValue:_results forKey:url timeout:7200.0f];
++     return _results;
++   }
++   return nil;
++@@ -164,6 +162,17 @@ id _gatherResultsCallback(id results) {
++ }
++ 
++ + (id)loadURL:(NSString *)aUrl paused:(BOOL)_paused { 
+++//  id ret;
+++//  if (_paused) {
+++//    ret = [DKDeferred deferred];
+++//    [ret addBoth:callbackTS((id)self, _cbStartConnection:)];
+++//    [ret pause];
+++//    [ret callback:aUrl];
+++//  } else {
+++//  id ret = [DKDeferredURLConnection deferredURLConnection:aUrl];
+++//  if (_paused)
+++//    [ret pause];
+++//  }
++   return [[[DKDeferredURLConnection alloc] initWithURL:aUrl paused:_paused] autorelease];
++ }
++ 
++@@ -866,8 +875,6 @@ static DKDeferredCache *__sharedCache;
++ 
++ @implementation DKDeferredCache
++ 
++-@synthesize defaultTimeout;
++-
++ /// DKCache Protocol
++ - (id)setValue:(NSObject *)value forKey:(NSString *)key timeout:(NSTimeInterval)timeout {
++   return [DKDeferred defer:
++@@ -925,12 +932,15 @@ static DKDeferredCache *__sharedCache;
++   for (NSString *key in keys) {
++     val = [self _getValue:key];
++     [ret addObject:((val == nil) ? [NSNull null] : val)];
+++    val = nil;
++   }
++-  return [NSDictionary dictionaryWithObjects:ret forKeys:keys];
+++  return ret; //[NSDictionary dictionaryWithObjects:ret forKeys:keys];
++ }
++ 
++ // should always be executed in a thread
++ - (id)_getValue:(NSString *)key { 
+++  if (key == (id)[NSNull null])
+++    return nil;
++   NSString *fname = [dir stringByAppendingPathComponent:md5(key)];
++   NSFileManager *fm = [NSFileManager defaultManager];
++   if ([fm fileExistsAtPath:fname]) {
++@@ -976,7 +986,6 @@ static DKDeferredCache *__sharedCache;
++     maxEntries = (_maxEntries < 1) ? 300 : _maxEntries;
++     cullFrequency = (_cullFrequency < 1) ? 3 : _cullFrequency;
++     operationQueue = [[NSOperationQueue alloc] init];
++-    self.defaultTimeout = 7200.0;
++     // init cache directory
++     NSFileManager *fm = [NSFileManager defaultManager];
++     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDirectory, YES);
++diff -rupN /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKMacros.h ./DKMacros.h
++--- /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKMacros.h	2010-05-23 17:24:03.000000000 -0700
+++++ ./DKMacros.h	2010-05-10 16:07:54.000000000 -0700
++@@ -6,7 +6,7 @@
++  */
++ 
++ #ifdef __OBJC__
++-//#import "FK/FKFunction.h"
+++//#import "FKFunction.h"
++ #import "DKCallback.h"
++ 
++ /** Curries a target->selector into an DKCallback 
++diff -rupN /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKMacros.h.orig ./DKMacros.h.orig
++--- /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKMacros.h.orig	2009-11-18 13:04:31.000000000 -0800
+++++ ./DKMacros.h.orig	1969-12-31 16:00:00.000000000 -0800
++@@ -1,79 +0,0 @@
++-/*
++- *  DKMacros.h
++- *  DeferredKit
++- *
++- *  Created by Samuel Sutch on 7/25/09.
++- */
++-
++-#ifdef __OBJC__
++-//#import "FK/FKFunction.h"
++-#import "DKCallback.h"
++-
++-/** Curries a target->selector into an DKCallback 
++- *
++- * ``target``   is the object the selector will be sent to
++- * ``selector`` is the message sent to ``target``
++- * ``numargs``  must be the length of args supplied to the
++- *              curried method. The last argument must be free
++- *              for an argument when the function is called.
++- * ``...``      any aditional arguments, (the same number of arguments
++- *              as provided to ``numargs``
++- **/
++-static inline id<DKCallback> _curryTS(id target, SEL selector, ...) {
++-  NSMethodSignature *sig = ([target isKindOfClass:[NSObject class]] ? 
++-                            [target methodSignatureForSelector:selector] :
++-                            [[target class] instanceMethodSignatureForSelector:selector]);
++-  NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:sig];
++-  [invocation setTarget:target];
++-  [invocation setSelector:selector];
++-  va_list argumentList;
++-  va_start(argumentList, selector);
++-  id arg;
++-  int i = 0;
++-  while (arg = va_arg(argumentList, id)) {
++-    //NSLog(@"arg:%@", arg);
++-    [invocation setArgument:&arg atIndex:i + 2];
++-    i++;
++-  }
++-  if (! (i == ([sig numberOfArguments] - 3))) {
++-    @throw [NSException exceptionWithName:@"CurryArgumentCountException" 
++-                                   reason:@"The number of arguments supplied to curry must be one "
++-            @"less than the total number of arguments for the given implementation"
++-                                 userInfo:nil];
++-  }
++-  va_end(argumentList);
++-  [invocation retainArguments];
++-  return [DKCallback fromInvocation:invocation parameterIndex:i];
++-}
++-
++-#define curryTS(__target, __selector, args...) _curryTS(__target, __selector, args, nil)
++-#define isDeferred(__obj) [__obj isKindOfClass:[DKDeferred class]]
++-#define waitForDeferred(__d) [[[[[[DKWaitForDeferred alloc] initWithDeferred:__d] autorelease] result] retain] autorelease]
++-#define pauseDeferred(__d) [[[DKDeferredWrapper alloc] initWithDeferred:__d] autorelease]
++-#define nsni(__i) [NSNumber numberWithInt:__i]
++-#define nsnd(__d) [NSNumber numberWithDouble:__d]
++-#define nsnf(__f) [NSNumber numberWithFloat:__f]
++-#define nsnb(__b) nsni(__b)
++-#define intv(__o) [__o intValue]
++-#define doublev(__o) [__o doubleValue]
++-#define floatv(__o) [__o floatValue]
++-#define boolv(__o) [__o boolValue]
++-#define array_(__args...) [NSArray arrayWithObjects:__args, nil]
++-#define dict_(__args...) [NSDictionary dictionaryWithObjectsAndKeys:__args, nil]
++-#ifndef EMPTY_DICT
++-#define EMPTY_DICT [NSDictionary dictionary]
++-#endif
++-#ifndef EMPTY_ARRAY
++-#define EMPTY_ARRAY [NSArray array]
++-#endif
++-
++-/**
++-  * Creates a new NSString containing a UUID
++-  **/
++-static inline NSString* _uuid1() {
++-  CFUUIDRef uuid = CFUUIDCreate(nil);
++-  NSString *uuidString = (NSString *)CFUUIDCreateString(nil, uuid);
++-  CFRelease(uuid);
++-  return [uuidString autorelease];
++-}
++-#endif
++\ No newline at end of file
++diff -rupN /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DeferredKit.h ./DeferredKit.h
++--- /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DeferredKit.h	2009-11-18 13:09:16.000000000 -0800
+++++ ./DeferredKit.h	2010-05-10 16:07:54.000000000 -0700
++@@ -8,168 +8,4 @@
++ #import "DKDeferred.h"
++ #import "DKDeferred+UIKit.h"
++ #import "DKDeferred+JSON.h"
++-
++-/*! \mainpage DKDeferred - Deferred objects for Objective-C
++-  <p>DeferredKit is an asynchronous library for cocoa built around the idea of a <a href="http://twistedmatrix.com/projects/core/documentation/howto/defer.html">Deferred Object</a> - that is, "an object created to encapsulate a sequence of callbacks in response to an object that may not yet be available." Besides the core class, DKDeferred, much other functionality is included in this project, including an asynchronous URL loading API, an asynchronous disk cache, and a JSON-RPC implementation.</p>
++-
++-  <p>DeferredKit is modeled after the deferred class by  <a href="http://twistedmatrix.com/">TwistedMatrix</a> and inspired by <a href="http://www.mochikit.com/doc/html/MochiKit/Async.html#fn-deferred">MochiKit's</a> implementation of Deferred. DKCallback - the function object is mostly taken from a pre-blocks version of <a href="http://github.com/mogeneration/functionalkit">FunctionalKit</a>.</p>
++-
++-  <p>The DKDeferred implementation is not dependent upon threads or any other form of concurrency for it's operation (however, you may create threaded Deferred's) and operates in the same environment as the rest of your Objective-C program.</p>
++-
++-  <p><strong>NOTE:</strong> DeferredKit bundles <a href="http://code.google.com/p/json-framework/">json-framework</a>, and will need to be removed from your project before adding DeferredKit using the following method. Otherwise, embedding the code works just as well.</p>
++-
++-  <p>More:
++-    1. <a href="http://samuraiblog.com/wordpress/2009/11/06/json-rpc-in-objective-c/">JSON-RPC in Objective-C</a></p>
++-
++-  <h2>Installing DeferredKit</h2>
++-
++-  <ol>
++-  <li>Copy the entire source tree into your projects directory.</li>
++-  <li>Add DeferredKit to your project.
++-
++-  <ul>
++-  <li>Copy <code>"{PROJECT_ROOT}/DeferredKit/CocoaDeferred/CocoaDeferred.xcodeproj"</code> to the <strong>Groups and Files</strong> pane of Xcode.</li>
++-  <li>In the window presented by Xcode, uncheck "Copy items...". Reference type should be "Relative to Project"</li>
++-  <li>Uncheck any targets Xcode might automatically assume.</li>
++-  </ul>
++-  </li>
++-  <li>Add DeferredKit to your header search paths.
++-
++-  <ul>
++-  <li>Under your target's build settings, search for find "Header Search Paths" and add <code>"DeferredKit/CocoaDeferred/Source"</code></li>
++-  </ul>
++-  </li>
++-  <li>Add DeferredKit to your Target
++-
++-  <ul>
++-  <li>Under your target's general settings, under Direct Dependancies click the "+" button and choose "DeferredKit"</li>
++-  </ul>
++-  </li>
++-  <li>Expand your <code>"CocoaDeferred.xcodeproj"</code> and drag <code>"libDeferredKit.a"</code> to your target's "Link Binary with Library"</li>
++-  </ol>
++-
++-
++-  <h2>Example Usage</h2>
++-
++-  <h3>Asynchronous URL Loading</h3>
++-
++-  <p>All methods in DeferredKit return Deferred objects. This is the same basic interface used to access all functionality provided by DeferredKit.</p>
++-
++-  <pre><code>\code id cbGotResource(id results) {
++-    [[Resource resourceWithData:results] save];
++-    return nil;
++-  }
++-
++-  id cbGetResourceFailed(id error) {
++-    // alert user resource is unavailable.
++-    return nil;
++-  }
++-
++-  DKDeferred *d = [DKDeferred loadURL:@"http://addr.net/resource/"];
++-  [d addCallback:callbackP(cbGotResource)];
++-  [d addCallback:callbackP(cbGetResourceFailed)];
++-  \endcode</code></pre>
++-
++-  <h3>Asynchronous processing</h3>
++-
++-  <p>You can generate Deferred objects which encapsulate the execution of a method or function in a thread. The Deferred automatically returns the result to the correct thread.</p>
++-
++-  <pre><code>\code id cbDoneProcessing(id results) {
++-    if (content) {
++-      [content release];
++-      content = nil;
++-    }
++-    content = [results retain];
++-    [tableView reloadData];
++-    return nil;
++-  }
++-
++-  DKDefered *d =[DKDeferred deferInThread:
++-                 callbackTS((id)[Resource class], updateAllResources:)];
++-  [d addCallback:cbDoneProcessing];
++-  \endcode</code></pre>
++-
++-  <h3>Combining Asynchronous tasks</h3>
++-
++-  <p>These two Deferred objects may return almost immediately if loaded from the cache.</p>
++-
++-  <pre><code>\code- (IBAction)loadResource:(id)sender {
++-    DKDeferred *html = [DKDeferred loadURL:@"http://url1.com/resource" cached:YES];
++-    DKDeferred *header = [DKDeferred loadImage:@"http://url1.com/resource-img.png" cached:YES];
++-
++-    DKDeferred *d = [DKDeferred gatherResults:array_(html, header)];
++-    [d addCalback:callbackTS(self, cbDoneLoading:)];
++-  }
++-
++-  - (id)cbDoneLoading:(id)results {
++-    [self showHTML:[results objectAtIndex:0]];
++-    [self showHeaderImage:[results objectAtIndex:1]];
++-    return nil;
++-  }
++-  \endcode</code></pre>
++-
++-  <h3>Interacting with a JSON-RPC Service</h3>
++-
++-  <p>DeferredKit provides a JSON-RPC implementation using DKDeferred.</p>
++-
++-  <pre><code>\code id myservice = [DKDeferred jsonService:@"" name:@"myservice"]
++-  DKDeferred *d = [myservice someMethod:array(arg1, arg2)]
++-  [d addCallbacks:callbackTS(self, cbGotResults:) :callbackTS(cbGetResultsFailed:)];
++-  \endcode</code></pre>
++-
++-  <h3>Asynchronous processing chain</h3>
++-
++-  <p>Each callback added to a DKDeferred results in a chain of callbacks - the last callback added will be called with the result returned by the previous callback.</p>
++-
++-  <pre><code>\code- (IBAction)fetchResources:(id)sender {
++-    id _parseResults:(id results) {
++-      // _parseResults can return an NSError at which point the deferred
++-      // will begin it's error callback chain
++-      return [Resource arrayWithJSONResponse:results];
++-    }
++-
++-    DKDeferred *d = [DKDeferred loadJSONDoc:@"http://whereitsat.net/resource/"]
++-    [d addCallback:callbackP(_parseResults)];
++-    [d addCallback:callbackTS(self, _presentResources:)];
++-    [d addErrback:callbackTS(self, _getResourcesFailed:)];
++-  }
++-
++-  - (id)_presentResources:(id)results {
++-    if (resources) {
++-      [resources release];
++-      resources = nil;
++-    }
++-    resources = [results retain];
++-    [tableView reloadData];
++-  }
++-  \endcode</code></pre>
++-
++-  <h3>Asynchronous disk cache</h3>
++-
++-  <p>Since the disk cache utilizes a deferred object interface, access to cached results can implement caching in only a few lines.</p>
++-
++-  <pre><code>\code- (IBAction)fetchSomeStuff:(id)sender {
++-    id _gotKey(id results) {
++-      if (results == [NSNull null]) { // cache miss
++-        return [DKDeferred deferInThread:[Resource getResources] withObject:nil];
++-      } else { // cache hit
++-        return results;
++-      }
++-    }
++-    DKDeferred *d = [[DKDeferredCache sharedCache] valueForKey:@"someKey"];
++-    [d addCallback:callbackP(_gotKey)];
++-    [d addCallback:callbackTS(self, cbGotResults:)];
++-  }
++-
++-  - (id)cbGotResults:(id)results {
++-    if (isDeferred(results)) // in the event of a cache miss
++-      return [results addCallback:callbackTS(self, cbGotResults:)];
++-    if (resources) {
++-      [resources release];
++-      resources = nil;
++-    }
++-    resources = [results retain];
++-    [tableView reloadData];
++-  }
++-  \endcode</code></pre>
++-*/
+++//#import "DKDeferred+CoreLocation.h"
++\ No newline at end of file
++diff -rupN /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/Reachability.h ./Reachability.h
++--- /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/Reachability.h	1969-12-31 16:00:00.000000000 -0800
+++++ ./Reachability.h	2010-05-10 16:07:54.000000000 -0700
++@@ -0,0 +1,122 @@
+++/*
+++
+++File: Reachability.h
+++Abstract: SystemConfiguration framework wrapper.
+++
+++Version: 1.5
+++
+++Disclaimer: IMPORTANT:  This Apple software is supplied to you by Apple Inc.
+++("Apple") in consideration of your agreement to the following terms, and your
+++use, installation, modification or redistribution of this Apple software
+++constitutes acceptance of these terms.  If you do not agree with these terms,
+++please do not use, install, modify or redistribute this Apple software.
+++
+++In consideration of your agreement to abide by the following terms, and subject
+++to these terms, Apple grants you a personal, non-exclusive license, under
+++Apple's copyrights in this original Apple software (the "Apple Software"), to
+++use, reproduce, modify and redistribute the Apple Software, with or without
+++modifications, in source and/or binary forms; provided that if you redistribute
+++the Apple Software in its entirety and without modifications, you must retain
+++this notice and the following text and disclaimers in all such redistributions
+++of the Apple Software.
+++Neither the name, trademarks, service marks or logos of Apple Inc. may be used
+++to endorse or promote products derived from the Apple Software without specific
+++prior written permission from Apple.  Except as expressly stated in this notice,
+++no other rights or licenses, express or implied, are granted by Apple herein,
+++including but not limited to any patent rights that may be infringed by your
+++derivative works or by other works in which the Apple Software may be
+++incorporated.
+++
+++The Apple Software is provided by Apple on an "AS IS" basis.  APPLE MAKES NO
+++WARRANTIES, EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE IMPLIED
+++WARRANTIES OF NON-INFRINGEMENT, MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+++PURPOSE, REGARDING THE APPLE SOFTWARE OR ITS USE AND OPERATION ALONE OR IN
+++COMBINATION WITH YOUR PRODUCTS.
+++
+++IN NO EVENT SHALL APPLE BE LIABLE FOR ANY SPECIAL, INDIRECT, INCIDENTAL OR
+++CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+++GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+++ARISING IN ANY WAY OUT OF THE USE, REPRODUCTION, MODIFICATION AND/OR
+++DISTRIBUTION OF THE APPLE SOFTWARE, HOWEVER CAUSED AND WHETHER UNDER THEORY OF
+++CONTRACT, TORT (INCLUDING NEGLIGENCE), STRICT LIABILITY OR OTHERWISE, EVEN IF
+++APPLE HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+++
+++Copyright (C) 2008 Apple Inc. All Rights Reserved.
+++
+++*/
+++
+++#import <UIKit/UIKit.h>
+++#import <SystemConfiguration/SystemConfiguration.h>
+++
+++@class Reachability;
+++
+++@interface Reachability : NSObject {
+++    
+++@private
+++	BOOL _networkStatusNotificationsEnabled;
+++	
+++	NSString *_hostName;
+++	NSString *_address;
+++    
+++	NSMutableDictionary *_reachabilityQueries;
+++}
+++
+++/*
+++ An enumeration that defines the return values of the network state
+++ of the device.
+++ */
+++typedef enum {
+++	NotReachable = 0,
+++	ReachableViaCarrierDataNetwork,
+++	ReachableViaWiFiNetwork
+++} NetworkStatus;
+++
+++
+++// Set to YES to register for changes in network status. Otherwise reachability queries
+++// will be handled synchronously.
+++@property BOOL networkStatusNotificationsEnabled;
+++// The remote host whose reachability will be queried.
+++// Either this or 'addressName' must be set.
+++@property (nonatomic, retain) NSString *hostName;
+++// The IP address of the remote host whose reachability will be queried.
+++// Either this or 'hostName' must be set.
+++@property (nonatomic, retain) NSString *address;
+++// A cache of ReachabilityQuery objects, which encapsulate a SCNetworkReachabilityRef, a host or address, and a run loop. The keys are host names or addresses.
+++@property (nonatomic, assign) NSMutableDictionary *reachabilityQueries;
+++
+++// This class is intended to be used as a singleton.
++++ (Reachability *)sharedReachability;
+++
+++// Is self.hostName is not nil, determines its reachability.
+++// If self.hostName is nil and self.address is not nil, determines the reachability of self.address.
+++- (NetworkStatus)remoteHostStatus;
+++// Is the device able to communicate with Internet hosts? If so, through which network interface?
+++- (NetworkStatus)internetConnectionStatus;
+++// Is the device able to communicate with hosts on the local WiFi network? (Typically these are Bonjour hosts).
+++- (NetworkStatus)localWiFiConnectionStatus;
+++
+++/*
+++ When reachability change notifications are posted, the callback method 'ReachabilityCallback' is called
+++ and posts a notification that the client application can observe to learn about changes.
+++ */
+++static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReachabilityFlags flags, void *info);
+++
+++@end
+++
+++@interface ReachabilityQuery : NSObject
+++{
+++@private
+++	SCNetworkReachabilityRef _reachabilityRef;
+++	CFMutableArrayRef _runLoops;
+++	NSString *_hostNameOrAddress;
+++}
+++// Keep around each network reachability query object so that we can
+++// register for updates from those objects.
+++@property (nonatomic) SCNetworkReachabilityRef reachabilityRef;
+++@property (nonatomic, retain) NSString *hostNameOrAddress;
+++@property (nonatomic) CFMutableArrayRef runLoops;
+++
+++- (void)scheduleOnRunLoop:(NSRunLoop *)inRunLoop;
+++
+++@end
+++
++diff -rupN /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/Reachability.m ./Reachability.m
++--- /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/Reachability.m	1969-12-31 16:00:00.000000000 -0800
+++++ ./Reachability.m	2010-05-10 16:07:54.000000000 -0700
++@@ -0,0 +1,585 @@
+++/*
+++
+++File: Reachability.m
+++Abstract: SystemConfiguration framework wrapper.
+++
+++Version: 1.5
+++
+++Disclaimer: IMPORTANT:  This Apple software is supplied to you by Apple Inc.
+++("Apple") in consideration of your agreement to the following terms, and your
+++use, installation, modification or redistribution of this Apple software
+++constitutes acceptance of these terms.  If you do not agree with these terms,
+++please do not use, install, modify or redistribute this Apple software.
+++
+++In consideration of your agreement to abide by the following terms, and subject
+++to these terms, Apple grants you a personal, non-exclusive license, under
+++Apple's copyrights in this original Apple software (the "Apple Software"), to
+++use, reproduce, modify and redistribute the Apple Software, with or without
+++modifications, in source and/or binary forms; provided that if you redistribute
+++the Apple Software in its entirety and without modifications, you must retain
+++this notice and the following text and disclaimers in all such redistributions
+++of the Apple Software.
+++Neither the name, trademarks, service marks or logos of Apple Inc. may be used
+++to endorse or promote products derived from the Apple Software without specific
+++prior written permission from Apple.  Except as expressly stated in this notice,
+++no other rights or licenses, express or implied, are granted by Apple herein,
+++including but not limited to any patent rights that may be infringed by your
+++derivative works or by other works in which the Apple Software may be
+++incorporated.
+++
+++The Apple Software is provided by Apple on an "AS IS" basis.  APPLE MAKES NO
+++WARRANTIES, EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE IMPLIED
+++WARRANTIES OF NON-INFRINGEMENT, MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+++PURPOSE, REGARDING THE APPLE SOFTWARE OR ITS USE AND OPERATION ALONE OR IN
+++COMBINATION WITH YOUR PRODUCTS.
+++
+++IN NO EVENT SHALL APPLE BE LIABLE FOR ANY SPECIAL, INDIRECT, INCIDENTAL OR
+++CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+++GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+++ARISING IN ANY WAY OUT OF THE USE, REPRODUCTION, MODIFICATION AND/OR
+++DISTRIBUTION OF THE APPLE SOFTWARE, HOWEVER CAUSED AND WHETHER UNDER THEORY OF
+++CONTRACT, TORT (INCLUDING NEGLIGENCE), STRICT LIABILITY OR OTHERWISE, EVEN IF
+++APPLE HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+++
+++Copyright (C) 2008 Apple Inc. All Rights Reserved.
+++
+++*/
+++
+++#import <sys/socket.h>
+++#import <netinet/in.h>
+++#import <netinet6/in6.h>
+++#import <arpa/inet.h>
+++#import <ifaddrs.h>
+++#include <netdb.h>
+++
+++#import "Reachability.h"
+++#import <SystemConfiguration/SCNetworkReachability.h>
+++
+++static NSString *kLinkLocalAddressKey = @"169.254.0.0";
+++static NSString *kDefaultRouteKey = @"0.0.0.0";
+++
+++static Reachability *_sharedReachability;
+++
+++// A class extension that declares internal methods for this class.
+++@interface Reachability()
+++- (BOOL)isAdHocWiFiNetworkAvailableFlags:(SCNetworkReachabilityFlags *)outFlags;
+++- (BOOL)isNetworkAvailableFlags:(SCNetworkReachabilityFlags *)outFlags;
+++- (BOOL)isReachableWithoutRequiringConnection:(SCNetworkReachabilityFlags)flags;
+++- (SCNetworkReachabilityRef)reachabilityRefForHostName:(NSString *)hostName;
+++- (SCNetworkReachabilityRef)reachabilityRefForAddress:(NSString *)address;
+++- (BOOL)addressFromString:(NSString *)IPAddress address:(struct sockaddr_in *)outAddress;
+++- (void)stopListeningForReachabilityChanges;
+++@end
+++
+++@implementation Reachability
+++
+++@synthesize networkStatusNotificationsEnabled = _networkStatusNotificationsEnabled;
+++@synthesize hostName = _hostName;
+++@synthesize address = _address;
+++@synthesize reachabilityQueries = _reachabilityQueries;
+++
++++ (Reachability *)sharedReachability
+++{
+++	if (!_sharedReachability) {
+++		_sharedReachability = [[Reachability alloc] init];
+++		// Clients of Reachability will typically call [[Reachability sharedReachability] setHostName:]
+++		// before calling one of the status methods.
+++        _sharedReachability.hostName = nil;
+++		_sharedReachability.address = nil;
+++		_sharedReachability.networkStatusNotificationsEnabled = NO;
+++		_sharedReachability.reachabilityQueries = [[NSMutableDictionary alloc] init];
+++	}
+++	return _sharedReachability;
+++}
+++
+++- (void) dealloc
+++{	
+++    [self stopListeningForReachabilityChanges];
+++    
+++	[_sharedReachability.reachabilityQueries release];
+++	[_sharedReachability release];
+++	[super dealloc];
+++}
+++
+++- (BOOL)isReachableWithoutRequiringConnection:(SCNetworkReachabilityFlags)flags
+++{
+++    // kSCNetworkReachabilityFlagsReachable indicates that the specified nodename or address can
+++	// be reached using the current network configuration.
+++	BOOL isReachable = flags & kSCNetworkReachabilityFlagsReachable;
+++	
+++	// This flag indicates that the specified nodename or address can
+++	// be reached using the current network configuration, but a
+++	// connection must first be established.
+++	//
+++	// If the flag is false, we don't have a connection. But because CFNetwork
+++    // automatically attempts to bring up a WWAN connection, if the WWAN reachability
+++    // flag is present, a connection is not required.
+++	BOOL noConnectionRequired = !(flags & kSCNetworkReachabilityFlagsConnectionRequired);
+++	if ((flags & kSCNetworkReachabilityFlagsIsWWAN)) {
+++		noConnectionRequired = YES;
+++	}
+++	
+++	return (isReachable && noConnectionRequired) ? YES : NO;
+++}
+++
+++// Returns whether or not the current host name is reachable with the current network configuration.
+++- (BOOL)isHostReachable:(NSString *)host
+++{
+++    if (!host || ![host length]) {
+++        return NO;
+++    }
+++    
+++    SCNetworkReachabilityFlags		flags;
+++    SCNetworkReachabilityRef reachability =  SCNetworkReachabilityCreateWithName(NULL, [host UTF8String]);
+++	BOOL gotFlags = SCNetworkReachabilityGetFlags(reachability, &flags);
+++    
+++	CFRelease(reachability);
+++    
+++    if (!gotFlags) {
+++        return NO;
+++    }
+++    
+++	return [self isReachableWithoutRequiringConnection:flags];
+++}
+++
+++// This returns YES if the address 169.254.0.0 is reachable without requiring a connection.
+++- (BOOL)isAdHocWiFiNetworkAvailableFlags:(SCNetworkReachabilityFlags *)outFlags
+++{		
+++    // Look in the cache of reachability queries for one that matches this query.
+++	ReachabilityQuery *query = [self.reachabilityQueries objectForKey:kLinkLocalAddressKey];
+++	SCNetworkReachabilityRef adHocWiFiNetworkReachability = query.reachabilityRef;
+++	
+++    // If a cached reachability query was not found, create one.
+++    if (!adHocWiFiNetworkReachability) {
+++        
+++        // Build a sockaddr_in that we can pass to the address reachability query.
+++        struct sockaddr_in sin;
+++        
+++        bzero(&sin, sizeof(sin));
+++        sin.sin_len = sizeof(sin);
+++        sin.sin_family = AF_INET;
+++        // IN_LINKLOCALNETNUM is defined in <netinet/in.h> as 169.254.0.0
+++        sin.sin_addr.s_addr = htonl(IN_LINKLOCALNETNUM);
+++        
+++        adHocWiFiNetworkReachability = SCNetworkReachabilityCreateWithAddress(NULL, (struct sockaddr *)&sin);
+++		
+++		query = [[[ReachabilityQuery alloc] init] autorelease];
+++		query.hostNameOrAddress = kLinkLocalAddressKey;
+++		query.reachabilityRef = adHocWiFiNetworkReachability;
+++		
+++        // Add the reachability query to the cache.
+++		[self.reachabilityQueries setObject:query forKey:kLinkLocalAddressKey];
+++    }
+++	
+++	// If necessary, register for notifcations for the SCNetworkReachabilityRef on the current run loop.
+++	// If an existing SCNetworkReachabilityRef was found in the cache, we can reuse it and register
+++	// to receive notifications from it in the current run loop, which may be different than the run loop
+++	// that was previously used when registering the SCNetworkReachabilityRef for notifications.
+++    // -scheduleOnRunLoop: will schedule only if network status notifications are enabled in the Reachability instance.
+++    // By default, they are not enabled. 
+++	[query scheduleOnRunLoop:[NSRunLoop currentRunLoop]];
+++    
+++    SCNetworkReachabilityFlags addressReachabilityFlags;
+++    BOOL gotFlags = SCNetworkReachabilityGetFlags(adHocWiFiNetworkReachability, &addressReachabilityFlags);
+++    if (!gotFlags) {
+++        // There was an error getting the reachability flags.
+++        return NO;
+++    }
+++    
+++    // Callers of this method might want to use the reachability flags, so if an 'out' parameter
+++    // was passed in, assign the reachability flags to it.
+++    if (outFlags) {
+++        *outFlags = addressReachabilityFlags;
+++    }
+++    
+++    return [self isReachableWithoutRequiringConnection:addressReachabilityFlags];
+++}
+++
+++// ReachabilityCallback is registered as the callback for network state changes in startListeningForReachabilityChanges.
+++static void ReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReachabilityFlags flags, void *info)
+++{
+++	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+++    
+++    // Post a notification to notify the client that the network reachability changed.
+++    [[NSNotificationCenter defaultCenter] postNotificationName:@"kNetworkReachabilityChangedNotification" object:nil];
+++	
+++	[pool release];
+++}
+++
+++// Perform a reachability query for the address 0.0.0.0. If that address is reachable without
+++// requiring a connection, a network interface is available. We'll have to do more work to
+++// determine which network interface is available.
+++- (BOOL)isNetworkAvailableFlags:(SCNetworkReachabilityFlags *)outFlags
+++{
+++	ReachabilityQuery *query = [self.reachabilityQueries objectForKey:kDefaultRouteKey];
+++	SCNetworkReachabilityRef defaultRouteReachability = query.reachabilityRef;
+++	
+++    // If a cached reachability query was not found, create one.
+++    if (!defaultRouteReachability) {
+++        
+++        struct sockaddr_in zeroAddress;
+++        bzero(&zeroAddress, sizeof(zeroAddress));
+++        zeroAddress.sin_len = sizeof(zeroAddress);
+++        zeroAddress.sin_family = AF_INET;
+++        
+++        defaultRouteReachability = SCNetworkReachabilityCreateWithAddress(NULL, (struct sockaddr *)&zeroAddress);
+++		
+++		ReachabilityQuery *query = [[[ReachabilityQuery alloc] init] autorelease];
+++		query.hostNameOrAddress = kDefaultRouteKey;
+++		query.reachabilityRef = defaultRouteReachability;
+++		
+++		[self.reachabilityQueries setObject:query forKey:kDefaultRouteKey];
+++    }
+++	
+++	// If necessary, register for notifcations for the SCNetworkReachabilityRef on the current run loop.
+++	// If an existing SCNetworkReachabilityRef was found in the cache, we can reuse it and register
+++	// to receive notifications from it in the current run loop, which may be different than the run loop
+++	// that was previously used when registering the SCNetworkReachabilityRef for notifications. 
+++    // -scheduleOnRunLoop: will schedule only if network status notifications are enabled in the Reachability instance.
+++    // By default, they are not enabled. 
+++	[query scheduleOnRunLoop:[NSRunLoop currentRunLoop]];
+++	
+++	SCNetworkReachabilityFlags flags;
+++	BOOL gotFlags = SCNetworkReachabilityGetFlags(defaultRouteReachability, &flags);
+++	if (!gotFlags) {
+++        return NO;
+++    }
+++    
+++	BOOL isReachable = [self isReachableWithoutRequiringConnection:flags];
+++	
+++	// Callers of this method might want to use the reachability flags, so if an 'out' parameter
+++	// was passed in, assign the reachability flags to it.
+++	if (outFlags) {
+++		*outFlags = flags;
+++	}
+++	
+++	return isReachable;
+++}
+++
+++// Be a good citizen and unregister for network state changes when the application terminates.
+++- (void)stopListeningForReachabilityChanges
+++{
+++	// Walk through the cache that holds SCNetworkReachabilityRefs for reachability
+++	// queries to particular hosts or addresses.
+++	NSEnumerator *enumerator = [self.reachabilityQueries objectEnumerator];
+++	ReachabilityQuery *reachabilityQuery;
+++    
+++	while (reachabilityQuery = [enumerator nextObject]) {
+++		
+++		CFArrayRef runLoops = reachabilityQuery.runLoops;
+++		NSUInteger runLoopCounter, maxRunLoops = CFArrayGetCount(runLoops);
+++        
+++		for (runLoopCounter = 0; runLoopCounter < maxRunLoops; runLoopCounter++) {
+++			CFRunLoopRef nextRunLoop = (CFRunLoopRef)CFArrayGetValueAtIndex(runLoops, runLoopCounter);
+++			
+++			SCNetworkReachabilityUnscheduleFromRunLoop(reachabilityQuery.reachabilityRef, nextRunLoop, kCFRunLoopDefaultMode);
+++		}
+++        
+++        CFArrayRemoveAllValues(reachabilityQuery.runLoops);
+++	}
+++}
+++
+++/*
+++ Create a SCNetworkReachabilityRef for hostName, which lets us determine if hostName
+++ is currently reachable, and lets us register to receive notifications when the 
+++ reachability of hostName changes.
+++ */
+++- (SCNetworkReachabilityRef)reachabilityRefForHostName:(NSString *)hostName
+++{
+++	if (!hostName || ![hostName length]) {
+++		return NULL;
+++	}
+++	
+++	// Look in the cache for an existing SCNetworkReachabilityRef for hostName.
+++	ReachabilityQuery *cachedQuery = [self.reachabilityQueries objectForKey:hostName];
+++	SCNetworkReachabilityRef reachabilityRefForHostName = cachedQuery.reachabilityRef;
+++	
+++	if (reachabilityRefForHostName) {
+++		return reachabilityRefForHostName;
+++	}
+++	
+++	// Didn't find an existing SCNetworkReachabilityRef for hostName, so create one ...
+++	reachabilityRefForHostName = SCNetworkReachabilityCreateWithName(kCFAllocatorDefault, [hostName UTF8String]);
+++    
+++    NSAssert1(reachabilityRefForHostName != NULL, @"Failed to create SCNetworkReachabilityRef for host: %@", hostName);
+++    
+++	ReachabilityQuery *query = [[[ReachabilityQuery alloc] init] autorelease];
+++	query.hostNameOrAddress = hostName;
+++	query.reachabilityRef = reachabilityRefForHostName;
+++	
+++    // If necessary, register for notifcations for the SCNetworkReachabilityRef on the current run loop.
+++    // If an existing SCNetworkReachabilityRef was found in the cache, we can reuse it and register
+++    // to receive notifications from it in the current run loop, which may be different than the run loop
+++    // that was previously used when registering the SCNetworkReachabilityRef for notifications.
+++    // -scheduleOnRunLoop: will schedule only if network status notifications are enabled in the Reachability instance.
+++    // By default, they are not enabled. 
+++    [query scheduleOnRunLoop:[NSRunLoop currentRunLoop]];
+++    
+++    // ... and add it to the cache.
+++    [self.reachabilityQueries setObject:query forKey:hostName];
+++    return reachabilityRefForHostName;
+++}
+++
+++/*
+++ Create a SCNetworkReachabilityRef for the IP address in addressString, which lets us determine if 
+++ the address is currently reachable, and lets us register to receive notifications when the 
+++ reachability of the address changes.
+++ */
+++- (SCNetworkReachabilityRef)reachabilityRefForAddress:(NSString *)addressString
+++{
+++	if (!addressString || ![addressString length]) {
+++		return NULL;
+++	}
+++	
+++	struct sockaddr_in address;
+++	
+++	BOOL gotAddress = [self addressFromString:addressString address:&address];
+++	if (!gotAddress) {
+++        // The attempt to convert addressString to a sockaddr_in failed.
+++        NSAssert1(gotAddress != NO, @"Failed to convert an IP address string to a sockaddr_in: %@", addressString);
+++		return NULL;
+++	}
+++	
+++	// Look in the cache for an existing SCNetworkReachabilityRef for addressString.
+++	ReachabilityQuery *cachedQuery = [self.reachabilityQueries objectForKey:addressString];
+++	SCNetworkReachabilityRef reachabilityRefForAddress = cachedQuery.reachabilityRef;
+++	
+++	if (reachabilityRefForAddress) {
+++		return reachabilityRefForAddress;
+++	}
+++	
+++	// Didn't find an existing SCNetworkReachabilityRef for addressString, so create one.
+++	reachabilityRefForAddress = SCNetworkReachabilityCreateWithAddress(kCFAllocatorDefault, (struct sockaddr *)&address);
+++    
+++    NSAssert1(reachabilityRefForAddress != NULL, @"Failed to create SCNetworkReachabilityRef for address: %@", addressString);
+++    
+++	ReachabilityQuery *query = [[[ReachabilityQuery alloc] init] autorelease];
+++	query.hostNameOrAddress = addressString;
+++	query.reachabilityRef = reachabilityRefForAddress;
+++    
+++    // If necessary, register for notifcations for the SCNetworkReachabilityRef on the current run loop.
+++    // If an existing SCNetworkReachabilityRef was found in the cache, we can reuse it and register
+++    // to receive notifications from it in the current run loop, which may be different than the run loop
+++    // that was previously used when registering the SCNetworkReachabilityRef for notifications.
+++    // -scheduleOnRunLoop: will schedule only if network status notifications are enabled in the Reachability instance.
+++    // By default, they are not enabled. 
+++    [query scheduleOnRunLoop:[NSRunLoop currentRunLoop]];
+++    
+++    // ... and add it to the cache.
+++    [self.reachabilityQueries setObject:query forKey:addressString];
+++    return reachabilityRefForAddress;
+++}
+++
+++- (NetworkStatus)remoteHostStatus
+++{
+++	/*
+++     If the current host name or address is reachable, determine which network interface it is reachable through.
+++     If the host is reachable and the reachability flags include kSCNetworkReachabilityFlagsIsWWAN, it
+++     is reachable through the carrier data network. If the host is reachable and the reachability
+++     flags do not include kSCNetworkReachabilityFlagsIsWWAN, it is reachable through the WiFi network.
+++     */
+++    
+++	SCNetworkReachabilityRef reachabilityRef = nil;
+++	if (self.hostName) {
+++		reachabilityRef = [self reachabilityRefForHostName:self.hostName];
+++		
+++	} else if (self.address) {
+++		reachabilityRef = [self reachabilityRefForAddress:self.address];
+++		
+++	} else {
+++		NSAssert(self.hostName != nil && self.address != nil, @"No hostName or address specified. Cannot determine reachability.");
+++		return NotReachable;
+++	}
+++	
+++	if (!reachabilityRef) {
+++		return NotReachable;
+++	}
+++	
+++	SCNetworkReachabilityFlags reachabilityFlags;
+++	BOOL gotFlags = SCNetworkReachabilityGetFlags(reachabilityRef, &reachabilityFlags);
+++    if (!gotFlags) {
+++        return NotReachable;
+++    }
+++    
+++	BOOL reachable = [self isReachableWithoutRequiringConnection:reachabilityFlags];
+++	
+++	if (!reachable) {
+++		return NotReachable;
+++	}
+++	if (reachabilityFlags & ReachableViaCarrierDataNetwork) {
+++		return ReachableViaCarrierDataNetwork;
+++	}
+++	
+++	return ReachableViaWiFiNetwork;
+++}
+++
+++- (NetworkStatus)internetConnectionStatus
+++{
+++	/*
+++     To determine if the device has an Internet connection, query the address
+++     0.0.0.0. If it's reachable without requiring a connection, first check
+++     for the kSCNetworkReachabilityFlagsIsDirect flag, which tell us if the connection
+++     is to an ad-hoc WiFi network. If it is not, the device can access the Internet.
+++     The next thing to determine is how the device can access the Internet, which
+++     can either be through the carrier data network (EDGE or other service) or through
+++     a WiFi connection.
+++     
+++     Note: Knowing that the device has an Internet connection is not the same as
+++     knowing if the device can reach a particular host. To know that, use
+++     -[Reachability remoteHostStatus].
+++     */
+++	
+++	SCNetworkReachabilityFlags defaultRouteFlags;
+++	BOOL defaultRouteIsAvailable = [self isNetworkAvailableFlags:&defaultRouteFlags];
+++	if (defaultRouteIsAvailable) {
+++        
+++		if (defaultRouteFlags & kSCNetworkReachabilityFlagsIsDirect) {
+++            
+++			// The connection is to an ad-hoc WiFi network, so Internet access is not available.
+++			return NotReachable;
+++		}
+++		else if (defaultRouteFlags & ReachableViaCarrierDataNetwork) {
+++			return ReachableViaCarrierDataNetwork;
+++		}
+++		
+++		return ReachableViaWiFiNetwork;
+++	}
+++	
+++	return NotReachable;
+++}
+++
+++- (NetworkStatus)localWiFiConnectionStatus
+++{
+++	SCNetworkReachabilityFlags selfAssignedAddressFlags;
+++	
+++	/*
+++     To determine if the WiFi connection is to a local ad-hoc network,
+++     check the availability of the address 169.254.x.x. That's an address
+++     in the self-assigned range, and the device will have a self-assigned IP
+++     when it's connected to a ad-hoc WiFi network. So to test if the device
+++     has a self-assigned IP, look for the kSCNetworkReachabilityFlagsIsDirect flag
+++     in the address query. If it's present, we know that the WiFi connection
+++     is to an ad-hoc network.
+++     */
+++	// This returns YES if the address 169.254.0.0 is reachable without requiring a connection.
+++	BOOL hasLinkLocalNetworkAccess = [self isAdHocWiFiNetworkAvailableFlags:&selfAssignedAddressFlags];
+++    
+++	if (hasLinkLocalNetworkAccess && (selfAssignedAddressFlags & kSCNetworkReachabilityFlagsIsDirect)) {
+++		return ReachableViaWiFiNetwork;
+++	}
+++	
+++	return NotReachable;
+++}
+++
+++// Convert an IP address from an NSString to a sockaddr_in * that can be used to create
+++// the reachability request.
+++- (BOOL)addressFromString:(NSString *)IPAddress address:(struct sockaddr_in *)address
+++{
+++	if (!IPAddress || ![IPAddress length]) {
+++		return NO;
+++	}
+++	
+++	memset((char *) address, sizeof(struct sockaddr_in), 0);
+++	address->sin_family = AF_INET;
+++	address->sin_len = sizeof(struct sockaddr_in);
+++	
+++	int conversionResult = inet_aton([IPAddress UTF8String], &address->sin_addr);
+++	if (conversionResult == 0) {
+++		NSAssert1(conversionResult != 1, @"Failed to convert the IP address string into a sockaddr_in: %@", IPAddress);
+++		return NO;
+++	}
+++	
+++	return YES;
+++}
+++
+++@end
+++
+++@interface ReachabilityQuery ()
+++- (CFRunLoopRef)startListeningForReachabilityChanges:(SCNetworkReachabilityRef)reachability onRunLoop:(CFRunLoopRef)runLoop;
+++@end
+++
+++@implementation ReachabilityQuery
+++
+++@synthesize reachabilityRef = _reachabilityRef;
+++@synthesize runLoops = _runLoops;
+++@synthesize hostNameOrAddress = _hostNameOrAddress;
+++
+++- (id)init
+++{
+++	self = [super init];
+++	if (self != nil) {
+++		self.runLoops = CFArrayCreateMutable(kCFAllocatorDefault, 0, NULL);
+++	}
+++	return self;
+++}
+++
+++- (void)dealloc
+++{
+++	CFRelease(self.runLoops);
+++	[super dealloc];
+++}
+++
+++- (BOOL)isScheduledOnRunLoop:(CFRunLoopRef)runLoop
+++{
+++	NSUInteger runLoopCounter, maxRunLoops = CFArrayGetCount(self.runLoops);
+++	
+++	for (runLoopCounter = 0; runLoopCounter < maxRunLoops; runLoopCounter++) {
+++		CFRunLoopRef nextRunLoop = (CFRunLoopRef)CFArrayGetValueAtIndex(self.runLoops, runLoopCounter);
+++		
+++		if (nextRunLoop == runLoop) {
+++			return YES;
+++		}
+++	}
+++	
+++	return NO;
+++}
+++
+++- (void)scheduleOnRunLoop:(NSRunLoop *)inRunLoop
+++{
+++	// Only register for network state changes if the client has specifically enabled them.
+++	if ([[Reachability sharedReachability] networkStatusNotificationsEnabled] == NO) {
+++		return;
+++	}
+++	
+++	if (!inRunLoop) {
+++		return;
+++	}
+++	
+++	CFRunLoopRef runLoop = [inRunLoop getCFRunLoop];
+++	
+++	// Notifications of status changes for each reachability query can be scheduled on multiple run loops.
+++	// To support that, register for notifications for each runLoop.
+++	// -isScheduledOnRunLoop: iterates over all of the run loops that have previously been used
+++	// to register for notifications. If one is found that matches the passed in runLoop argument, there's
+++	// no need to register for notifications again. If one is not found, register for notifications
+++	// using the current runLoop.
+++	if (![self isScheduledOnRunLoop:runLoop]) {
+++        
+++		CFRunLoopRef notificationRunLoop = [self startListeningForReachabilityChanges:self.reachabilityRef onRunLoop:runLoop];
+++		if (notificationRunLoop) {
+++			CFArrayAppendValue(self.runLoops, notificationRunLoop);
+++		}
+++	}
+++}
+++
+++// Register to receive changes to the 'reachability' query so that we can update the
+++// user interface when the network state changes.
+++- (CFRunLoopRef)startListeningForReachabilityChanges:(SCNetworkReachabilityRef)reachability onRunLoop:(CFRunLoopRef)runLoop
+++{	
+++	if (!reachability) {
+++		return NULL;
+++	}
+++	
+++	if (!runLoop) {
+++		return NULL;
+++	}
+++    
+++	SCNetworkReachabilityContext	context = {0, self, NULL, NULL, NULL};
+++	SCNetworkReachabilitySetCallback(reachability, ReachabilityCallback, &context);
+++	SCNetworkReachabilityScheduleWithRunLoop(reachability, runLoop, kCFRunLoopDefaultMode);
+++	
+++	return runLoop;
+++}
+++
+++
+++@end
++diff -rupN /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/changes1.patch ./changes1.patch
++--- /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/changes1.patch	2010-05-23 17:23:02.000000000 -0700
+++++ ./changes1.patch	1969-12-31 16:00:00.000000000 -0800
++@@ -1,509 +0,0 @@
++-diff -rupN /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKDeferred+CoreLocation.h ./DKDeferred+CoreLocation.h
++---- /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKDeferred+CoreLocation.h	2009-11-18 13:04:31.000000000 -0800
++-+++ ./DKDeferred+CoreLocation.h	2010-01-01 16:46:18.000000000 -0800
++-@@ -30,6 +30,7 @@
++-   CLLocation *location;
++-   CLLocationManager *_manager;
++-   BOOL onlyOne;
++-+  BOOL failed;
++-   int updates;
++- }
++- 
++-diff -rupN /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKDeferred+CoreLocation.m ./DKDeferred+CoreLocation.m
++---- /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKDeferred+CoreLocation.m	2009-11-18 13:04:31.000000000 -0800
++-+++ ./DKDeferred+CoreLocation.m	2010-03-18 14:56:18.000000000 -0700
++-@@ -37,6 +37,7 @@
++- - (void)_timeout:(id)arg {
++-   if (fired == -1) {
++-     [_manager stopUpdatingLocation];
++-+    failed = YES;
++-     [self errback:
++-      [NSError
++-       errorWithDomain:@"DKDeferredLocation"
++-@@ -56,15 +57,25 @@
++-   updates += 1;
++-   if (updates > 1) {
++-     [manager stopUpdatingLocation];
++-+    [manager autorelease];
++-     location = [newLocation retain];
++--    [self callback:location];
++-+    if (!failed) {
++-+      [self callback:location];
++-+    }
++-   }
++- }
++- 
++- - (void)locationManager:(CLLocationManager *)manager 
++-        didFailWithError:(NSError *)error {
++-+  NSLog(@"locationManager:%@ didFailWithError:%@ %@", manager, error, [error userInfo]);
++-   [manager stopUpdatingLocation];
++-   [self errback:error];
++- }
++- 
++-+- (void)dealloc {
++-+  [_manager release];
++-+  [location release];
++-+  [super dealloc];
++-+}
++-+
++- @end
++-\ No newline at end of file
++-diff -rupN /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKDeferred+JSON.h ./DKDeferred+JSON.h
++---- /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKDeferred+JSON.h	2009-11-18 13:50:26.000000000 -0800
++-+++ ./DKDeferred+JSON.h	2010-04-04 16:58:01.000000000 -0700
++-@@ -6,37 +6,22 @@
++- //
++- 
++- #import <Foundation/Foundation.h>
++--#import "JSON/JSON.h"
++-+#import "JSON.h"
++- #import "DKDeferred.h"
++- 
++- @interface DKDeferred (JSONAdditions)
++- 
++--/**
++-- * Returns a Deferred which will callback with the native representation
++-- * of the JSON document at <code>aUrl</code>.
++-- */
++- + (id)loadJSONDoc:(NSString *)aUrl;
++--
++--/**
++-- * Returns a DKJSONServiceProxy which you can use to transparently call
++-- * JSON-RPC methods on your web service. 
++-- */
++- + (id)jsonService:(NSString *)aUrl;
++--
++--/**
++-- * Returns a DKJSONServiceProxy which you can use to transparently call
++-- * JSON-RPC methods on your web service located at <code>aUrl</code>. It will be 
++-- * preconfigured to use <code>serviceName</code> as the method.
++-- */
++- + (id)jsonService:(NSString *)aUrl name:(NSString *)serviceName;
++- 
++- @end
++- 
++- /**
++-- * DKJSONServiceProxy
++-- *
++-+ * = DKJSONServiceProxy =
++-+ * 
++-  * Adds some syntatic sugar to interacting with a JSON-RPC Service
++-- *  <pre>
++-+ *    
++-  *    id _fromJSONResponse(id result) { // result will be an NSDictionary or NSArray
++-  *      // do some stuff
++-  *      return nil;
++-@@ -49,9 +34,8 @@
++-  *    }
++-  *
++-  *    id service = [DKDeferred jsonService:@"http://url.net/j" name:@""];
++-- *    [[[service someNamespace] someMethod:array_(arg1, arg2)]
++-+ *    [[[service someNamespace] someMethod]
++-  *     addCallbacks:callbackP(_fromJSONResponse) :callbackP(_fromJSONResponseError)];
++-- *  </pre>
++-  */
++- @interface DKJSONServiceProxy : NSObject
++- {
++-@@ -59,22 +43,14 @@
++-   NSString *serviceName;
++- }
++- 
++--/**
++-- * Returns an initialized DKJSONServiceProxy which will direct method calls to 
++-- * <code>url</code>
++-- */
++- - (id)initWithURL:(NSString *)url;
++--
++--/**
++-- * Returns an initialized DKJSONServiceProxy which will direct method calls to 
++-- * <code>url</code> with the method preconfigred to <code>serviceName</code>.
++-- */
++- - (id)initWithURL:(NSString *)aUrl serviceName:(NSString *)aService;
++-+- (id):(NSArray *)args; // returns deferred
++- 
++--/**
++-- * Executes a JSON-RPC call on the server. Returns a deferred which will callback
++-- * with the native representation of the method results.
++-- */
++--- (id):(NSArray *)args;
++-+@end
++-+
++-+@interface NSDate (JSONCustomization)
++-+
++-+- (id)proxyForJson;
++- 
++- @end
++-\ No newline at end of file
++-diff -rupN /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKDeferred+JSON.m ./DKDeferred+JSON.m
++---- /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKDeferred+JSON.m	2009-11-18 13:04:31.000000000 -0800
++-+++ ./DKDeferred+JSON.m	2010-05-07 16:12:47.000000000 -0700
++-@@ -11,8 +11,10 @@
++-  * == DKDeferredURLConnection Decode Functions
++-  */
++- id _decodeJSON(id results) {
++-+//  NSLog(@"_decodeJSON results %@", results);
++-   if (results && ! (results == [NSNull null])) {
++-     NSString *objstr = [[NSString alloc] initWithData:results encoding:NSUTF8StringEncoding];
++-+//    NSLog(@"_decodeJSON objstr %@", objstr);
++-     NSError *error = nil;
++-     id ret = [[[SBJSON alloc] init]
++-               objectWithString:objstr error:&error];
++-@@ -87,11 +89,25 @@ id _decodeJSONResonse(id results) {
++- }
++- 
++- - (id):(NSArray *)args {
++--  NSDictionary *methodCall = dict_(serviceName, @"method", args, @"params", _uuid1(), @"id");
++--  //NSLog(@"methodCall:%@", methodCall);
++--  NSString *post = [[[SBJSON alloc] init] stringWithObject:methodCall];
++-+//  NSLog 
++-+  NSDictionary *methodCall = dict_(serviceName, @"method", 
++-+                                   args, @"params", 
++-+                                   _uuid1(), @"id", 
++-+                                   @"1.1", @"version");
++-+//  NSLog(@"methodCall:%@", methodCall);
++-+//  NSString *post = [[[SBJSON alloc] init] stringWithObject:methodCall];
++-+//  NSString *post = [methodCall JSONRepresentation];
++-+//  NSLog(@"args: %@", 
++-+  NSError *error = nil;
++-+  NSString *post = [[[SBJSON alloc] init] stringWithObject:methodCall error:&error];
++-+  if (error)
++-+    return [DKDeferred fail:error];
++-+//  NSLog(@"method call post %@", post);
++-   NSMutableURLRequest *req = [[NSMutableURLRequest alloc] 
++-                               initWithURL:[NSURL URLWithString:serviceURL]];
++-+  [req setValue:@"application/json" forHTTPHeaderField:@"Accept"];
++-+  [req setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
++-+  [req setValue:@"DeferredKit JSON-RPC Proxy 1.0" forHTTPHeaderField:@"User-Agent"];
++-   [req setHTTPMethod:@"POST"];
++-   [req setHTTPBody:[post dataUsingEncoding:NSUTF8StringEncoding]];
++-   DKDeferred *d = [[DKDeferredURLConnection alloc] 
++-@@ -141,3 +157,10 @@ id _decodeJSONResonse(id results) {
++- }
++- 
++- @end
++-+
++-+
++-+@implementation NSDate (JSONCustomization)
++-+
++-+- (id)proxyForJson { return [self description]; }
++-+
++-+@end
++-diff -rupN /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKDeferred+UIKit.h ./DKDeferred+UIKit.h
++---- /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKDeferred+UIKit.h	2009-11-18 13:50:02.000000000 -0800
++-+++ ./DKDeferred+UIKit.h	2009-11-18 03:04:28.000000000 -0800
++-@@ -8,33 +8,13 @@
++- #import <UIKit/UIKit.h>
++- #import "DKDeferred.h"
++- 
++-+//@class UIImage;
++-+
++- @interface DKDeferred (UIKitAdditions)
++- 
++--/**
++-- * Returns a DKDeferred that will callback with UIImage containing the image
++-- * at <code>aUrl</code>. Can optionally cache it's results in the <code>+[DKDeferredCache sharedCache]</code>
++-- * for <code>-[DKDeferredCache defaultTimeout]</code>.
++-- */
++- + (id)loadImage:(NSString *)aUrl cached:(BOOL)cached;
++--
++--/**
++-- * Returns a DKDeferred that will callback with a UIImage containing the image
++-- * at <code>aUrl</code> proportionally scaled to meet the requirements of <code>size</code>.
++-- * Can optionally cache the resized image in the <code>+[DKDeferredCache sharedCache]</code>
++-- * for <code>-[DKDeferredCache defaultTimeout]</code>.
++-- */
++- + (id)loadImage:(NSString *)aUrl sizeTo:(CGSize)size cached:(BOOL)cached;
++--
++--/**
++-- * Same as loadImage:cached: except that it may be started paused. If <code>paused</code> is <code>YES</code>
++-- * to initiate the network connection or to check the cache you must call [deferred callback:nil]
++-- */
++- + (id)loadImage:(NSString *)aUrl cached:(BOOL)cached paused:(BOOL)_paused;
++--
++--/**
++-- * Same as loadImage:sizeTo:cached: except that it may be started paused. If <code>paused is <code>YES</code>
++-- * to initilize the network connection or to check the cache you must call [deferred callback:nil]
++-- */
++- + (id)loadImage:(NSString *)aUrl sizeTo:(CGSize)size cached:(BOOL)cached paused:(BOOL)_paused;
++- 
++- 
++-diff -rupN /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKDeferred+UIKit.m ./DKDeferred+UIKit.m
++---- /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKDeferred+UIKit.m	2009-11-18 13:41:51.000000000 -0800
++-+++ ./DKDeferred+UIKit.m	2010-03-18 14:56:18.000000000 -0700
++-@@ -70,7 +70,7 @@
++-     if (boolv(shouldCache)) {
++-       [[DKDeferredCache sharedCache] 
++-        setValue:UIImagePNGRepresentation(img)
++--       forKey:url timeout:[[DKDeferredCache sharedCache] defaultTimeout]];
++-+       forKey:url timeout:7200.0];
++-     }
++-     return img;
++-   }
++-diff -rupN /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKDeferred.h ./DKDeferred.h
++---- /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKDeferred.h	2009-11-18 14:06:04.000000000 -0800
++-+++ ./DKDeferred.h	2010-01-12 12:04:44.000000000 -0800
++-@@ -70,19 +70,7 @@
++-   *     // tell the user the internet is down.
++-   *     return nil;
++-   * }
++--  * </pre>   
++--  *
++--  * DKDeferred, much like the NSDate class is an aggregate class. Many of the public
++--  * constructors you use through this class will return classes that inherit from
++--  * DKDeferred. Initializers may sometimes return objects that do not directly represent
++--  * the object you're initializing (for instance, some paused deferreds). Therefore
++--  * it is crucial when typing your deferred symbols it is best to use <code>id</code> or
++--  * <code>DKDeferred*</code> like so:
++--  * <pre>
++--  * DKDeferred *d = [DKDeferred deferInThread:callbackP(_run) withObject:self];
++--  * --or--
++--  * id d = [DKDeferred deferInThread:callbackP(_run) withObject:self];
++--  * </pre>
++-+  *  </pre>   
++-   */
++- 
++- @interface DKDeferred : NSObject {
++-@@ -139,6 +127,7 @@
++- // comparison
++- - (NSComparisonResult)compare:(DKDeferred *)otherDeferred;
++- - (NSComparisonResult)compareDates:(DKDeferred *)otherDeferred;
++-+- (NSComparisonResult)reverseCompareDates:(DKDeferred *)otherDeferred;
++- 
++- @end
++- 
++-@@ -203,14 +192,7 @@
++-  * timers and events to continue being processed in the same thread.
++-  *
++-  * It's not normally recommended to use this method but functions as a 
++-- * great way to prototype. It does however allow you to do some cool things,
++-- * like calling JSON-RPC methods inline:
++-- *
++-- * <pre>
++-- * id ret = waitForDeferred(
++-- *           [[[DKDeferred jsonService:WS_URL]
++-- *            myNamespace] myMethod:array_(username, password, arg1)]);
++-- * </pre>         
++-+ * great way to prototype.
++-  */
++- @interface DKWaitForDeferred : NSObject
++- {
++-@@ -377,12 +359,10 @@
++-   int maxEntries;
++-   int cullFrequency;
++-   NSString *dir;
++--  NSTimeInterval defaultTimeout;
++-+  NSTimeInterval *defaultTimeout;
++-   NSOperationQueue *operationQueue;
++- }
++- 
++--@property(assign) NSTimeInterval defaultTimeout;
++--
++- + (id)sharedCache;
++- - (id)initWithDirectory:(NSString *)_dir 
++-              maxEntries:(int)_maxEntries
++-@@ -434,6 +414,8 @@
++- - (int)concurrency;
++- - (void)setTimeout:(double)concurrentDeferredTimeout;
++- - (double)timeout;
++-+- (SEL)comparisonSelector;
++-+- (void)setComparisonSelector:(SEL)selecter;
++- 
++- @end
++- 
++-@@ -494,6 +476,7 @@
++-   double timeout;
++-   id<DKCallback> finalizeFunc;
++-   NSLock *wLock;
++-+  SEL comparisonSelector;
++- }
++- 
++- + (id)pool;
++-diff -rupN /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKDeferred.m ./DKDeferred.m
++---- /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKDeferred.m	2009-11-18 13:44:34.000000000 -0800
++-+++ ./DKDeferred.m	2010-03-18 14:56:18.000000000 -0700
++-@@ -151,9 +151,7 @@ id _gatherResultsCallback(id results) {
++-     return [[DKDeferredURLConnection loadURL:url] 
++-             addBoth:curryTS((id)self, @selector(_cachedLoadURLCallback:results:), url)];
++-   } else {
++--    [[DKDeferredCache sharedCache] 
++--     setValue:_results forKey:url
++--     timeout:[[DKDeferredCache sharedCache] defaultTimeout]];
++-+    [[DKDeferredCache sharedCache] setValue:_results forKey:url timeout:7200.0f];
++-     return _results;
++-   }
++-   return nil;
++-@@ -164,6 +162,17 @@ id _gatherResultsCallback(id results) {
++- }
++- 
++- + (id)loadURL:(NSString *)aUrl paused:(BOOL)_paused { 
++-+//  id ret;
++-+//  if (_paused) {
++-+//    ret = [DKDeferred deferred];
++-+//    [ret addBoth:callbackTS((id)self, _cbStartConnection:)];
++-+//    [ret pause];
++-+//    [ret callback:aUrl];
++-+//  } else {
++-+//  id ret = [DKDeferredURLConnection deferredURLConnection:aUrl];
++-+//  if (_paused)
++-+//    [ret pause];
++-+//  }
++-   return [[[DKDeferredURLConnection alloc] initWithURL:aUrl paused:_paused] autorelease];
++- }
++- 
++-@@ -368,6 +377,10 @@ id _gatherResultsCallback(id results) {
++- }
++- 
++- - (NSComparisonResult)compareDates:(DKDeferred *)otherDeferred {
++-+  return -[self.started compare:otherDeferred.started];
++-+}
++-+
++-+- (NSComparisonResult)reverseCompareDates:(DKDeferred *)otherDeferred {
++-   return [self.started compare:otherDeferred.started];
++- }
++- 
++-@@ -433,6 +446,10 @@ id _gatherResultsCallback(id results) {
++- }
++- 
++- - (id)_cbDeferred:(id)index succeeded:(id)succeeded result:(id)result {
++-+  if (isDeferred(result)) {
++-+    return [result addBoth:curryTS(self, 
++-+      @selector(_cbDeferred:succeeded:result:), index, succeeded)];
++-+  }
++-   int _index = [(NSNumber *)index intValue];
++-   BOOL _succeeded = [(NSNumber *)succeeded boolValue];
++-   result = (result == nil) ? [NSNull null] : result;
++-@@ -461,7 +478,7 @@ id _gatherResultsCallback(id results) {
++- @synthesize result, d;
++- 
++- - (id)initWithDeferred:(DKDeferred *)deferred {
++--  if (self = [super init]) {
++-+  if ((self = [super init])) {
++-     d = [[deferred addBoth:callbackTS(self, _get:)] retain];
++-   }
++-   return self;
++-@@ -572,6 +589,8 @@ id _gatherResultsCallback(id results) {
++-   NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
++-   id result;
++-   result = [action :arg];
++-+  if (!result)
++-+    result = [NSNull null];
++-   [self performSelector:@selector(_cbReturnFromThread:) 
++-                onThread:parentThread
++-              withObject:result
++-@@ -784,11 +803,14 @@ didReceiveResponse:(NSURLResponse *)resp
++- 
++- - (void)connection:(NSURLConnection *)aConnection
++-   didFailWithError:(NSError *)error {
++-+  if (aConnection == connection) connection = nil;
++-   [aConnection release];
++-   NSLog(@"didFailWithError:%@", error);
++-   [self _cbProgressUpdate];
++--  [self errback:error];
++--  __urlConnectionCount -= 1;
++-+  if (self.fired == -1) { // could be multiple errors, only errback on the first
++-+    [self errback:error];
++-+    __urlConnectionCount -= 1;
++-+  }
++- }
++- 
++- - (void)connectionDidFinishLoading:(NSURLConnection *)aConnection {
++-@@ -817,7 +839,7 @@ didReceiveResponse:(NSURLResponse *)resp
++- }
++- 
++- - (void)dealloc {
++--  [connection release];
++-+  if (connection) [connection release];
++-   [request release];
++-   [progressCallback release];
++-   [url release];
++-@@ -853,8 +875,6 @@ static DKDeferredCache *__sharedCache;
++- 
++- @implementation DKDeferredCache
++- 
++--@synthesize defaultTimeout;
++--
++- /// DKCache Protocol
++- - (id)setValue:(NSObject *)value forKey:(NSString *)key timeout:(NSTimeInterval)timeout {
++-   return [DKDeferred defer:
++-@@ -913,11 +933,13 @@ static DKDeferredCache *__sharedCache;
++-     val = [self _getValue:key];
++-     [ret addObject:((val == nil) ? [NSNull null] : val)];
++-   }
++--  return [NSDictionary dictionaryWithObjects:ret forKeys:keys];
++-+  return ret; //[NSDictionary dictionaryWithObjects:ret forKeys:keys];
++- }
++- 
++- // should always be executed in a thread
++- - (id)_getValue:(NSString *)key { 
++-+  if (key == (id)[NSNull null])
++-+    return key;
++-   NSString *fname = [dir stringByAppendingPathComponent:md5(key)];
++-   NSFileManager *fm = [NSFileManager defaultManager];
++-   if ([fm fileExistsAtPath:fname]) {
++-@@ -963,7 +985,6 @@ static DKDeferredCache *__sharedCache;
++-     maxEntries = (_maxEntries < 1) ? 300 : _maxEntries;
++-     cullFrequency = (_cullFrequency < 1) ? 3 : _cullFrequency;
++-     operationQueue = [[NSOperationQueue alloc] init];
++--    self.defaultTimeout = 7200.0;
++-     // init cache directory
++-     NSFileManager *fm = [NSFileManager defaultManager];
++-     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDirectory, YES);
++-@@ -1170,13 +1191,28 @@ static DKDeferredCache *__sharedCache;
++-   if ((self = [super init])) {
++-     _queue = [[[DKMappedPriorityQueue alloc] init] retain];
++-     _runningDeferreds = [[[NSMutableDictionary alloc] init] retain];
++--    concurrency = 10;
++-+    concurrency = 4;
++-     timeout = 10.0;
++-     wLock = [[[NSLock alloc] init] retain];
++-+    comparisonSelector = @selector(compareDates:);
++-   }
++-   return self;
++- }
++- 
++-+- (SEL)comparisonSelector {
++-+  SEL ret;
++-+  @synchronized(self) {
++-+    ret = comparisonSelector;
++-+  }
++-+  return ret;
++-+}
++-+
++-+- (void)setComparisonSelector:(SEL)selecter {
++-+  @synchronized(self) {
++-+    comparisonSelector = selecter;
++-+  }
++-+}
++-+
++- - (void)setFinalizeFunc:(id<DKCallback>)f {
++-   finalizeFunc = [f retain];
++- }
++-@@ -1190,7 +1226,7 @@ static DKDeferredCache *__sharedCache;
++- - (id)add:(DKDeferred *)d key:(id)k {
++-   id ret;
++-   [wLock lock];
++--  ret = [_queue enqueue:d key:k prioritySelector:@selector(compareDates:)];
++-+  ret = [_queue enqueue:d key:k prioritySelector:comparisonSelector];
++-   [wLock unlock];
++-   if (ret) {
++-     [d addBoth:curryTS(self, @selector(_cbRemoveDeferred::), k)];
++-@@ -1231,6 +1267,7 @@ static DKDeferredCache *__sharedCache;
++-     if (!item || ![item count]) {
++-       break;
++-     }
++-+//    NSLog(@"resumeWaiting: %@ %@", [item objectAtIndex:0], [item objectAtIndex:1]);
++-     [[item retain] autorelease];
++-     [resumables addObject:item];
++-     [_runningDeferreds setObject:[item objectAtIndex:0]
++-diff -rupN /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKMacros.h ./DKMacros.h
++---- /Users/sam/Development/DeferredKit/CocoaDeferred/Source/DeferredKit/DKMacros.h	2009-11-18 13:04:31.000000000 -0800
++-+++ ./DKMacros.h	2010-03-18 14:56:18.000000000 -0700
++-@@ -59,7 +59,7 @@ static inline id<DKCallback> _curryTS(id
++- #define floatv(__o) [__o floatValue]
++- #define boolv(__o) [__o boolValue]
++- #define array_(__args...) [NSArray arrayWithObjects:__args, nil]
++--#define dict_(__args...) [NSDictionary dictionaryWithObjectsAndKeys:__args, nil]
++-+#define dict_(...) [NSDictionary dictionaryWithObjectsAndKeys:__VA_ARGS__, nil]
++- #ifndef EMPTY_DICT
++- #define EMPTY_DICT [NSDictionary dictionary]
++- #endif
++\ No newline at end of file

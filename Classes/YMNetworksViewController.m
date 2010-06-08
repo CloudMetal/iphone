@@ -86,7 +86,7 @@
     myMessagesController = [[[YMMessageListViewController alloc] init] retain];
     myMessagesController.tabBarItem = 
     [[[UITabBarItem alloc] initWithTitle:@"My Feed" image:
-      [UIImage imageNamed:@"home.png"] tag:0] autorelease];
+      [UIImage imageNamed:@"53-house.png"] tag:0] autorelease];
     myMessagesController.shouldUpdateBadge = YES;
     
     receivedMessagesController = [[[YMMessageListViewController alloc] init] retain];
@@ -98,12 +98,12 @@
     directoryController = [[[YMContactsListViewController alloc] init] retain];
     directoryController.tabBarItem =
     [[[UITabBarItem alloc] initWithTitle:@"Directory" image:
-      [UIImage imageNamed:@"directory.png"] tag:2] autorelease];
+      [UIImage imageNamed:@"123-id-card.png"] tag:2] autorelease];
     
     feedsController = [[[YMFeedListViewController alloc] init] retain];
     feedsController.tabBarItem = 
     [[[UITabBarItem alloc] initWithTitle:@"Feeds" image:
-      [UIImage imageNamed:@"feeds.png"] tag:3] autorelease];
+      [UIImage imageNamed:@"144-feed.png"] tag:3] autorelease];
     
     NSMutableArray *a = [NSMutableArray array];
     for (UIViewController *c in array_(myMessagesController, receivedMessagesController,
@@ -233,8 +233,9 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath
                                           intv(network.userAccountPK)];
   acct.activeNetworkPK = nsni(network.pk);
   [acct save];
+  [web syncSubscriptions:acct];
   
-  [web loadCachedContactImagesForUserAccount:acct]; // TODO: this needs to publish a notification when finished
+  [web loadCachedContactImagesForUserAccount:acct];
   
   UITabBarController *c = [self tabs];
   

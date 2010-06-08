@@ -13,6 +13,7 @@
 #import "YMContact.h"
 #import "YMWebService+Private.h"
 #import "YMGroup.h"
+#import "YMAttachment.h"
 
 #define WS_URL @"https://staging.yammer.com"
 #define WS_MOUNTPOINT [NSURL URLWithString:[NSString \
@@ -21,6 +22,7 @@
 #define IS_TARGET(__a, __b) ([__a isEqualToString:__b])
 
 #define YMWebServiceDidUpdateMessages @"webservicedidendmessageupdates"
+#define YMWebServiceDidUpdateSubscriptions @"webservicedidupdatesubscriptions"
 
 #define YMLastSeenMessageID @"lastSeenMessageID"
 
@@ -174,6 +176,24 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches;
  */
 - (DKDeferred *)syncUsers:(YMUserAccount *)acct;
 
+/**
+ */
+- (DKDeferred *)updateUser:(YMUserAccount *)acct contact:(YMContact *)contact;
+
+/**
+ */
+- (DKDeferred *)syncSubscriptions:(YMUserAccount *)acct;
+
+/**
+ */
+- (DKDeferred *)like:(YMUserAccount *)acct message:(YMMessage *)message;
+
+/**
+ */
+- (DKDeferred *)unlike:(YMUserAccount *)acct message:(YMMessage *)message;
+
+/**
+ */
 - (DKDeferred *)autocomplete:(YMUserAccount *)acct string:(NSString *)str;
 
 @end

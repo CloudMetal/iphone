@@ -1,0 +1,32 @@
+154,156c154
+<     [[DKDeferredCache sharedCache] 
+<      setValue:_results forKey:url
+<      timeout:[[DKDeferredCache sharedCache] defaultTimeout]];
+---
+>     [[DKDeferredCache sharedCache] setValue:_results forKey:url timeout:7200.0f];
+166a165,175
+> //  id ret;
+> //  if (_paused) {
+> //    ret = [DKDeferred deferred];
+> //    [ret addBoth:callbackTS((id)self, _cbStartConnection:)];
+> //    [ret pause];
+> //    [ret callback:aUrl];
+> //  } else {
+> //  id ret = [DKDeferredURLConnection deferredURLConnection:aUrl];
+> //  if (_paused)
+> //    [ret pause];
+> //  }
+869,870d877
+< @synthesize defaultTimeout;
+< 
+927a935
+>     val = nil;
+929c937
+<   return [NSDictionary dictionaryWithObjects:ret forKeys:keys];
+---
+>   return ret; //[NSDictionary dictionaryWithObjects:ret forKeys:keys];
+933a942,943
+>   if (key == (id)[NSNull null])
+>     return nil;
+979d988
+<     self.defaultTimeout = 7200.0;

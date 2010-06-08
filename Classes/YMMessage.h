@@ -15,8 +15,6 @@
   NSString *bodyParsed;
   NSString *bodyPlain;
   
-  NSArray *attachmentPKs;
-  
   NSString *messageType;
   NSString *clientType;
   
@@ -31,6 +29,9 @@
   NSNumber *targetID;
   
   NSNumber *repliedToSenderID;
+  
+  NSNumber *hasAttachments;
+  NSNumber *liked;
 }
 
 @property(nonatomic, readwrite, retain) NSNumber *messageID;
@@ -44,8 +45,6 @@
 @property(nonatomic, readwrite, retain) NSString *webURL;
 @property(nonatomic, readwrite, retain) NSString *bodyParsed;
 @property(nonatomic, readwrite, retain) NSString *bodyPlain;
-
-@property(nonatomic, readwrite, retain) NSArray *attachmentPKs;
 
 @property(nonatomic, readwrite, retain) NSString *messageType;
 @property(nonatomic, readwrite, retain) NSString *clientType;
@@ -61,5 +60,7 @@
 @property(nonatomic, readwrite, retain) NSNumber *targetID;
 
 @property(nonatomic, readwrite, retain) NSNumber *repliedToSenderID;
+
+@property(nonatomic, readwrite, retain) NSNumber *hasAttachments, *liked;
 
 @end

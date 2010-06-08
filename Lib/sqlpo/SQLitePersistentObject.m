@@ -1064,7 +1064,7 @@ NSMutableArray *checkedTables;
     else
       NSLog(@"Error preparing save SQL: %s", sqlite3_errmsg(database));
     // Can't register in memory map until we have PK, so do that now.
-    if (![[objectMap allKeys] containsObject:[self memoryMapKey]])
+    if ([[objectMap allKeys] containsObject:[self memoryMapKey]])
       [[self class] registerObjectInMemory:self];
     
     
