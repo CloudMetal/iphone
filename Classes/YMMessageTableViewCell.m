@@ -71,29 +71,32 @@ static UIFont *bodyFont = nil;
 static UIColor *bodyColor = nil;
 static UIColor *dateColor = nil;
 static UIImage *backgroundImage = nil;
-static UIColor *borderColor;
+static UIColor *borderColor = nil;
 static UIImage *unreadBackgroundImage = nil;
 static UIImage *selectedBackgroundImage = nil;
 static UIImage *smallLikeImage = nil;
 static UIImage *smallAttachmentImage = nil;
-static UIImage *smallGroupImage = nil;
+static UIImage *smallFollowingImage = nil;
 
 
 @implementation YMFastMessageTableViewCell
 
-@synthesize title, body, date, avatar, unread;
+@synthesize title, body, date, avatar, unread, hasAttachments, liked, following;
 
 + (void)initialize
 {
   if (self = [YMFastMessageTableViewCell class]) {
     titleFont = [[UIFont boldSystemFontOfSize:13] retain];
     bodyFont = [[UIFont systemFontOfSize:12] retain];
-    bodyColor = [[UIColor colorWithWhite:.35 alpha:1] retain];
-    dateColor = [[UIColor colorWithRed:.2 green:.55 blue:.7 alpha:1] retain];
+    bodyColor = [[UIColor colorWithWhite:.15 alpha:1] retain];
+    dateColor = [[UIColor colorWithRed:(65.0/255.0) green:(87.0/255.0) blue:(143.0/255.0) alpha:1] retain]; // 65 87 143
     backgroundImage = [[UIImage imageNamed:@"msg-bg.png"] retain];
     borderColor = [[UIColor colorWithWhite:.5 alpha:1] retain];
     unreadBackgroundImage = [[UIImage imageNamed:@"unread-msg-bg.png"] retain];
     selectedBackgroundImage = [[UIImage imageNamed:@"selected-msg-bg.png"] retain];
+    smallLikeImage = [[UIImage imageNamed:@"liked-tiny.png"] retain];
+    smallAttachmentImage = [[UIImage imageNamed:@"paperclip-tiny.png"] retain];
+    smallFollowingImage = [[UIImage imageNamed:@"following-tiny.png"] retain];
   }
 }
 
@@ -116,8 +119,29 @@ static UIImage *smallGroupImage = nil;
     [imageView release];
     
     unread = NO;
+    liked = NO;
+    hasAttachments = NO;
+    following = NO;
   }
   return self;
+}
+
+- (void)setLiked:(BOOL)l
+{
+  liked = l;
+  [self setNeedsDisplay];
+}
+
+- (void)setHasAttachments:(BOOL)a
+{
+  hasAttachments = a;
+  [self setNeedsDisplay];
+}
+
+- (void)setFollowing:(BOOL)f
+{
+  following = f;
+  [self setNeedsDisplay];
 }
 
 - (void)setUnread:(BOOL)u
@@ -135,21 +159,21 @@ static UIImage *smallGroupImage = nil;
 - (void)setBody:(NSString *)b
 {
   [body release];
-  body = [b copy];
+  body = [b retain];
   [self setNeedsDisplay];
 }
 
 - (void)setDate:(NSString *)d
 {
   [date release];
-  date = [d copy];
+  date = [d retain];
   [self setNeedsDisplay];
 }
 
 - (void)setTitle:(NSString *)t
 {
   [title release];
-  title = [t copy];
+  title = [t retain];
   [self setNeedsDisplay];
 }
 
@@ -193,9 +217,28 @@ static UIImage *smallGroupImage = nil;
   [(self.selected ? selectedBackgroundImage : 
     (unread ? unreadBackgroundImage : backgroundImage)) drawInRect:r];
   
-  CGRect titleSize = CGRectMake(62, 4, r.size.width - 137.0, 21);
+  CGRect titleSize = CGRectMake(62, 4, r.size.width - 137.0 
+                                - (hasAttachments ? 10.0 : 0) 
+                                - (following ? 13.0 : 0) 
+                                - (liked ? 15.0 : 0), 
+                                21);
   CGRect bodySize = CGRectMake(62, 23.0, r.size.width - 72.0, r.size.height - 32.0);
   CGRect dateLabel = CGRectMake(r.size.width - 73.0, 4, 63, 21);
+  
+  if (hasAttachments) {
+    CGRect ar = CGRectMake(r.size.width - 83.0 
+                           - (liked ? 14.0 : 0) 
+                           - (following ? 14.0 : 0), 6.0, 8.0, 16.0);
+    [smallAttachmentImage drawInRect:ar];
+  }
+  if (following) {
+    CGRect fr = CGRectMake(r.size.width - 85.0 - (liked ? 14.0 : 0), 10, 11, 8);
+    [smallFollowingImage drawInRect:fr];
+  }
+  if (liked) {
+    CGRect lr = CGRectMake(r.size.width - 84.0, 7, 13, 13);
+    [smallLikeImage drawInRect:lr];
+  }
   
   [[UIColor blackColor] set];
   [title drawInRect:titleSize withFont:titleFont 

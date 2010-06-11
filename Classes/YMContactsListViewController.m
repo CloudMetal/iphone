@@ -118,6 +118,10 @@
   mugshots = nil;
   if (alphabetGroups) [alphabetGroups release];
   alphabetGroups = nil;
+  if (ids) [ids release];
+  if (names) [names release];
+  if (mugshotURLs) [mugshotURLs release];
+  ids = names = mugshotURLs = nil;
   
   if (!alphabet) alphabet = [[@"a b c d e f g h i j k l m n o p q r s t u v w x y z"
                               componentsSeparatedByString:@" "] retain];
@@ -129,17 +133,21 @@
   YMNetwork *curNetwork = (YMNetwork *)[YMNetwork findByPK:
                            intv(self.userAccount.activeNetworkPK)];
   NSArray *contacts = [YMContact pairedArraysForProperties:
-                  array_(@"fullName", @"mugshotURL") withCriteria:@"WHERE network_i_d=%i%@", 
+                  array_(@"fullName", @"mugshotURL", @"userID") withCriteria:@"WHERE network_i_d=%i%@", 
                        intv(curNetwork.networkID), [self searchQuery]];
 
   // sort by full name
   NSMutableArray *cpks = [[[contacts objectAtIndex:0] retain] autorelease];
   NSMutableArray *omgwtfs = [[[contacts objectAtIndex:1] retain] autorelease];
   NSMutableArray *mgs = [[[contacts objectAtIndex:2] retain] autorelease];
+  NSMutableArray *_ids = [[[contacts objectAtIndex:3] retain] autorelease];
   [omgwtfs sortArrayUsingSelector:@selector(localizedCaseInsensitiveCompare:)
-          withPairedMutableArrays:cpks, mgs, nil];
+          withPairedMutableArrays:cpks, mgs, _ids, nil];
   contactPKs = [cpks retain];
+  names = [omgwtfs retain];
+  ids = [_ids retain];
   mugshots = [[NSMutableArray arrayWithCapacity:[contactPKs count]] retain];
+  mugshotURLs = [mgs retain];
   UIImage *ms;
   for (int i = 0; i < [contactPKs count]; i++) {
     [mugshots addObject:(((ms = [web imageForURLInMemoryCache:[mgs objectAtIndex:i]])
@@ -247,15 +255,12 @@ cellForRowAtIndexPath:(NSIndexPath *)indexPath
    initWithFrame:CGRectMake(0, 0, 320, 44) reuseIdentifier:ident] autorelease];
   cell.opaque = YES;
   
-  int idx = [self indexForIndexPath:indexPath];
-  YMContact *contact = (YMContact *)[YMContact findByPK:
-                        intv([contactPKs objectAtIndex:idx])];
-  
+  int idx = [self indexForIndexPath:indexPath];  
   cell.imageView.image = [UIImage imageNamed:@"user-70.png"];
   id img = [mugshots objectAtIndex:idx];
   if ([img isEqual:[NSNull null]]) {
-    if (contact.mugshotURL && [contact.mugshotURL length]) {
-      [[web contactImageForURL:contact.mugshotURL]
+    if (![[mugshotURLs objectAtIndex:idx] isEqual:[NSNull null]]) {
+      [[web contactImageForURL:[mugshotURLs objectAtIndex:idx]]
        addCallback:curryTS(self, @selector(_gotMugshot::), indexPath)];
     } else {
       [mugshots replaceObjectAtIndex:idx
@@ -265,8 +270,7 @@ cellForRowAtIndexPath:(NSIndexPath *)indexPath
     cell.imageView.image = img;
   }
   cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
-  cell.textLabel.text = ([contact.fullName length] 
-                         ? contact.fullName : contact.username);
+  cell.textLabel.text = [names objectAtIndex:idx];
   return cell;
 }
 
@@ -352,6 +356,12 @@ textDidChange:(NSString *)searchText
 
 - (void)viewDidUnload
 {
+  [names release];
+  names = nil;
+  [ids release];
+  ids = nil;
+  [mugshotURLs release];
+  mugshotURLs = nil;
   [mugshots release];
   mugshots = nil;
   [contactPKs release];

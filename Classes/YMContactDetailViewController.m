@@ -50,6 +50,7 @@
 {
   YMMessageListViewController *c = [[[YMMessageListViewController alloc] init] autorelease];
   c.userAccount = self.userAccount;
+  c.network = (YMNetwork *)[YMNetwork findByPK:intv(self.userAccount.activeNetworkPK)];
   c.target = YMMessageTargetFromUser;
   c.targetID = ct.userID;   NSLog(@"ct %@ %@", ct, ct.userID);
   [self.navigationController pushViewController:c animated:YES];

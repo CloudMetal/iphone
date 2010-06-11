@@ -242,7 +242,7 @@
 {
   YMComposeViewController *c = [[[YMComposeViewController alloc] init] autorelease];
   c.userAccount = self.userAccount;
-  c.network = (YMNetwork *)[YMNetwork findByPK:intv(userAccount.activeNetworkPK)];
+  c.network = self.network;
   if ([self.target isEqual:YMMessageTargetInGroup]) {
     c.inGroup = (YMGroup *)[YMGroup findFirstByCriteria:
                             @"WHERE group_i_d=%i", intv(self.targetID)];
@@ -329,6 +329,12 @@
   bodies = nil;
   if (reads) [reads release];
   reads = nil;
+  if (hasattachments) [hasattachments release];
+  hasattachments = nil;
+  if (likeds) [likeds release];
+  likeds = nil;
+  if (followeds) [followeds release];
+  followeds = nil;
   if (newlyReadMessageIndexes) [newlyReadMessageIndexes release];
   newlyReadMessageIndexes = [[NSMutableIndexSet indexSet] retain];
   if (self.newerThan) self.newerThan = nil;
@@ -337,12 +343,12 @@
                  @"SELECT y_m_message.pk, y_m_contact.mugshot_u_r_l, y_m_contact.full_name, "  
                  @"(SELECT full_name FROM y_m_contact AS ymc WHERE " 
                  @"y_m_message.replied_to_sender_i_d = ymc.user_i_d), y_m_message.body_plain, "
-                 @"y_m_message.created_at, y_m_message.read "
+                 @"y_m_message.created_at, y_m_message.read, y_m_message.liked, y_m_message.has_attachments, y_m_message.sender_i_d "
                  @"FROM y_m_message INNER JOIN y_m_contact ON y_m_message.sender_i_d " 
                  @"= y_m_contact.user_i_d %@ ORDER BY y_m_message.created_at DESC LIMIT %i", 
                  [self listCriteria], limit];
-  NSLog(@"%@", q);
-  NSArray *a = [YMMessage pairedArraySelect:q fields:7];
+  NSLog(@"refreshing messages %@", q);
+  NSArray *a = [YMMessage pairedArraySelect:q fields:10];
   
   messagePKs = [[a objectAtIndex:0] retain];
   mugshotURLs = [[a objectAtIndex:1] retain];
@@ -351,6 +357,11 @@
   bodies = [[a objectAtIndex:4] retain];
   dates = [[a objectAtIndex:5] retain];
   reads = [[a objectAtIndex:6] retain];
+  likeds = [[a objectAtIndex:7] retain];
+  hasattachments = [[a objectAtIndex:8] retain];
+  NSMutableArray *_senderIds = [a objectAtIndex:9];
+  NSMutableArray *_following = [NSMutableArray arrayWithCapacity:[messagePKs count]];
+  NSArray *subscribedUserIds = self.network.userSubscriptionIds;
   
   [self updateBadge];
   
@@ -358,18 +369,21 @@
     UIImage *img = nil;
     NSString *mugshotUrl = [mugshotURLs objectAtIndex:i];
     if ([mugshotUrl isKindOfClass:
-         [NSString class]] && [mugshotUrl length]) {
+         [NSString class]] && [mugshotUrl length])
       img = [[web imageForURLInMemoryCache:mugshotUrl] retain];
-    }
-
     [mugshots addObject:(img ? [img autorelease] : (id)[NSNull null])];
+    
     NSString *tit = [[a objectAtIndex:2] objectAtIndex:i];
     NSString *rtit = [[a objectAtIndex:3] objectAtIndex:i];
     if ([rtit isEqual:[NSNull null]])
       [_titles addObject:tit];
     else 
       [_titles addObject:[tit stringByAppendingFormat:@" re: %@", rtit]];
+    
+    [_following addObject:([subscribedUserIds containsObject:
+                            nsni(intv([_senderIds objectAtIndex:i]))] ? nsnb(YES) : nsnb(NO))];
   }
+  followeds = [_following retain];
   titles = [_titles retain];
   if ([messagePKs count])
     self.newerThan = [(YMMessage *)[YMMessage findByPK:
@@ -420,14 +434,6 @@
   [reads replaceObjectsAtIndexes:newlyReadMessageIndexes withObjects:newReads];
   [newlyReadMessageIndexes release];
   newlyReadMessageIndexes = [[NSMutableIndexSet indexSet] retain];
-  
-  [self performSelector:@selector(delayedNewlyReadUpdate:) withObject:indexPaths afterDelay:1.5];
-}
-
-- (void)delayedNewlyReadUpdate:(id)indexPaths
-{
-  [self.tableView reloadRowsAtIndexPaths:indexPaths 
-                        withRowAnimation:UITableViewRowAnimationFade];
 }
 
 - (NSInteger)rowForIndexPath:(NSIndexPath *)indexPath
@@ -506,7 +512,6 @@ cellForRowAtIndexPath:(NSIndexPath *)indexPath
     }
     NSIndexPath *onActionIndex = [NSIndexPath indexPathForRow:indexPath.row - 1 inSection:0];
     YMMessage *m = (YMMessage *)[YMMessage findByPK:intv([messagePKs objectAtIndex:indexPath.row - 1])];
-    NSLog(@"m.liked %@", m.liked);
     cell.liked = m.liked != nil ? boolv(m.liked) : NO;
     cell.onLike = curryTS(self, @selector(gotoLikeIndexPath:sender:), indexPath);
     cell.onUser = curryTS(self, @selector(gotoUserIndexPath:sender:), onActionIndex);
@@ -550,6 +555,8 @@ cellForRowAtIndexPath:(NSIndexPath *)indexPath
   cell.date = [NSDate fastStringForDisplayFromDate:
                [NSDate objectWithSqlColumnRepresentation:[dates objectAtIndex:idx]]];
   cell.title = [titles objectAtIndex:idx];
+  cell.liked = boolv([likeds objectAtIndex:idx]);
+  cell.hasAttachments = boolv([hasattachments objectAtIndex:idx]);
   
   return cell;
 }
@@ -656,6 +663,7 @@ willSelectRowAtIndexPath:(NSIndexPath *)indexPath
   int idx = [self rowForIndexPath:indexPath];
   YMMessage *m = (YMMessage *)[YMMessage findByPK:intv([messagePKs objectAtIndex:idx])];
   YMMessageListViewController *c = [[[YMMessageListViewController alloc] init] autorelease];
+  c.network = self.network;
   c.userAccount = self.userAccount;
   c.target = YMMessageTargetInThread;
   c.targetID = m.threadID;

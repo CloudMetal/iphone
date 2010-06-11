@@ -18,6 +18,7 @@
   YMUserAccount *userAccount;
   YMNetwork *network;
   NSArray *feeds;
+  NSMutableArray *mugshots;
   BOOL didUpdateSubscriptions;
 }
 

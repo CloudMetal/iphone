@@ -30,9 +30,12 @@
   UIImage *avatar;
   UIImageView *imageView;
   BOOL unread;
+  BOOL hasAttachments;
+  BOOL liked;
+  BOOL following;
 }
 
-@property(nonatomic, assign) BOOL unread;
+@property(nonatomic, assign) BOOL unread, hasAttachments, liked, following;
 @property(nonatomic, copy) NSString *title, *body, *date;
 @property(nonatomic, retain) UIImage *avatar;
 

@@ -17,6 +17,9 @@
   YMUserAccount *userAccount;
   NSArray *contactPKs;
   NSMutableArray *mugshots;
+  NSMutableArray *names;
+  NSMutableArray *ids;
+  NSMutableArray *mugshotURLs;
   NSArray *alphabet;
   NSMutableArray *alphabetGroups;
   NSString *filterText;

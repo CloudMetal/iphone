@@ -240,9 +240,11 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath
   UITabBarController *c = [self tabs];
   
   myMessagesController.userAccount = acct;
+  myMessagesController.network = network;
   myMessagesController.target = YMMessageTargetFollowing;
   receivedMessagesController.userAccount = acct;
   receivedMessagesController.target = YMMessageTargetReceived;
+  receivedMessagesController.network = network;
   directoryController.userAccount = acct;
   feedsController.userAccount = acct;
   feedsController.network = network;

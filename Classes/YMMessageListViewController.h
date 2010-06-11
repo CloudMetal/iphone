@@ -25,6 +25,9 @@
   NSArray *dates;
   NSArray *titles;
   NSArray *mugshotURLs;
+  NSArray *hasattachments;
+  NSArray *likeds;
+  NSArray *followeds;
   
   // ui elements
   UIButton *refreshButton;

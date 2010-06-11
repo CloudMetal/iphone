@@ -25,7 +25,6 @@
 		223F76D011AC9F1E0076940E /* heart.png in Resources */ = {isa = PBXBuildFile; fileRef = 223F76CF11AC9F1E0076940E /* heart.png */; };
 		223F76D211AC9F2C0076940E /* group.png in Resources */ = {isa = PBXBuildFile; fileRef = 223F76D111AC9F2C0076940E /* group.png */; };
 		223F76D411AC9F640076940E /* world.png in Resources */ = {isa = PBXBuildFile; fileRef = 223F76D311AC9F640076940E /* world.png */; };
-		223F76D611AC9FDE0076940E /* page_edit.png in Resources */ = {isa = PBXBuildFile; fileRef = 223F76D511AC9FDE0076940E /* page_edit.png */; };
 		2240CB7511AB6FF300B92DC1 /* YMGroup.m in Sources */ = {isa = PBXBuildFile; fileRef = 2240CB7411AB6FF300B92DC1 /* YMGroup.m */; };
 		2257943711B1A3F400EEEDF2 /* selected-msg-bg.png in Resources */ = {isa = PBXBuildFile; fileRef = 2257943611B1A3F400EEEDF2 /* selected-msg-bg.png */; };
 		225794F311B1CCA500EEEDF2 /* inline-button-bg-blue.png in Resources */ = {isa = PBXBuildFile; fileRef = 225794F111B1CCA500EEEDF2 /* inline-button-bg-blue.png */; };
@@ -137,6 +136,10 @@
 		22C977D3119DFD4000229433 /* YMMessageDetailView.m in Sources */ = {isa = PBXBuildFile; fileRef = 22C977D2119DFD4000229433 /* YMMessageDetailView.m */; };
 		22C977D6119E092800229433 /* YMMessageDetailViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 22C977D5119E092800229433 /* YMMessageDetailViewController.m */; };
 		22C97826119E137400229433 /* msg-body-bg.png in Resources */ = {isa = PBXBuildFile; fileRef = 22C97825119E137400229433 /* msg-body-bg.png */; };
+		22CA435211C04CB800369F74 /* paperclip-tiny.png in Resources */ = {isa = PBXBuildFile; fileRef = 22CA434F11C04CB800369F74 /* paperclip-tiny.png */; };
+		22CA435311C04CB800369F74 /* liked-tiny.png in Resources */ = {isa = PBXBuildFile; fileRef = 22CA435011C04CB800369F74 /* liked-tiny.png */; };
+		22CA435411C04CB800369F74 /* following-tiny.png in Resources */ = {isa = PBXBuildFile; fileRef = 22CA435111C04CB800369F74 /* following-tiny.png */; };
+		22CA43D611C08FF200369F74 /* envelope.png in Resources */ = {isa = PBXBuildFile; fileRef = 22CA43D211C08FF200369F74 /* envelope.png */; };
 		22CDE911118F7A8B00323FA1 /* YMNetworkTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 22CDE910118F7A8B00323FA1 /* YMNetworkTableViewCell.m */; };
 		22FBAF531198F43100751A72 /* YMMessageListViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 22FBAF521198F43100751A72 /* YMMessageListViewController.m */; };
 		22FBAF941199125F00751A72 /* YMMessageTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 22FBAF931199125F00751A72 /* YMMessageTableViewCell.m */; };
@@ -195,7 +198,6 @@
 		223F76CF11AC9F1E0076940E /* heart.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = heart.png; path = Resources/heart.png; sourceTree = "<group>"; };
 		223F76D111AC9F2C0076940E /* group.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = group.png; path = Resources/group.png; sourceTree = "<group>"; };
 		223F76D311AC9F640076940E /* world.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = world.png; path = Resources/world.png; sourceTree = "<group>"; };
-		223F76D511AC9FDE0076940E /* page_edit.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = page_edit.png; path = Resources/page_edit.png; sourceTree = "<group>"; };
 		2240CB7311AB6FF300B92DC1 /* YMGroup.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = YMGroup.h; path = Classes/YMGroup.h; sourceTree = "<group>"; };
 		2240CB7411AB6FF300B92DC1 /* YMGroup.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = YMGroup.m; path = Classes/YMGroup.m; sourceTree = "<group>"; };
 		2257943611B1A3F400EEEDF2 /* selected-msg-bg.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "selected-msg-bg.png"; path = "Resources/selected-msg-bg.png"; sourceTree = "<group>"; };
@@ -384,6 +386,10 @@
 		22C977D4119E092800229433 /* YMMessageDetailViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = YMMessageDetailViewController.h; path = Classes/YMMessageDetailViewController.h; sourceTree = "<group>"; };
 		22C977D5119E092800229433 /* YMMessageDetailViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = YMMessageDetailViewController.m; path = Classes/YMMessageDetailViewController.m; sourceTree = "<group>"; };
 		22C97825119E137400229433 /* msg-body-bg.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "msg-body-bg.png"; path = "Resources/msg-body-bg.png"; sourceTree = "<group>"; };
+		22CA434F11C04CB800369F74 /* paperclip-tiny.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "paperclip-tiny.png"; path = "Resources/paperclip-tiny.png"; sourceTree = "<group>"; };
+		22CA435011C04CB800369F74 /* liked-tiny.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "liked-tiny.png"; path = "Resources/liked-tiny.png"; sourceTree = "<group>"; };
+		22CA435111C04CB800369F74 /* following-tiny.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "following-tiny.png"; path = "Resources/following-tiny.png"; sourceTree = "<group>"; };
+		22CA43D211C08FF200369F74 /* envelope.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = envelope.png; path = Resources/envelope.png; sourceTree = "<group>"; };
 		22CDE90F118F7A8B00323FA1 /* YMNetworkTableViewCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = YMNetworkTableViewCell.h; path = Classes/YMNetworkTableViewCell.h; sourceTree = "<group>"; };
 		22CDE910118F7A8B00323FA1 /* YMNetworkTableViewCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = YMNetworkTableViewCell.m; path = Classes/YMNetworkTableViewCell.m; sourceTree = "<group>"; };
 		22CDE98F118F99A000323FA1 /* YMLegacyShim.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = YMLegacyShim.h; path = Classes/YMLegacyShim.h; sourceTree = "<group>"; };
@@ -772,6 +778,10 @@
 		29B97317FDCFA39411CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				22CA43D211C08FF200369F74 /* envelope.png */,
+				22CA434F11C04CB800369F74 /* paperclip-tiny.png */,
+				22CA435011C04CB800369F74 /* liked-tiny.png */,
+				22CA435111C04CB800369F74 /* following-tiny.png */,
 				22A03FCA11BDCD700078BE0B /* 53-house.png */,
 				22848F0311B8B1A60080472A /* liked-inline.png */,
 				22848E5C11B861EA0080472A /* title.png */,
@@ -785,7 +795,6 @@
 				2257943611B1A3F400EEEDF2 /* selected-msg-bg.png */,
 				22A03FE011BDD0FC0078BE0B /* 144-feed.png */,
 				2220A1B811ADD44D00DB3714 /* unread-msg-bg.png */,
-				223F76D511AC9FDE0076940E /* page_edit.png */,
 				223F76D311AC9F640076940E /* world.png */,
 				223F76D111AC9F2C0076940E /* group.png */,
 				223F76CF11AC9F1E0076940E /* heart.png */,
@@ -935,7 +944,6 @@
 				223F76D011AC9F1E0076940E /* heart.png in Resources */,
 				223F76D211AC9F2C0076940E /* group.png in Resources */,
 				223F76D411AC9F640076940E /* world.png in Resources */,
-				223F76D611AC9FDE0076940E /* page_edit.png in Resources */,
 				2220A1B911ADD44D00DB3714 /* unread-msg-bg.png in Resources */,
 				2257943711B1A3F400EEEDF2 /* selected-msg-bg.png in Resources */,
 				225794F311B1CCA500EEEDF2 /* inline-button-bg-blue.png in Resources */,
@@ -950,6 +958,10 @@
 				22A03FCB11BDCD700078BE0B /* 53-house.png in Resources */,
 				22A03FDC11BDD09D0078BE0B /* 123-id-card.png in Resources */,
 				22A03FE111BDD0FC0078BE0B /* 144-feed.png in Resources */,
+				22CA435211C04CB800369F74 /* paperclip-tiny.png in Resources */,
+				22CA435311C04CB800369F74 /* liked-tiny.png in Resources */,
+				22CA435411C04CB800369F74 /* following-tiny.png in Resources */,
+				22CA43D611C08FF200369F74 /* envelope.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

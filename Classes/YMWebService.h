@@ -15,7 +15,7 @@
 #import "YMGroup.h"
 #import "YMAttachment.h"
 
-#define WS_URL @"https://staging.yammer.com"
+#define WS_URL @"https://www.staging.yammer.com"
 #define WS_MOUNTPOINT [NSURL URLWithString:[NSString \
             stringWithFormat:@"%@%@", WS_URL, @"/api/v1"]]
 

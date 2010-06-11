@@ -17,9 +17,8 @@
 #import "DataCache.h"
 
 static YMWebService *__sharedWebService;
-static NSRecursiveLock *__dbLock;
 
-@interface YMWebService (PrivateStuffs)
+@interface YMWebService (PrivateParts)
 
 - (id)mutableRequestWithMethod:(id)method account:(YMUserAccount *)acct defaults:(NSDictionary *)defaults;
 - (id)mutableMultipartRequestWithMethod:(id)method account:(YMUserAccount *)acct defaults:(NSDictionary *)defs;
@@ -32,7 +31,6 @@ static NSRecursiveLock *__dbLock;
 - (id)contactImageCache;
 - (id)deferredDiskCache;
 
-@property(readonly) NSRecursiveLock *dbLock;
 @property(readonly) DKDeferredPool *loadingPool;
 
 @end
@@ -101,17 +99,6 @@ id _nil(id r)
 
 @synthesize mountPoint, appKey, appSecret;
 @synthesize shouldUpdateBadgeIcon;
-
-- (NSRecursiveLock *)dbLock
-{
-  NSRecursiveLock *ret;
-  @synchronized(self) {
-    if (!__dbLock)
-      __dbLock = [[[NSRecursiveLock alloc] init] retain];
-    ret = __dbLock;
-  }
-  return ret;
-}
 
 ///
 /// constructors
@@ -460,7 +447,7 @@ page:(id)page fetchToID:(id)toID results:(id)results
       }
       [attachment save];
     }
-  }
+  } else message.hasAttachments = nsnb(NO);
   
   // connect important references
   if (message.repliedToID) {
@@ -804,14 +791,18 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches
 
 - (id)_gotCurrentUser:(YMUserAccount *)acct :(NSDictionary *)user
 {
+  return [DKDeferred deferInThread:
+          curryTS(self, @selector(_saveSubscriptionsThread::), acct) withObject:user];
+}
+
+- (id)_saveSubscriptionsThread:(YMUserAccount *)acct :(NSDictionary *)user 
+{
   // TODO: currently this ignores followed tags
-  NSLog(@"user %@", user);
   YMNetwork *network = (YMNetwork *)[YMNetwork findByPK:intv(acct.activeNetworkPK)];
   
   NSMutableArray 
     *groups = [NSMutableArray array],
-    *users = [NSMutableArray array],
-    *tags = [NSMutableArray array];
+    *users = [NSMutableArray array];
   SQLiteInstanceManager *db = [SQLiteInstanceManager sharedManager];
   @synchronized(self) {
     [db executeUpdateSQL:@"BEGIN TRANSACTION;"];
@@ -843,7 +834,6 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches
     [network save];
     [db executeUpdateSQL:@"COMMIT TRANSACTION;"];
   }
-  
   [[NSNotificationCenter defaultCenter]
    postNotificationName:YMWebServiceDidUpdateSubscriptions object:nil];
   
@@ -854,7 +844,7 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches
 {
   return [[[DKDeferredURLConnection alloc]
            initWithRequest:
-            [self mutableMultipartRequestWithMethod:@"messages/favorites_of/current.json" 
+           [self mutableMultipartRequestWithMethod:@"messages/favorites_of/current.json"
             account:acct defaults:dict_([message.messageID description], @"message_id")]
            pauseFor:0 decodeFunction:nil]
           addCallback:curryTS(self, @selector(_finishedLike:::), acct, message)];

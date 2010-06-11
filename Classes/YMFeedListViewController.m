@@ -58,9 +58,36 @@
 {
   if (feeds) [feeds release];
   feeds = nil;
-  feeds = [[[self builtinFeeds] arrayByAddingObjectsFromArray:
-            [YMGroup findByCriteria:@"WHERE network_i_d=%i", 
-             intv(network.networkID)]] retain];
+  if (mugshots) [mugshots release];
+  mugshots = nil;
+  
+  NSMutableArray *_feeds = [NSMutableArray array];
+  NSArray *memberships = self.network.groupSubscriptionIds;
+  NSMutableArray *_mugshots = [NSMutableArray array];
+  
+  for (YMGroup *g in [[YMGroup findByCriteria:@"WHERE network_i_d=%i", 
+                      intv(network.networkID)] reverseObjectEnumerator]) {
+    if ([memberships containsObject:g.groupID]) {
+      [_feeds insertObject:g atIndex:0];
+    } else {
+      [_feeds addObject:g];
+    }
+  }
+  
+  feeds = [[[self builtinFeeds] arrayByAddingObjectsFromArray:_feeds] retain];
+  
+  for (id obj in feeds) {
+    id img = [NSNull null];
+    if ([obj isKindOfClass:[YMGroup class]] && [obj mugshotURL] &&
+        !(img = [web imageForURLInMemoryCache:[obj mugshotURL]])) {
+      if (![obj mugshotURL] || [[obj mugshotURL] isMatchedByRegex:
+                                @"group_profile_small\\.gif$"])
+        img = @"__ni__";
+      if (!img) img = [NSNull null];
+    }
+    [_mugshots addObject:img];
+  }
+  mugshots = [_mugshots retain];
 }
 
 - (id)updatedGroups:(id)r
@@ -75,7 +102,7 @@
 {
   return array_(
     array_(YMMessageTargetAll, [NSNull null], @"All", @"world.png"),
-    array_(YMMessageTargetSent, [NSNull null], @"Sent", @"page_edit.png"),
+    array_(YMMessageTargetSent, [NSNull null], @"Sent", @"envelope.png"),
     array_(YMMessageTargetFavoritesOf, network.userID, @"Favorites", @"heart.png"));
 }
 
@@ -105,10 +132,27 @@ cellForRowAtIndexPath:(NSIndexPath *)indexPath
     cell.imageView.image = [UIImage imageNamed:[[feeds objectAtIndex:indexPath.row] objectAtIndex:3]];
     cell.textLabel.text = [[feeds objectAtIndex:indexPath.row] objectAtIndex:2];
   } else {
-    cell.imageView.image = [UIImage imageNamed:@"group.png"];
+    id img = [mugshots objectAtIndex:indexPath.row];
+    if ([img isEqual:[NSNull null]] || [img isEqual:@"__ni__"]) {
+      if ([img isEqual:[NSNull null]])
+        [[web contactImageForURL:[[feeds objectAtIndex:indexPath.row] mugshotURL]]
+         addCallback:curryTS(self, @selector(_gotMugshot::), indexPath)];
+      img = [UIImage imageNamed:@"group.png"];
+    }
+    cell.imageView.image = img;
     cell.textLabel.text = ((YMGroup *)[feeds objectAtIndex:indexPath.row]).fullName;
   }
   return cell;
+}
+
+- (id)_gotMugshot:(NSIndexPath *)indexPath :(UIImage *)img
+{
+  if ([img isKindOfClass:[UIImage class]]) {
+    [mugshots replaceObjectAtIndex:indexPath.row withObject:img];
+    UITableViewCell *cell = [self.tableView cellForRowAtIndexPath:indexPath];
+    if (cell) cell.imageView.image = img;
+  }
+  return img;
 }
 
 - (void) tableView:(UITableView *)table
@@ -135,6 +179,7 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath
   if ([c.target isEqual:YMMessageTargetAll])
     showCompose = YES;
   c.userAccount = self.userAccount;
+  c.network = self.network;
   c.title = t;
   
   [self.navigationController pushViewController:c animated:YES];

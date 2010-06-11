@@ -66,6 +66,7 @@
 {
   YMMessageListViewController *c = [[[YMMessageListViewController alloc] init] autorelease];
   c.userAccount = self.userAccount;
+  c.network = (YMNetwork *)[YMNetwork findByPK:intv(self.userAccount.activeNetworkPK)];
   c.target = YMMessageTargetTaggedWith;
   c.targetID = nsni(intv(tag));
   [self.navigationController pushViewController:c animated:YES];
@@ -76,6 +77,7 @@
 {
   YMMessageListViewController *c = [[[YMMessageListViewController alloc] init] autorelease];
   c.userAccount = self.userAccount;
+  c.network = (YMNetwork *)[YMNetwork findByPK:intv(self.userAccount.activeNetworkPK)];
   c.target = YMMessageTargetInThread;
   c.targetID = self.message.threadID;
   [self.navigationController pushViewController:c animated:YES];
