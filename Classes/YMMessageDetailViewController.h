@@ -20,6 +20,9 @@
   YMMessage *message;
   YMWebService *web;
   YMUserAccount *userAccount;
+  NSArray *attachments;
+  NSMutableDictionary *attachmentCache;
+  id<DKKeyedPool> loadingPool;
 }
 
 @property (nonatomic, readwrite, retain) YMMessage *message;

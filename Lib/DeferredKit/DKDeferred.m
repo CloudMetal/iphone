@@ -883,6 +883,8 @@ static DKDeferredCache *__sharedCache;
 
 @implementation DKDeferredCache
 
+@synthesize dir;
+
 /// DKCache Protocol
 - (id)setValue:(NSObject *)value forKey:(NSString *)key timeout:(NSTimeInterval)timeout {
   return [DKDeferred defer:

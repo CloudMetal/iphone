@@ -24,6 +24,7 @@
   YMMessageListViewController *receivedMessagesController;
   YMFeedListViewController *feedsController;
   BOOL animateNetworkTransition;
+  NSArray *networkPKs;
 }
 
 @property (nonatomic, readonly) YMWebService *web;

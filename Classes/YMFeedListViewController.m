@@ -34,7 +34,16 @@
   self.tableView.backgroundColor = [UIColor whiteColor];
   self.title = @"Feeds";
   
+  [[NSNotificationCenter defaultCenter]
+   addObserver:self selector:@selector(subscriptionsDidUpdate:) 
+   name:YMWebServiceDidUpdateSubscriptions object:nil];
+  
   if (!web) web = [YMWebService sharedWebService];
+}
+
+- (void)subscriptionsDidUpdate:(NSNotification *)note
+{
+  [self.tableView reloadData];
 }
 
 - (void)viewWillAppear:(BOOL)animated
@@ -50,11 +59,11 @@
   if (!didUpdateSubscriptions) 
     [[[StatusBarNotifier sharedNotifier]
       flashLoading:@"Refreshing Subscriptions" deferred:
-      [web syncGroups:self.userAccount]]
+      [web syncSubscriptions:self.userAccount]]
      addCallback:callbackTS(self, updatedGroups:)];
 }
 
--(void) refreshFeeds
+-(void)refreshFeeds
 {
   if (feeds) [feeds release];
   feeds = nil;
@@ -120,29 +129,94 @@ numberOfRowsInSection:(NSInteger)section
 - (UITableViewCell *) tableView:(UITableView *)table
 cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-  static NSString *ident = @"YMFeedCell1";
+  static NSString *aident = @"YMFeedCell1";
+  static NSString *bident = @"YMBuildinFeedCell1";
+  BOOL builtin = [[feeds objectAtIndex:indexPath.row] isKindOfClass:[NSArray class]];
+  NSString *ident = builtin ? bident : aident;
   UITableViewCell *cell = [table dequeueReusableCellWithIdentifier:ident];
   if (!cell) {
     cell = [[[UITableViewCell alloc]
               initWithStyle:UITableViewCellStyleDefault reuseIdentifier:ident]
              autorelease];
     cell.textLabel.font = [UIFont systemFontOfSize:16];
+//    if (!builtin) {
+//      UIButton *b = [UIButton buttonWithType:UIButtonTypeCustom];
+//      b.frame = CGRectMake(250, 6, 60, 32);
+//      b.autoresizingMask = UIViewAutoresizingFlexibleWidth;
+//      b.tag = 1010;
+//      [b setBackgroundImage:[[UIImage imageNamed:@"blue-button-bg.png"] 
+//                             stretchableImageWithLeftCapWidth:5 topCapHeight:5]
+//                   forState:UIControlStateNormal];
+//      b.titleLabel.font = [UIFont systemFontOfSize:15];
+//      [b setTitleShadowColor:[UIColor colorWithWhite:.1 alpha:.9] 
+//                    forState:UIControlStateNormal];
+//      b.showsTouchWhenHighlighted = YES;
+//      [cell addSubview:b];
+//    }
   }
-  if ([[feeds objectAtIndex:indexPath.row] isKindOfClass:[NSArray class]]) {
+  if (builtin) {
     cell.imageView.image = [UIImage imageNamed:[[feeds objectAtIndex:indexPath.row] objectAtIndex:3]];
     cell.textLabel.text = [[feeds objectAtIndex:indexPath.row] objectAtIndex:2];
   } else {
+    YMGroup *group = [feeds objectAtIndex:indexPath.row];
     id img = [mugshots objectAtIndex:indexPath.row];
     if ([img isEqual:[NSNull null]] || [img isEqual:@"__ni__"]) {
       if ([img isEqual:[NSNull null]])
-        [[web contactImageForURL:[[feeds objectAtIndex:indexPath.row] mugshotURL]]
+        [[web contactImageForURL:group.mugshotURL]
          addCallback:curryTS(self, @selector(_gotMugshot::), indexPath)];
       img = [UIImage imageNamed:@"group.png"];
     }
     cell.imageView.image = img;
-    cell.textLabel.text = ((YMGroup *)[feeds objectAtIndex:indexPath.row]).fullName;
+    cell.textLabel.text = group.fullName;
+    
+//    UIButton *b = (UIButton *)[cell viewWithTag:1010];
+//    if ([self.network.groupSubscriptionIds containsObject:group.groupID]) {
+//      [b addTarget:[curryTS(self, @selector(_unjoin::), group) retain]
+//            action:@selector(:) forControlEvents:UIControlEventTouchUpInside];
+//      [b setTitle:@"Leave" forState:UIControlStateNormal];
+//    } else {
+//      [b addTarget:[curryTS(self, @selector(_join::), group) retain]
+//            action:@selector(:) forControlEvents:UIControlEventTouchUpInside];
+//      [b setTitle:@"Join" forState:UIControlStateNormal];
+//    }
   }
   return cell;
+}
+
+- _unjoin:(YMGroup *)group :(id)sender
+{
+  [[[StatusBarNotifier sharedNotifier] flashLoading:@"Leaving Group" deferred:
+    [web joinGroup:self.userAccount withId:intv(group.groupID)]]
+   addCallback:curryTS(self, @selector(_didUnjoinGroup::), group)];
+  return nil;
+}
+
+- _didUnjoinGroup:(YMGroup *)group :(id)r
+{
+  NSMutableArray *ar = [self.network.groupSubscriptionIds mutableCopy];
+  [ar removeObject:group.groupID];
+  self.network.groupSubscriptionIds = ar;
+  [self.network save];
+  [self.tableView reloadData];
+  return r;
+}
+
+- _join:(YMGroup *)group :(id)sender
+{
+  [[[StatusBarNotifier sharedNotifier] flashLoading:@"Joining Group" deferred:
+    [web joinGroup:self.userAccount withId:intv(group.groupID)]]
+   addCallback:curryTS(self, @selector(_didJoinGroup::), group)];
+  return nil;
+}
+
+- _didJoinGroup:(YMGroup *)group :(id)r
+{
+  NSMutableArray *ar = [self.network.groupSubscriptionIds mutableCopy];
+  [ar addObject:group.groupID];
+  self.network.groupSubscriptionIds = ar;
+  [self.network save];
+  [self.tableView reloadData];
+  return r;
 }
 
 - (id)_gotMugshot:(NSIndexPath *)indexPath :(UIImage *)img
@@ -193,7 +267,8 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 }
 
 - (BOOL)shouldAutorotateToInterfaceOrientation:
-(UIInterfaceOrientation)interfaceOrientation {
+(UIInterfaceOrientation)interfaceOrientation
+{
   return YES;
 }
 

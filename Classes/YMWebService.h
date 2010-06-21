@@ -15,7 +15,7 @@
 #import "YMGroup.h"
 #import "YMAttachment.h"
 
-#define WS_URL @"https://www.staging.yammer.com"
+#define WS_URL @"https://www.yammer.com"
 #define WS_MOUNTPOINT [NSURL URLWithString:[NSString \
             stringWithFormat:@"%@%@", WS_URL, @"/api/v1"]]
 
@@ -57,6 +57,7 @@
   DataCache *_contactImageCache;
   DKDeferredPool *loadingPool;
   YMUserAccount *userAccountForCachedContactImages;
+  NSString *pushID;
 }
 
 + (id)sharedWebService;
@@ -65,10 +66,12 @@
 @property (copy) NSString *appKey;
 @property (copy) NSString *appSecret;
 @property (assign) BOOL shouldUpdateBadgeIcon;
+@property (copy) NSString *pushID;
 
 
 - (NSArray *)loggedInUsers;
 - (void)updateUIApplicationBadge;
+- (void)subtractUnseenCount:(int)ct fromNetwork:(YMNetwork *)network;
 
 // high performance contact image caching
 - (DKDeferred *)loadCachedContactImagesForUserAccount:(YMUserAccount *)acct;
@@ -77,6 +80,7 @@
 - (id)imageForURLInMemoryCache:(NSString *)url;
 - (DKDeferred *)contactImageForURL:(NSString *)url;
 - (BOOL)didLoadContactImagesForUserAccount:(YMUserAccount *)acct;
+- (void)authorizeRequest:(NSMutableURLRequest *)req withAccount:(YMUserAccount *)acct;
 
 /** 
  Takes a YMUserAccount and authenticates it against the yammer
@@ -194,7 +198,31 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches;
 
 /**
  */
+- (DKDeferred *)subscribe:(YMUserAccount *)acct to:(NSString *)type withID:(int)theID;
+
+/**
+ */
+- (DKDeferred *)unsubscribe:(YMUserAccount *)acct to:(NSString *)type withID:(int)theID;
+
+/**
+ */
+- (DKDeferred *)suggestions:(YMUserAccount *)acct fromContacts:(NSArray *)contactDicts;
+
+/**
+ */
+- (DKDeferred *)joinGroup:(YMUserAccount *)acct withId:(int)theId;
+
+/*
+ */
+- (DKDeferred *)leaveGroup:(YMUserAccount *)acct withId:(int)theId;
+
+/**
+ */
 - (DKDeferred *)autocomplete:(YMUserAccount *)acct string:(NSString *)str;
+
+/**
+ */
+//- (DKDeferred *)send:(YMUserAccount *)acct message:(YMMessage *)message;
 
 @end
 

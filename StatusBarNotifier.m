@@ -59,13 +59,45 @@ static StatusBarNotifier *__sharedNotifier;
     self.currentLine = nil;
     self.isShown = NO;
     self.isError = NO;
+    orientation = [[UIDevice currentDevice] orientation];
     self.userInteractionEnabled = NO;
     [[NSNotificationCenter defaultCenter]
-     addObserver:self selector:@selector(keyboardShowing:) name:UIKeyboardWillShowNotification object:nil];
+     addObserver:self selector:@selector(orientationChanged:) name:
+     UIDeviceOrientationDidChangeNotification object:nil];
     [[NSNotificationCenter defaultCenter]
-     addObserver:self selector:@selector(keyboardHiding:) name:UIKeyboardWillHideNotification object:nil];
+     addObserver:self selector:@selector(keyboardShowing:) name:
+     UIKeyboardWillShowNotification object:nil];
+    [[NSNotificationCenter defaultCenter]
+     addObserver:self selector:@selector(keyboardHiding:) name:
+     UIKeyboardWillHideNotification object:nil];
   }
   return self;
+}
+
+#define degreesToRadians(x) (M_PI * x / 180.0)
+
+- (void)orientationChanged:(NSNotification *)note
+{
+  if (UIDeviceOrientationIsLandscape([[UIDevice currentDevice] orientation])) {
+    if (self.isShown) {
+      [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:YES];
+      self.hidden = YES;
+    }
+  } else {
+    [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
+    self.hidden = NO;
+  }
+  orientation = [[UIDevice currentDevice] orientation];
+//  [self flashLoading:@"omgwtf" deferred:[DKDeferred wait:1000 value:nil]];
+//  UIDeviceOrientation o = [[UIDevice currentDevice] orientation]; 
+//  if (o != orientation && (o == UIDeviceOrientationLandscapeLeft || o == UIDeviceOrientationLandscapeRight)) {
+//    self.transform = CGAffineTransformRotate(self.transform, degreesToRadians((UIDeviceOrientationIsLandscape(o) ? 90 : 180)));
+//    self.center = CGPointMake(self.superview.frame.size.width / 2, (self.topOffset - 160)/2);
+//  } else if (o != orientation && (o == UIDeviceOrientationPortrait || o == UIDeviceOrientationPortraitUpsideDown)) {
+//    self.transform = CGAffineTransformRotate(self.transform, degreesToRadians((UIDeviceOrientationIsPortrait(o) ? 180 : 90)));
+//    self.center = CGPointMake(self.superview.frame.size.width / 2, (self.topOffset/2));
+//  }
+//  orientation = o;
 }
 
 - (void)keyboardShowing:(id)r
@@ -246,6 +278,7 @@ static StatusBarNotifier *__sharedNotifier;
 }
 
 - (DKDeferred *)flashLoading:(NSString *)text deferred:(DKDeferred *)d {
+  if (!d || !text) return [DKDeferred fail:nil];
   UILabel *l = [[self configuredLabel] autorelease];
   l.text = text;
   [l sizeToFit];
@@ -269,11 +302,13 @@ static StatusBarNotifier *__sharedNotifier;
   if (self.isShown) 
     return;
   //  [[UIApplication sharedApplication] setStatusBarHidden:YES animated:YES];
+  [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:YES];
   UIWindow *window = [[UIApplication sharedApplication] keyWindow];
   //  window.autoresizesSubviews = NO;
   //  window.autoresizingMask = UIViewAutoresizingNone;
   [CATransaction begin];
   self.alpha = 0;
+  self.hidden = UIDeviceOrientationIsLandscape([[UIDevice currentDevice] orientation]);
   self.backgroundColor = REGULAR_BACKGROUND;
   self.frame = CGRectMake(0, topOffset + (self.isError ? -18 : 0), 320, self.isError ? 38 :  20);
   [self _changingSize];
@@ -296,6 +331,7 @@ static StatusBarNotifier *__sharedNotifier;
 - (void)hide {
   if (!self.isShown)
     return;
+  [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
   [CATransaction begin];
   //  [[UIApplication sharedApplication] setStatusBarHidden:NO animated:YES];
   [UIView beginAnimations:nil context:nil];

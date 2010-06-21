@@ -7,14 +7,19 @@
 //
 
 #import <UIKit/UIKit.h>
+#import <MessageUI/MessageUI.h>
 
-@class YMUserAccount, YMWebService, YMContact;
+
+@class YMUserAccount, YMWebService, YMContact, YMNetwork;
+
 
 @interface YMContactDetailViewController : UITableViewController
+<MFMailComposeViewControllerDelegate>
 {
   YMWebService *web;
   YMUserAccount *userAccount;
   YMContact *contact;
+  YMNetwork *network;
 }
 
 @property (nonatomic, readwrite, retain) YMContact *contact;

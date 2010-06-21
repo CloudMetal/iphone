@@ -68,7 +68,9 @@
 
 static UIFont *titleFont = nil;
 static UIFont *bodyFont = nil;
+static UIFont *groupFont = nil;
 static UIColor *bodyColor = nil;
+static UIColor *groupColor = nil;
 static UIColor *dateColor = nil;
 static UIImage *backgroundImage = nil;
 static UIColor *borderColor = nil;
@@ -77,18 +79,21 @@ static UIImage *selectedBackgroundImage = nil;
 static UIImage *smallLikeImage = nil;
 static UIImage *smallAttachmentImage = nil;
 static UIImage *smallFollowingImage = nil;
+static UIImage *smallPrivateImage = nil;
 
 
 @implementation YMFastMessageTableViewCell
 
-@synthesize title, body, date, avatar, unread, hasAttachments, liked, following;
+@synthesize title, body, date, avatar, unread, hasAttachments, liked, following, isPrivate, group;
 
 + (void)initialize
 {
   if (self = [YMFastMessageTableViewCell class]) {
     titleFont = [[UIFont boldSystemFontOfSize:13] retain];
-    bodyFont = [[UIFont systemFontOfSize:12] retain];
+    bodyFont = [[UIFont systemFontOfSize:13] retain];
     bodyColor = [[UIColor colorWithWhite:.15 alpha:1] retain];
+    groupFont = [[UIFont systemFontOfSize:12] retain];
+    groupColor = [[UIColor colorWithWhite:.3 alpha:1] retain];
     dateColor = [[UIColor colorWithRed:(65.0/255.0) green:(87.0/255.0) blue:(143.0/255.0) alpha:1] retain]; // 65 87 143
     backgroundImage = [[UIImage imageNamed:@"msg-bg.png"] retain];
     borderColor = [[UIColor colorWithWhite:.5 alpha:1] retain];
@@ -97,6 +102,7 @@ static UIImage *smallFollowingImage = nil;
     smallLikeImage = [[UIImage imageNamed:@"liked-tiny.png"] retain];
     smallAttachmentImage = [[UIImage imageNamed:@"paperclip-tiny.png"] retain];
     smallFollowingImage = [[UIImage imageNamed:@"following-tiny.png"] retain];
+    smallPrivateImage = [[UIImage imageNamed:@"lock.png"] retain];
   }
 }
 
@@ -122,8 +128,15 @@ static UIImage *smallFollowingImage = nil;
     liked = NO;
     hasAttachments = NO;
     following = NO;
+    isPrivate = NO;
   }
   return self;
+}
+
+- (void)setIsPrivate:(BOOL)p
+{
+  isPrivate = p;
+  [self setNeedsDisplay];
 }
 
 - (void)setLiked:(BOOL)l
@@ -177,6 +190,13 @@ static UIImage *smallFollowingImage = nil;
   [self setNeedsDisplay];
 }
 
+- (void)setGroup:(NSString *)g
+{
+  [group release];
+  group = [g retain];
+  [self setNeedsDisplay];
+}
+
 - (void)setAvatar:(UIImage *)a
 {
   imageView.image = a;
@@ -189,6 +209,7 @@ static UIImage *smallFollowingImage = nil;
   [date release];
   [title release];
   [avatar release];
+  [group release];
   [super dealloc];
 }
 
@@ -219,7 +240,7 @@ static UIImage *smallFollowingImage = nil;
   
   CGRect titleSize = CGRectMake(62, 4, r.size.width - 137.0 
                                 - (hasAttachments ? 10.0 : 0) 
-                                - (following ? 13.0 : 0) 
+                                - (isPrivate ? 14.0 : 0) 
                                 - (liked ? 15.0 : 0), 
                                 21);
   CGRect bodySize = CGRectMake(62, 23.0, r.size.width - 72.0, r.size.height - 32.0);
@@ -228,16 +249,22 @@ static UIImage *smallFollowingImage = nil;
   if (hasAttachments) {
     CGRect ar = CGRectMake(r.size.width - 83.0 
                            - (liked ? 14.0 : 0) 
-                           - (following ? 14.0 : 0), 6.0, 8.0, 16.0);
+                           - (isPrivate ? 14.0 : 0), 6.0, 8.0, 16.0);
     [smallAttachmentImage drawInRect:ar];
   }
-  if (following) {
-    CGRect fr = CGRectMake(r.size.width - 85.0 - (liked ? 14.0 : 0), 10, 11, 8);
-    [smallFollowingImage drawInRect:fr];
+  if (isPrivate) {
+    CGRect fr = CGRectMake(r.size.width - 85.0 - (liked ? 14.0 : 0), 7, 12, 12);
+    [smallPrivateImage drawInRect:fr];
   }
   if (liked) {
     CGRect lr = CGRectMake(r.size.width - 84.0, 7, 13, 13);
     [smallLikeImage drawInRect:lr];
+  }
+  
+  if (group) {
+    CGRect gr = CGRectMake(62, r.size.height - 22.0, r.size.width - 72.0, 17);
+    [groupColor set];
+    [group drawInRect:gr withFont:groupFont];
   }
   
   [[UIColor blackColor] set];

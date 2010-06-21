@@ -17,6 +17,8 @@
   YMUserAccount *userAccount;
   YMNetwork *network;
   
+  DKDeferred *loadingDeferred;
+  
   // messages arrays
   NSArray *messagePKs;
   NSMutableArray *mugshots;
@@ -28,6 +30,8 @@
   NSArray *hasattachments;
   NSArray *likeds;
   NSArray *followeds;
+  NSArray *privates;
+  NSArray *groups;
   
   // ui elements
   UIButton *refreshButton;
@@ -37,6 +41,7 @@
   NSIndexPath *selectedIndexPath;
   
   // messages state
+  BOOL loadedAvatars;
   NSDate *lastUpdated;
   NSMutableIndexSet *newlyReadMessageIndexes;
   BOOL shouldScrollToTop;

@@ -20,7 +20,6 @@
 @end
 
 
-
 @implementation YMComposeViewController
 
 @synthesize userAccount, network, inReplyTo, inGroup, directTo;
@@ -28,6 +27,7 @@
 - (id)init
 {
   if ((self = [super init])) {
+    self.hidesBottomBarWhenPushed = YES;
   }
   return self;
 }
@@ -50,8 +50,6 @@
   [(id)self.view setOnPartialWillClose:callbackTS(self, textViewPartialWillClose:)];
   
   if (!web) web = [YMWebService sharedWebService];
-  
-  self.hidesBottomBarWhenPushed = YES;
 }
 
 - (void) viewWillAppear:(BOOL)animated
@@ -110,7 +108,6 @@
    dismissModalViewControllerAnimated:YES];
 }
 
-
 - (void)cancelSend:(id)sender
 {
   self.navigationItem.leftBarButtonItem = nil;
@@ -128,7 +125,9 @@
 - (void)refreshData
 {
   if (!inReplyTo) {
-    if (!self.inGroup)
+    if (self.directTo)
+      [[(id)self.view toTargetLabel] setText:self.directTo.fullName];
+    else if (!self.inGroup)
       [[(id)self.view toTargetLabel] setText:network.name];
     else
       [[(id)self.view toTargetLabel] setText:inGroup.fullName];
@@ -163,6 +162,7 @@
 
 - (id)_gotAutocompleteUsers:(id)results
 {
+  NSLog(@"autocomplete? %@", results);
   if (gotPartialWillCloseMessage) return results;
   if (![results isKindOfClass:[NSDictionary class]]) return results;
   

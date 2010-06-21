@@ -21,6 +21,14 @@
 		22131F9C11936C860092F094 /* YMMessage.m in Sources */ = {isa = PBXBuildFile; fileRef = 22131F9B11936C860092F094 /* YMMessage.m */; };
 		2220A1B911ADD44D00DB3714 /* unread-msg-bg.png in Resources */ = {isa = PBXBuildFile; fileRef = 2220A1B811ADD44D00DB3714 /* unread-msg-bg.png */; };
 		22235CA91190E533007F2255 /* StatusBarNotifier.m in Sources */ = {isa = PBXBuildFile; fileRef = 22235CA81190E533007F2255 /* StatusBarNotifier.m */; };
+		2233D7E011C45CED002DCDFB /* 42-photos.png in Resources */ = {isa = PBXBuildFile; fileRef = 2233D7DE11C45CED002DCDFB /* 42-photos.png */; };
+		2233D7E111C45CED002DCDFB /* 68-paperclip.png in Resources */ = {isa = PBXBuildFile; fileRef = 2233D7DF11C45CED002DCDFB /* 68-paperclip.png */; };
+		2233D7FC11C460BC002DCDFB /* DrillDownPage.m in Sources */ = {isa = PBXBuildFile; fileRef = 2233D7F911C460BC002DCDFB /* DrillDownPage.m */; };
+		2233D7FD11C460BC002DCDFB /* DrillDownWebController.m in Sources */ = {isa = PBXBuildFile; fileRef = 2233D7FB11C460BC002DCDFB /* DrillDownWebController.m */; };
+		2233D82B11C464C3002DCDFB /* leave_arrow.png in Resources */ = {isa = PBXBuildFile; fileRef = 2233D82A11C464C3002DCDFB /* leave_arrow.png */; };
+		2233D87011C475C2002DCDFB /* YMSimpleWebView.m in Sources */ = {isa = PBXBuildFile; fileRef = 2233D86E11C475C2002DCDFB /* YMSimpleWebView.m */; };
+		2233D87111C475C2002DCDFB /* YMSimpleWebView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 2233D86F11C475C2002DCDFB /* YMSimpleWebView.xib */; };
+		2233D87511C47796002DCDFB /* NSData+Base64.m in Sources */ = {isa = PBXBuildFile; fileRef = 2233D87411C47796002DCDFB /* NSData+Base64.m */; };
 		223F76BC11AC90AE0076940E /* YMFeedListViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 223F76BB11AC90AE0076940E /* YMFeedListViewController.m */; };
 		223F76D011AC9F1E0076940E /* heart.png in Resources */ = {isa = PBXBuildFile; fileRef = 223F76CF11AC9F1E0076940E /* heart.png */; };
 		223F76D211AC9F2C0076940E /* group.png in Resources */ = {isa = PBXBuildFile; fileRef = 223F76D111AC9F2C0076940E /* group.png */; };
@@ -53,6 +61,7 @@
 		2265995D11A667FB009A8AD8 /* YMComposeView.m in Sources */ = {isa = PBXBuildFile; fileRef = 2265995C11A667FB009A8AD8 /* YMComposeView.m */; };
 		2265996011A6681D009A8AD8 /* YMComposeViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 2265995F11A6681D009A8AD8 /* YMComposeViewController.m */; };
 		22659A0D11A68FB7009A8AD8 /* user-bg-small.png in Resources */ = {isa = PBXBuildFile; fileRef = 22659A0C11A68FB7009A8AD8 /* user-bg-small.png */; };
+		2279786511C70CD000D1BE35 /* lock.png in Resources */ = {isa = PBXBuildFile; fileRef = 2279786411C70CD000D1BE35 /* lock.png */; };
 		22848D1011B70E550080472A /* YMAttachment.m in Sources */ = {isa = PBXBuildFile; fileRef = 22848D0F11B70E550080472A /* YMAttachment.m */; };
 		22848E6111B861EA0080472A /* title.png in Resources */ = {isa = PBXBuildFile; fileRef = 22848E5C11B861EA0080472A /* title.png */; };
 		22848E6211B861EA0080472A /* received.png in Resources */ = {isa = PBXBuildFile; fileRef = 22848E5D11B861EA0080472A /* received.png */; };
@@ -141,6 +150,8 @@
 		22CA435411C04CB800369F74 /* following-tiny.png in Resources */ = {isa = PBXBuildFile; fileRef = 22CA435111C04CB800369F74 /* following-tiny.png */; };
 		22CA43D611C08FF200369F74 /* envelope.png in Resources */ = {isa = PBXBuildFile; fileRef = 22CA43D211C08FF200369F74 /* envelope.png */; };
 		22CDE911118F7A8B00323FA1 /* YMNetworkTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 22CDE910118F7A8B00323FA1 /* YMNetworkTableViewCell.m */; };
+		22E8E55F11C2F239003E2870 /* AddressBook.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 22E8E55E11C2F239003E2870 /* AddressBook.framework */; };
+		22E8E5EA11C338DB003E2870 /* blue-button-bg.png in Resources */ = {isa = PBXBuildFile; fileRef = 22E8E5E911C338DB003E2870 /* blue-button-bg.png */; };
 		22FBAF531198F43100751A72 /* YMMessageListViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 22FBAF521198F43100751A72 /* YMMessageListViewController.m */; };
 		22FBAF941199125F00751A72 /* YMMessageTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 22FBAF931199125F00751A72 /* YMMessageTableViewCell.m */; };
 		22FBAFA2119918A300751A72 /* 104-index-cards.png in Resources */ = {isa = PBXBuildFile; fileRef = 22FBAFA1119918A300751A72 /* 104-index-cards.png */; };
@@ -191,8 +202,20 @@
 		22131F9A11936C860092F094 /* YMMessage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = YMMessage.h; path = Classes/YMMessage.h; sourceTree = "<group>"; };
 		22131F9B11936C860092F094 /* YMMessage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = YMMessage.m; path = Classes/YMMessage.m; sourceTree = "<group>"; };
 		2220A1B811ADD44D00DB3714 /* unread-msg-bg.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "unread-msg-bg.png"; path = "Resources/unread-msg-bg.png"; sourceTree = "<group>"; };
-		22235CA71190E533007F2255 /* StatusBarNotifier.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = StatusBarNotifier.h; path = Lib/StatusBarNotifier.h; sourceTree = "<group>"; };
-		22235CA81190E533007F2255 /* StatusBarNotifier.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = StatusBarNotifier.m; path = Lib/StatusBarNotifier.m; sourceTree = "<group>"; };
+		22235CA71190E533007F2255 /* StatusBarNotifier.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StatusBarNotifier.h; sourceTree = "<group>"; };
+		22235CA81190E533007F2255 /* StatusBarNotifier.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = StatusBarNotifier.m; sourceTree = "<group>"; };
+		2233D7DE11C45CED002DCDFB /* 42-photos.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "42-photos.png"; path = "Resources/42-photos.png"; sourceTree = "<group>"; };
+		2233D7DF11C45CED002DCDFB /* 68-paperclip.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "68-paperclip.png"; path = "Resources/68-paperclip.png"; sourceTree = "<group>"; };
+		2233D7F811C460BC002DCDFB /* DrillDownPage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DrillDownPage.h; path = Classes/DrillDownPage.h; sourceTree = "<group>"; };
+		2233D7F911C460BC002DCDFB /* DrillDownPage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DrillDownPage.m; path = Classes/DrillDownPage.m; sourceTree = "<group>"; };
+		2233D7FA11C460BC002DCDFB /* DrillDownWebController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DrillDownWebController.h; path = Classes/DrillDownWebController.h; sourceTree = "<group>"; };
+		2233D7FB11C460BC002DCDFB /* DrillDownWebController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DrillDownWebController.m; path = Classes/DrillDownWebController.m; sourceTree = "<group>"; };
+		2233D82A11C464C3002DCDFB /* leave_arrow.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = leave_arrow.png; path = Resources/leave_arrow.png; sourceTree = "<group>"; };
+		2233D86D11C475C2002DCDFB /* YMSimpleWebView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = YMSimpleWebView.h; path = Classes/YMSimpleWebView.h; sourceTree = "<group>"; };
+		2233D86E11C475C2002DCDFB /* YMSimpleWebView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = YMSimpleWebView.m; path = Classes/YMSimpleWebView.m; sourceTree = "<group>"; };
+		2233D86F11C475C2002DCDFB /* YMSimpleWebView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = YMSimpleWebView.xib; path = Resources/YMSimpleWebView.xib; sourceTree = "<group>"; };
+		2233D87311C47796002DCDFB /* NSData+Base64.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSData+Base64.h"; path = "Classes/NSData+Base64.h"; sourceTree = "<group>"; };
+		2233D87411C47796002DCDFB /* NSData+Base64.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSData+Base64.m"; path = "Classes/NSData+Base64.m"; sourceTree = "<group>"; };
 		223F76BA11AC90AE0076940E /* YMFeedListViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = YMFeedListViewController.h; path = Classes/YMFeedListViewController.h; sourceTree = "<group>"; };
 		223F76BB11AC90AE0076940E /* YMFeedListViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = YMFeedListViewController.m; path = Classes/YMFeedListViewController.m; sourceTree = "<group>"; };
 		223F76CF11AC9F1E0076940E /* heart.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = heart.png; path = Resources/heart.png; sourceTree = "<group>"; };
@@ -234,6 +257,7 @@
 		2265995E11A6681D009A8AD8 /* YMComposeViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = YMComposeViewController.h; path = Classes/YMComposeViewController.h; sourceTree = "<group>"; };
 		2265995F11A6681D009A8AD8 /* YMComposeViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = YMComposeViewController.m; path = Classes/YMComposeViewController.m; sourceTree = "<group>"; };
 		22659A0C11A68FB7009A8AD8 /* user-bg-small.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "user-bg-small.png"; path = "Resources/user-bg-small.png"; sourceTree = "<group>"; };
+		2279786411C70CD000D1BE35 /* lock.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = lock.png; path = Resources/lock.png; sourceTree = "<group>"; };
 		22848D0E11B70E550080472A /* YMAttachment.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = YMAttachment.h; path = Classes/YMAttachment.h; sourceTree = "<group>"; };
 		22848D0F11B70E550080472A /* YMAttachment.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = YMAttachment.m; path = Classes/YMAttachment.m; sourceTree = "<group>"; };
 		22848E5C11B861EA0080472A /* title.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = title.png; path = Resources/title.png; sourceTree = "<group>"; };
@@ -253,8 +277,8 @@
 		2293CE8F119A435D00AB0DD2 /* DataCache.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DataCache.m; path = Classes/DataCache.m; sourceTree = "<group>"; };
 		229FEFDC1180F9A500E10000 /* YMNetworksViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = YMNetworksViewController.h; path = Classes/YMNetworksViewController.h; sourceTree = "<group>"; };
 		229FEFDD1180F9A500E10000 /* YMNetworksViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = YMNetworksViewController.m; path = Classes/YMNetworksViewController.m; sourceTree = "<group>"; };
-		22A03FCA11BDCD700078BE0B /* 53-house.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "53-house.png"; sourceTree = "<group>"; };
-		22A03FDB11BDD09D0078BE0B /* 123-id-card.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "123-id-card.png"; sourceTree = "<group>"; };
+		22A03FCA11BDCD700078BE0B /* 53-house.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "53-house.png"; path = "Resources/53-house.png"; sourceTree = "<group>"; };
+		22A03FDB11BDD09D0078BE0B /* 123-id-card.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "123-id-card.png"; path = "Resources/123-id-card.png"; sourceTree = "<group>"; };
 		22A03FE011BDD0FC0078BE0B /* 144-feed.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "144-feed.png"; path = "Resources/144-feed.png"; sourceTree = "<group>"; };
 		22A3B0581177CA27006337B5 /* DeferredKit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DeferredKit.h; sourceTree = "<group>"; };
 		22A3B0591177CA27006337B5 /* DKCallback.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DKCallback.h; sourceTree = "<group>"; };
@@ -392,8 +416,8 @@
 		22CA43D211C08FF200369F74 /* envelope.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = envelope.png; path = Resources/envelope.png; sourceTree = "<group>"; };
 		22CDE90F118F7A8B00323FA1 /* YMNetworkTableViewCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = YMNetworkTableViewCell.h; path = Classes/YMNetworkTableViewCell.h; sourceTree = "<group>"; };
 		22CDE910118F7A8B00323FA1 /* YMNetworkTableViewCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = YMNetworkTableViewCell.m; path = Classes/YMNetworkTableViewCell.m; sourceTree = "<group>"; };
-		22CDE98F118F99A000323FA1 /* YMLegacyShim.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = YMLegacyShim.h; path = Classes/YMLegacyShim.h; sourceTree = "<group>"; };
-		22CDE990118F99A000323FA1 /* YMLegacyShim.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = YMLegacyShim.m; path = Classes/YMLegacyShim.m; sourceTree = "<group>"; };
+		22E8E55E11C2F239003E2870 /* AddressBook.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AddressBook.framework; path = System/Library/Frameworks/AddressBook.framework; sourceTree = SDKROOT; };
+		22E8E5E911C338DB003E2870 /* blue-button-bg.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "blue-button-bg.png"; path = "Resources/blue-button-bg.png"; sourceTree = "<group>"; };
 		22FBAF081198F12C00751A72 /* YMWebService+Private.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "YMWebService+Private.h"; path = "Classes/YMWebService+Private.h"; sourceTree = "<group>"; };
 		22FBAF511198F43100751A72 /* YMMessageListViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = YMMessageListViewController.h; path = Classes/YMMessageListViewController.h; sourceTree = "<group>"; };
 		22FBAF521198F43100751A72 /* YMMessageListViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = YMMessageListViewController.m; path = Classes/YMMessageListViewController.m; sourceTree = "<group>"; };
@@ -403,8 +427,8 @@
 		22FBAFA3119918DB00751A72 /* 20-gear2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "20-gear2.png"; path = "Resources/20-gear2.png"; sourceTree = "<group>"; };
 		22FD1C7B118B87A4008170E0 /* YMLoginViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = YMLoginViewController.h; path = Classes/YMLoginViewController.h; sourceTree = "<group>"; };
 		22FD1C7C118B87A4008170E0 /* YMLoginViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = YMLoginViewController.m; path = Classes/YMLoginViewController.m; sourceTree = "<group>"; };
-		22FD1D1A118B9B59008170E0 /* CFPrettyView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CFPrettyView.h; path = Lib/CFPrettyView.h; sourceTree = "<group>"; };
-		22FD1D1B118B9B59008170E0 /* CFPrettyView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = CFPrettyView.m; path = Lib/CFPrettyView.m; sourceTree = "<group>"; };
+		22FD1D1A118B9B59008170E0 /* CFPrettyView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CFPrettyView.h; path = Classes/CFPrettyView.h; sourceTree = "<group>"; };
+		22FD1D1B118B9B59008170E0 /* CFPrettyView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = CFPrettyView.m; path = Classes/CFPrettyView.m; sourceTree = "<group>"; };
 		22FD1D1D118B9B7D008170E0 /* NSString+UUID.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSString+UUID.h"; path = "Lib/NSString+UUID.h"; sourceTree = "<group>"; };
 		22FD1D1E118B9B7D008170E0 /* NSString+UUID.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSString+UUID.m"; path = "Lib/NSString+UUID.m"; sourceTree = "<group>"; };
 		22FD1D1F118B9B7D008170E0 /* UIColor+Extensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "UIColor+Extensions.h"; path = "Lib/UIColor+Extensions.h"; sourceTree = "<group>"; };
@@ -431,6 +455,7 @@
 				002A9CF410F6630300BFD48C /* MessageUI.framework in Frameworks */,
 				22A3B1021177CA47006337B5 /* SystemConfiguration.framework in Frameworks */,
 				22A3B1061177CA4C006337B5 /* CoreLocation.framework in Frameworks */,
+				22E8E55F11C2F239003E2870 /* AddressBook.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -506,6 +531,9 @@
 				2265995F11A6681D009A8AD8 /* YMComposeViewController.m */,
 				223F76BA11AC90AE0076940E /* YMFeedListViewController.h */,
 				223F76BB11AC90AE0076940E /* YMFeedListViewController.m */,
+				2233D86D11C475C2002DCDFB /* YMSimpleWebView.h */,
+				2233D86E11C475C2002DCDFB /* YMSimpleWebView.m */,
+				2233D86F11C475C2002DCDFB /* YMSimpleWebView.xib */,
 			);
 			name = "View Controllers";
 			path = ..;
@@ -703,8 +731,6 @@
 			children = (
 				22A3B15A1177CB62006337B5 /* YMWebService.h */,
 				22A3B15B1177CB62006337B5 /* YMWebService.m */,
-				22CDE98F118F99A000323FA1 /* YMLegacyShim.h */,
-				22CDE990118F99A000323FA1 /* YMLegacyShim.m */,
 				22FBAF081198F12C00751A72 /* YMWebService+Private.h */,
 			);
 			name = WebServices;
@@ -746,6 +772,8 @@
 		29B97315FDCFA39411CA2CEA /* Other Sources */ = {
 			isa = PBXGroup;
 			children = (
+				2233D87311C47796002DCDFB /* NSData+Base64.h */,
+				2233D87411C47796002DCDFB /* NSData+Base64.m */,
 				225FAA26119AB511003579E0 /* NSDate+Helper.m */,
 				225FAA27119AB511003579E0 /* NSDate+Helper.h */,
 				2293CE8E119A435D00AB0DD2 /* DataCache.h */,
@@ -756,6 +784,10 @@
 				22FD1D1E118B9B7D008170E0 /* NSString+UUID.m */,
 				22FD1D1F118B9B7D008170E0 /* UIColor+Extensions.h */,
 				22FD1D20118B9B7D008170E0 /* UIColor+Extensions.m */,
+				2233D7F811C460BC002DCDFB /* DrillDownPage.h */,
+				2233D7F911C460BC002DCDFB /* DrillDownPage.m */,
+				2233D7FA11C460BC002DCDFB /* DrillDownWebController.h */,
+				2233D7FB11C460BC002DCDFB /* DrillDownWebController.m */,
 				22FD1D1A118B9B59008170E0 /* CFPrettyView.h */,
 				22FD1D1B118B9B59008170E0 /* CFPrettyView.m */,
 				22235CA71190E533007F2255 /* StatusBarNotifier.h */,
@@ -778,6 +810,11 @@
 		29B97317FDCFA39411CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				2279786411C70CD000D1BE35 /* lock.png */,
+				2233D82A11C464C3002DCDFB /* leave_arrow.png */,
+				2233D7DE11C45CED002DCDFB /* 42-photos.png */,
+				2233D7DF11C45CED002DCDFB /* 68-paperclip.png */,
+				22E8E5E911C338DB003E2870 /* blue-button-bg.png */,
 				22CA43D211C08FF200369F74 /* envelope.png */,
 				22CA434F11C04CB800369F74 /* paperclip-tiny.png */,
 				22CA435011C04CB800369F74 /* liked-tiny.png */,
@@ -833,6 +870,7 @@
 		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				22E8E55E11C2F239003E2870 /* AddressBook.framework */,
 				22A3B1011177CA47006337B5 /* SystemConfiguration.framework */,
 				22A3B1051177CA4C006337B5 /* CoreLocation.framework */,
 				002A9CF310F6630300BFD48C /* MessageUI.framework */,
@@ -962,6 +1000,12 @@
 				22CA435311C04CB800369F74 /* liked-tiny.png in Resources */,
 				22CA435411C04CB800369F74 /* following-tiny.png in Resources */,
 				22CA43D611C08FF200369F74 /* envelope.png in Resources */,
+				22E8E5EA11C338DB003E2870 /* blue-button-bg.png in Resources */,
+				2233D7E011C45CED002DCDFB /* 42-photos.png in Resources */,
+				2233D7E111C45CED002DCDFB /* 68-paperclip.png in Resources */,
+				2233D82B11C464C3002DCDFB /* leave_arrow.png in Resources */,
+				2233D87111C475C2002DCDFB /* YMSimpleWebView.xib in Resources */,
+				2279786511C70CD000D1BE35 /* lock.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1057,6 +1101,10 @@
 				2240CB7511AB6FF300B92DC1 /* YMGroup.m in Sources */,
 				223F76BC11AC90AE0076940E /* YMFeedListViewController.m in Sources */,
 				22848D1011B70E550080472A /* YMAttachment.m in Sources */,
+				2233D7FC11C460BC002DCDFB /* DrillDownPage.m in Sources */,
+				2233D7FD11C460BC002DCDFB /* DrillDownWebController.m in Sources */,
+				2233D87011C475C2002DCDFB /* YMSimpleWebView.m in Sources */,
+				2233D87511C47796002DCDFB /* NSData+Base64.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1098,8 +1146,13 @@
 				GCC_PREFIX_HEADER = Yammer_Prefix.pch;
 				INFOPLIST_FILE = "Yammer-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 2.0;
+				OTHER_LDFLAGS = (
+					"-licucore",
+					"-all_load",
+					"-ObjC",
+				);
 				PRODUCT_NAME = Yammer;
-				PROVISIONING_PROFILE = "10DA6E2E-2B0C-4EDD-8BC0-265584AAA3F4";
+				PROVISIONING_PROFILE = "720DC109-4428-4C31-B4CB-9DD85CE70B32";
 				SDKROOT = iphoneos3.0;
 			};
 			name = Store;
@@ -1139,7 +1192,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = Yammer_Prefix.pch;
 				INFOPLIST_FILE = "Yammer-Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 2.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 3.1.2;
 				OTHER_LDFLAGS = (
 					"-licucore",
 					"-all_load",
@@ -1148,7 +1201,7 @@
 				PRODUCT_NAME = Yammer;
 				PROVISIONING_PROFILE = "";
 				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
-				SDKROOT = iphoneos3.1.3;
+				SDKROOT = iphoneos4.0;
 			};
 			name = AdHoc;
 		};
@@ -1174,7 +1227,7 @@
 				PRODUCT_NAME = Yammer;
 				PROVISIONING_PROFILE = "AE248043-7B17-4951-A878-00C93821C44D";
 				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "AE248043-7B17-4951-A878-00C93821C44D";
-				SDKROOT = iphoneos3.1.3;
+				SDKROOT = iphoneos4.0;
 			};
 			name = Debug;
 		};

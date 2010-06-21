@@ -65,10 +65,10 @@
   [super viewWillAppear:animated];
   [self refreshContactPKs];
   [self.tableView reloadData];
-  if ([contactPKs count])
-    [self.tableView scrollToRowAtIndexPath:
-      [NSIndexPath indexPathForRow:0 inSection:0] 
-     atScrollPosition:UITableViewScrollPositionTop animated:NO];
+//  if ([contactPKs count])
+//    [self.tableView scrollToRowAtIndexPath:
+//      [NSIndexPath indexPathForRow:0 inSection:0] 
+//     atScrollPosition:UITableViewScrollPositionTop animated:NO];
   
   self.navigationItem.leftBarButtonItem =
   [[UIBarButtonItem alloc]
@@ -141,6 +141,14 @@
   NSMutableArray *omgwtfs = [[[contacts objectAtIndex:1] retain] autorelease];
   NSMutableArray *mgs = [[[contacts objectAtIndex:2] retain] autorelease];
   NSMutableArray *_ids = [[[contacts objectAtIndex:3] retain] autorelease];
+  NSMutableArray *_omgwtfs = [NSMutableArray arrayWithArray:omgwtfs];
+  int k = 0;
+  for (id obj in _omgwtfs) { // guard against nsnull or nsnumber
+    if (![obj isKindOfClass:[NSString class]]) {
+      [omgwtfs replaceObjectAtIndex:k withObject:@"unnamed"];
+    }
+    k++;
+  }
   [omgwtfs sortArrayUsingSelector:@selector(localizedCaseInsensitiveCompare:)
           withPairedMutableArrays:cpks, mgs, _ids, nil];
   contactPKs = [cpks retain];
@@ -261,7 +269,8 @@ cellForRowAtIndexPath:(NSIndexPath *)indexPath
   if ([img isEqual:[NSNull null]]) {
     if (![[mugshotURLs objectAtIndex:idx] isEqual:[NSNull null]]) {
       [[web contactImageForURL:[mugshotURLs objectAtIndex:idx]]
-       addCallback:curryTS(self, @selector(_gotMugshot::), indexPath)];
+       addCallback:curryTS(self, @selector(_gotMugshot:::), indexPath, 
+                           [contactPKs objectAtIndex:idx])];
     } else {
       [mugshots replaceObjectAtIndex:idx
                 withObject:[UIImage imageNamed:@"user-70.png"]];
@@ -283,15 +292,15 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath
   YMContactDetailViewController *c = [[[YMContactDetailViewController alloc] init] autorelease];
   c.userAccount = self.userAccount;
   c.contact = contact;
-  [self.navigationController pushViewController:c animated:YES];
   if ([searchBar isFirstResponder]) [searchBar resignFirstResponder];
   [self.tableView deselectRowAtIndexPath:indexPath animated:YES];
+  [self.navigationController pushViewController:c animated:YES];
 }
 
-- (id)_gotMugshot:(NSIndexPath *)indexPath :(id)result
+- (id)_gotMugshot:(NSIndexPath *)indexPath :(id)cpk :(id)result
 {
-  int idx = [self indexForIndexPath:indexPath];
-  if ([result isKindOfClass:[UIImage class]]) {
+  int idx = [contactPKs indexOfObject:cpk];
+  if ([result isKindOfClass:[UIImage class]] && idx != NSNotFound) {
     [mugshots replaceObjectAtIndex:idx withObject:result];
     YMContactTableViewCell *cell = (YMContactTableViewCell *)
       [self.tableView cellForRowAtIndexPath:indexPath];

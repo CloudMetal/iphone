@@ -12,6 +12,6 @@
 @implementation YMAttachment
 
 @synthesize type, name, webURL, isImage, attachmentID, 
-            size, url, imageThumbnailURL, messageID;
+            size, url, imageThumbnailURL, messageID, messagePK;
 
 @end

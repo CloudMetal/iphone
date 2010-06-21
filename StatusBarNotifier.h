@@ -19,6 +19,7 @@
   NSMutableDictionary *queuedViews;
   NSString *errorString;
   CGFloat topOffset;
+  UIDeviceOrientation orientation;
 }
 
 @property (assign) CGFloat topOffset;

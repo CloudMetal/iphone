@@ -364,6 +364,8 @@
   NSOperationQueue *operationQueue;
 }
 
+@property(nonatomic, readonly) NSString *dir;
+
 + (id)sharedCache;
 - (id)initWithDirectory:(NSString *)_dir 
              maxEntries:(int)_maxEntries

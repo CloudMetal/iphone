@@ -27,16 +27,18 @@
   NSString *title;
   NSString *body;
   NSString *date;
+  NSString *group;
   UIImage *avatar;
   UIImageView *imageView;
   BOOL unread;
   BOOL hasAttachments;
   BOOL liked;
   BOOL following;
+  BOOL isPrivate;
 }
 
-@property(nonatomic, assign) BOOL unread, hasAttachments, liked, following;
-@property(nonatomic, copy) NSString *title, *body, *date;
+@property(nonatomic, assign) BOOL unread, hasAttachments, liked, following, isPrivate;
+@property(nonatomic, copy) NSString *title, *body, *date, *group;
 @property(nonatomic, retain) UIImage *avatar;
 
 - (void)drawContentView:(CGRect)r;

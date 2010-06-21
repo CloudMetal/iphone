@@ -42,6 +42,9 @@ static UIView *toolbarView  = nil;
                 forState:UIControlStateNormal];
     [atButton setImage:[UIImage imageNamed:@"kb-tab-at.png"] 
               forState:UIControlStateNormal];
+    atButton.hidden = YES;
+    hashButton.hidden = YES;
+    kbButton.hidden = YES;
     
     if (!toolbarView) toolbarView = [[[UIView alloc] initWithFrame:
                                       CGRectMake(0, 0, 320, 37)] retain];

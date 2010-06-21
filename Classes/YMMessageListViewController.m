@@ -31,6 +31,7 @@
 - (void)updateBadge;
 - (void)updateNewlyReadMessages;
 - (void)markAllMessagesRead;
+- (id)gotoMessageIndexPath:(NSIndexPath *)indexPath sender:(id)s;
 
 @end
 
@@ -61,9 +62,9 @@
     [[NSNotificationCenter defaultCenter]
      addObserver:self selector:@selector(messagesDidUpdate:) 
      name:YMWebServiceDidUpdateMessages object:nil];
-    [[NSNotificationCenter defaultCenter]
-     addObserver:self selector:@selector(subscriptionsDidUpdate:) 
-     name:YMWebServiceDidUpdateSubscriptions object:nil];
+//    [[NSNotificationCenter defaultCenter]
+//     addObserver:self selector:@selector(subscriptionsDidUpdate:) 
+//     name:YMWebServiceDidUpdateSubscriptions object:nil];
     web = [YMWebService sharedWebService];
   }
   return self;
@@ -79,10 +80,10 @@
   self.tableView.dataSource = self;
   self.tableView.backgroundColor = [UIColor whiteColor];
   
-  UIView *tf = [[[UIView alloc] initWithFrame:CGRectMake(0, 0, 320, 73)] autorelease];
+  UIView *tf = [[[UIView alloc] initWithFrame:CGRectMake(0, 0, 320, 41)] autorelease];
   tf.autoresizingMask = UIViewAutoresizingFlexibleWidth;
   moreButton = [[UIButton buttonWithType:UIButtonTypeCustom] retain];
-  moreButton.frame = CGRectMake(0, 32, 320, 41);
+  moreButton.frame = CGRectMake(0, 0, 320, 41);
   moreButton.autoresizingMask = UIViewAutoresizingFlexibleWidth;
   [moreButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
   [moreButton setTitle:@"Show More Messages" forState:UIControlStateNormal];
@@ -98,7 +99,7 @@
   totalLoadedLabel.textColor = [UIColor colorWithWhite:.2 alpha:1];
   totalLoadedLabel.textAlignment = UITextAlignmentCenter;
   totalLoadedLabel.backgroundColor = [UIColor colorWithPatternImage:[UIImage imageNamed:@"inline-button-bg.png"]];
-  [tf addSubview:totalLoadedLabel];
+//  [tf addSubview:totalLoadedLabel];
   
   self.tableView.tableFooterView = tf;
   
@@ -139,13 +140,16 @@
 - (void) viewDidAppear:(BOOL)animated
 {
   [super viewDidAppear:animated];
-  [self doReload:nil];
+  self.olderThan = nil;
+  if (![self.target isEqual:YMMessageTargetFollowing] 
+      && ![self.target isEqual:YMMessageTargetReceived]) [self doReload:nil];
 }
 
 - (void)viewWillDisappear:(BOOL)animated
 {
   [web writeCachedContactImages];
-  [self updateNewlyReadMessages];
+//  [self markAllMessagesRead];
+//  [self updateNewlyReadMessages];
   [super viewWillDisappear:animated];
 }
 
@@ -158,7 +162,8 @@
 - (void)messagesDidUpdate:(id)note
 {
   NSLog(@"%@ got %@", self, note);
-  [self doReload:nil];
+  if (![self.target isEqual:YMMessageTargetFollowing] 
+      && ![self.target isEqual:YMMessageTargetReceived]) [self doReload:nil];
 }
 
 - (void)subscriptionsDidUpdate:(id)note
@@ -172,18 +177,21 @@
 {
   [self.tableView reloadData];
   
-  DKDeferred *d;
   NSMutableDictionary *opts = [NSMutableDictionary dictionary];
   
   if (self.olderThan)
     [opts setObject:[self.olderThan description] forKey:@"older_than"];
-  if (self.newerThan)
-    [opts setObject:[self.newerThan description] forKey:@"newer_than"];
+//  if (self.newerThan)
+//    [opts setObject:[self.newerThan description] forKey:@"newer_than"];
   
-  d = [[web getMessages:self.userAccount withTarget:target withID:self.targetID 
-                params:opts fetchToID:self.newerThan]
-       addCallbacks:callbackTS(self, _gotMessages:) :callbackTS(self, _failedGetMessages:)];
-  [[StatusBarNotifier sharedNotifier] flashLoading:@"Refreshing Messages" deferred:d];
+  [[[web getMessages:self.userAccount withTarget:target withID:self.targetID 
+              params:opts fetchToID:self.newerThan]
+    addCallback:callbackTS(self, _gotMessages:)] 
+   addErrback:callbackTS(self, _failedGetMessages:)];
+  if (loadingDeferred && loadingDeferred.fired == -1) [loadingDeferred callback:nil];
+  loadingDeferred = nil;
+  loadingDeferred = [[DKDeferred deferred] retain];
+  [[StatusBarNotifier sharedNotifier] flashLoading:@"Refreshing Messages" deferred:loadingDeferred];
   
   return arg;
 }
@@ -217,8 +225,7 @@
       self.newerThan = nil;
     } else {
       self.olderThan = self.lastLoadedMessageID;
-      self.newerThan = [(YMMessage *)[YMMessage findByPK:
-                        intv([messagePKs objectAtIndex:0])] messageID];
+      self.newerThan = nil;
     }
   }
   [self doReload:nil];
@@ -294,6 +301,8 @@
                  forState:UIControlStateNormal];
   [self updateBadge];
   [self.tableView reloadData];
+  if (loadingDeferred && loadingDeferred.fired == -1) [loadingDeferred callback:nil];
+  loadingDeferred = nil;
   return results;
 }
 
@@ -305,8 +314,8 @@
 
 - (NSString *)listCriteria
 {
-  return [NSString stringWithFormat:@"WHERE network_p_k=%@ AND target='%@'%@%@", 
-          self.userAccount.activeNetworkPK, target, 
+  return [NSString stringWithFormat:@"WHERE network_p_k=%i AND target='%@'%@%@", 
+          self.network.pk, target, 
           (self.targetID != nil ? [NSString stringWithFormat:
                               @" AND target_i_d='%@'", self.targetID] : @""),
           (self.lastLoadedMessageID != nil ? [NSString stringWithFormat:@" AND message_i_d >= %@", 
@@ -335,6 +344,10 @@
   likeds = nil;
   if (followeds) [followeds release];
   followeds = nil;
+  if (privates) [privates release];
+  privates = nil;
+  if (groups) [groups release];
+  groups = nil;
   if (newlyReadMessageIndexes) [newlyReadMessageIndexes release];
   newlyReadMessageIndexes = [[NSMutableIndexSet indexSet] retain];
   if (self.newerThan) self.newerThan = nil;
@@ -343,12 +356,14 @@
                  @"SELECT y_m_message.pk, y_m_contact.mugshot_u_r_l, y_m_contact.full_name, "  
                  @"(SELECT full_name FROM y_m_contact AS ymc WHERE " 
                  @"y_m_message.replied_to_sender_i_d = ymc.user_i_d), y_m_message.body_plain, "
-                 @"y_m_message.created_at, y_m_message.read, y_m_message.liked, y_m_message.has_attachments, y_m_message.sender_i_d "
+                 @"y_m_message.created_at, y_m_message.read, y_m_message.liked, "
+                 @"y_m_message.has_attachments, y_m_message.sender_i_d, (SELECT full_name FROM y_m_contact AS ymc WHERE y_m_message.direct_to_i_d = ymc.user_i_d), "
+                 @"(SELECT full_name FROM y_m_group AS ymg WHERE y_m_message.group_i_d = ymg.group_i_d) "
                  @"FROM y_m_message INNER JOIN y_m_contact ON y_m_message.sender_i_d " 
                  @"= y_m_contact.user_i_d %@ ORDER BY y_m_message.created_at DESC LIMIT %i", 
                  [self listCriteria], limit];
   NSLog(@"refreshing messages %@", q);
-  NSArray *a = [YMMessage pairedArraySelect:q fields:10];
+  NSArray *a = [YMMessage pairedArraySelect:q fields:12];
   
   messagePKs = [[a objectAtIndex:0] retain];
   mugshotURLs = [[a objectAtIndex:1] retain];
@@ -359,9 +374,11 @@
   reads = [[a objectAtIndex:6] retain];
   likeds = [[a objectAtIndex:7] retain];
   hasattachments = [[a objectAtIndex:8] retain];
+  privates = [[a objectAtIndex:10] retain];
+  groups = [[a objectAtIndex:11] retain];
   NSMutableArray *_senderIds = [a objectAtIndex:9];
   NSMutableArray *_following = [NSMutableArray arrayWithCapacity:[messagePKs count]];
-  NSArray *subscribedUserIds = self.network.userSubscriptionIds;
+  NSArray *subscribedUserIds = [self.network.userSubscriptionIds copy];
   
   [self updateBadge];
   
@@ -375,13 +392,21 @@
     
     NSString *tit = [[a objectAtIndex:2] objectAtIndex:i];
     NSString *rtit = [[a objectAtIndex:3] objectAtIndex:i];
-    if ([rtit isEqual:[NSNull null]])
+    NSString *ttit = [privates objectAtIndex:i];
+    if ([rtit isEqual:[NSNull null]] && [ttit isEqual:[NSNull null]])
       [_titles addObject:tit];
-    else 
+    else if (![rtit isEqual:[NSNull null]])
       [_titles addObject:[tit stringByAppendingFormat:@" re: %@", rtit]];
+    else
+      [_titles addObject:[tit stringByAppendingFormat:@" to %@", ttit]];
     
     [_following addObject:([subscribedUserIds containsObject:
                             nsni(intv([_senderIds objectAtIndex:i]))] ? nsnb(YES) : nsnb(NO))];
+    if (![[groups objectAtIndex:i] isEqual:[NSNull null]]) {
+      if ([[groups objectAtIndex:i] hasSuffix:@"(private)"]) {
+        [privates replaceObjectAtIndex:i withObject:@"ass"];
+      }
+    }
   }
   followeds = [_following retain];
   titles = [_titles retain];
@@ -409,6 +434,7 @@
 
 - (void)markAllMessagesRead
 {
+  if (!([messagePKs count] >= 1)) return;
   if (newlyReadMessageIndexes) [newlyReadMessageIndexes release];
   newlyReadMessageIndexes = [[NSMutableIndexSet indexSetWithIndexesInRange:
                              NSMakeRange(0, [messagePKs count] - 1)] retain];
@@ -434,6 +460,8 @@
   [reads replaceObjectsAtIndexes:newlyReadMessageIndexes withObjects:newReads];
   [newlyReadMessageIndexes release];
   newlyReadMessageIndexes = [[NSMutableIndexSet indexSet] retain];
+  
+  [web subtractUnseenCount:[pks count] fromNetwork:self.network];
 }
 
 - (NSInteger)rowForIndexPath:(NSIndexPath *)indexPath
@@ -450,7 +478,7 @@
 {
   CGSize max = CGSizeMake(self.interfaceOrientation 
                           == UIInterfaceOrientationPortrait ? 247 : 407 , 480);
-  CGSize sizeNeeded = [[bodies objectAtIndex:idx] sizeWithFont:[UIFont systemFontOfSize:12] 
+  CGSize sizeNeeded = [[bodies objectAtIndex:idx] sizeWithFont:[UIFont systemFontOfSize:13] 
                        constrainedToSize:max lineBreakMode:UILineBreakModeWordWrap];
   if (sizeNeeded.height > 28.0)
     return sizeNeeded.height + 32.0;
@@ -481,15 +509,19 @@
 - (CGFloat) tableView:(UITableView *)table
 heightForRowAtIndexPath:(NSIndexPath *)indexPath
 {
+  CGFloat ret;
   if (selectedIndexPath && selectedIndexPath.row + 1 == indexPath.row)
-    return 60;
-  int idx = [self rowForIndexPath:indexPath];
-  CGFloat max = self.interfaceOrientation == UIInterfaceOrientationPortrait ? 170 : 115;
-  CGFloat h = [self expandedHeightOfRow:idx];
-  if (h > max && (!selectedIndexPath || 
-      !(selectedIndexPath.row == idx)))
-    return max;
-  return h;
+    ret = 60;
+  else {
+    int idx = [self rowForIndexPath:indexPath];
+    CGFloat max = self.interfaceOrientation == UIInterfaceOrientationPortrait ? 170 : 115;
+    CGFloat h = [self expandedHeightOfRow:idx];
+    if (h > max && (!selectedIndexPath || 
+        !(selectedIndexPath.row == idx)))
+      ret = max;
+    else ret = h;
+  }
+  return ret + ([[groups objectAtIndex:indexPath.row] isEqual:[NSNull null]] ? 0 : 18.0);
 }
 
 - (NSInteger) tableView:(UITableView *)table
@@ -533,7 +565,7 @@ cellForRowAtIndexPath:(NSIndexPath *)indexPath
   
   id read = [reads objectAtIndex:idx];
   if ([read isKindOfClass:[NSObject class]] && !intv(read)) {
-    [newlyReadMessageIndexes addIndex:idx];
+//    [newlyReadMessageIndexes addIndex:idx];
     cell.unread = YES;
   } else {
     cell.unread = NO;
@@ -557,6 +589,11 @@ cellForRowAtIndexPath:(NSIndexPath *)indexPath
   cell.title = [titles objectAtIndex:idx];
   cell.liked = boolv([likeds objectAtIndex:idx]);
   cell.hasAttachments = boolv([hasattachments objectAtIndex:idx]);
+  cell.isPrivate = ![[privates objectAtIndex:indexPath.row] isEqual:[NSNull null]];
+  if ([[groups objectAtIndex:idx] isEqual:[NSNull null]])
+    cell.group = nil;
+  else
+    cell.group = [@"posted in " stringByAppendingString:[groups objectAtIndex:indexPath.row]];
   
   return cell;
 }
@@ -564,8 +601,10 @@ cellForRowAtIndexPath:(NSIndexPath *)indexPath
 - (void) tableView:(UITableView *)table
 didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
-  self.selectedIndexPath = [NSIndexPath indexPathForRow:
-                            [self rowForIndexPath:indexPath] inSection:0];
+//  self.selectedIndexPath = [NSIndexPath indexPathForRow:
+//                            [self rowForIndexPath:indexPath] inSection:0];
+  [(id)self gotoMessageIndexPath:indexPath sender:nil];
+  [table deselectRowAtIndexPath:indexPath animated:YES];
 }
 
 - (NSIndexPath *)tableView:(UITableView *)table
@@ -622,9 +661,9 @@ willSelectRowAtIndexPath:(NSIndexPath *)indexPath
       loadedAvatars = YES;
       [mugshots replaceObjectAtIndex:idx withObject:result];
       if (self.selectedIndexPath && self.selectedIndexPath.row < idx) idx++;
-      YMFastMessageTableViewCell *cell = (YMFastMessageTableViewCell *)
-      [self.tableView cellForRowAtIndexPath:
-       [NSIndexPath indexPathForRow:idx inSection:0]];
+      NSIndexPath *path = [NSIndexPath indexPathForRow:idx inSection:0];
+      YMFastMessageTableViewCell *cell = (YMFastMessageTableViewCell *)      
+        [self.tableView cellForRowAtIndexPath:path];      
       if (cell) cell.avatar = result;
     }
   }
@@ -721,6 +760,8 @@ willSelectRowAtIndexPath:(NSIndexPath *)indexPath
 
 - (void)viewDidUnload
 {
+  [[NSNotificationCenter defaultCenter]
+   removeObserver:self];
   [super viewDidUnload];
 }
 
@@ -732,10 +773,11 @@ willSelectRowAtIndexPath:(NSIndexPath *)indexPath
   [mugshotURLs release];
   [dates release];
   [titles release];
+  [hasattachments release];
+  [privates release];
+  [followeds release];
   [lastUpdated release];
-  [reads release];
-  [[NSNotificationCenter defaultCenter]
-   removeObserver:self];
+  [reads release];  
   self.target = nil;
   self.threaded = nil;
   self.newerThan = nil;
@@ -751,3 +793,4 @@ willSelectRowAtIndexPath:(NSIndexPath *)indexPath
 }
 
 @end
+ 

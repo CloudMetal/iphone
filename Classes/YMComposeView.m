@@ -25,6 +25,11 @@
     [messageTextView hidePartials:nil];
   }
   if (!s) return;
+  UIDeviceOrientation o = [[UIDevice currentDevice] orientation];
+  if (!s || (o == UIDeviceOrientationLandscapeLeft || o == UIDeviceOrientationLandscapeRight)) {
+    if (self.onPartialWillClose) [self.onPartialWillClose :textView];
+    return;
+  }
   
   if ([s hasPrefix:@"#"] && self.onUserInputsHash 
       && messageTextView.autocompleteEnabled)

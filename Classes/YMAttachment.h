@@ -12,13 +12,13 @@
 @interface YMAttachment : SQLitePersistentObject
 {
   NSString *type, *name, *webURL;
-  NSNumber *isImage, *attachmentID, *size, *messageID;
+  NSNumber *isImage, *attachmentID, *size, *messageID, *messagePK;
   NSString *url, *imageThumbnailURL;
 }
 
-@property(nonatomic, readwrite, retain) NSString 
+@property(copy) NSString 
   *type, *name, *webURL, *url, *imageThumbnailURL;
-@property(nonatomic, readwrite, retain) NSNumber 
-  *isImage, *attachmentID, *size, *messageID;
+@property(copy) NSNumber 
+  *isImage, *attachmentID, *size, *messageID, *messagePK;
 
 @end

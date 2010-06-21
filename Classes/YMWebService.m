@@ -23,8 +23,9 @@ static YMWebService *__sharedWebService;
 - (id)mutableRequestWithMethod:(id)method account:(YMUserAccount *)acct defaults:(NSDictionary *)defaults;
 - (id)mutableMultipartRequestWithMethod:(id)method account:(YMUserAccount *)acct defaults:(NSDictionary *)defs;
 - (NSString *)parseMessageBody:(NSString *)parsedBody withReferences:(NSDictionary *)refs;
+- (id)messageWith:(YMMessage *)message fromDictionary:(NSDictionary *)m withReferences:(NSDictionary *)refs;
 - (id)messageFromDictionary:(NSDictionary *)m withReferences:(NSDictionary *)refs;
-- (YMContact *)contactforId:(NSNumber *)userId withReferences:(NSDictionary *)refs;
+- (YMContact *)contactforId:(NSNumber *)userId type:(id)typ withReferences:(NSDictionary *)refs;
 - (YMContact *)contactFromReference:(NSDictionary *)ref;
 - (YMContact *)contactFromFullRepresentation:(NSDictionary *)u;
 
@@ -98,7 +99,7 @@ id _nil(id r)
 @implementation YMWebService
 
 @synthesize mountPoint, appKey, appSecret;
-@synthesize shouldUpdateBadgeIcon;
+@synthesize shouldUpdateBadgeIcon, pushID;
 
 ///
 /// constructors
@@ -121,6 +122,30 @@ id _nil(id r)
 - (NSArray *)loggedInUsers 
 {
   return [YMUserAccount findByCriteria:@"WHERE logged_in=1"];
+}
+
+-(void) setPushID:(NSString *)i
+{
+  pushID = nil;
+  pushID = [i copy];
+  NSLog(@"this is push id %@", i);
+  for (YMUserAccount *acct in [self loggedInUsers]) {
+    NSNumber *pk = [acct.activeNetworkPK copy];
+    for (YMNetwork *n in [YMNetwork findByCriteria:@"WHERE user_account_p_k=%i", acct.pk]) {
+      acct.activeNetworkPK = nsni(n.pk);
+      [[[DKDeferredURLConnection alloc] initWithRequest:
+        [self mutableMultipartRequestWithMethod:@"feed_clients/" 
+        account:acct defaults:dict_(pushID, @"client_id", @"ApplePushDevice", @"type")] pauseFor:0 decodeFunction:nil]
+       addBoth:callbackTS(self, _registeredPush:)];
+    }
+    acct.activeNetworkPK = pk;
+  }
+}
+
+- (id)_registeredPush:(id)r
+{
+//  NSLog(@"registered push %@", [NSString stringWithUTF8String:[r bytes]]);
+  return r;
 }
 
 #pragma mark -
@@ -213,45 +238,47 @@ id _nil(id r)
 - (id)_gotNetworksAndTokens:(YMUserAccount *)acct :(id)results
 {
   NSMutableArray *networks = [NSMutableArray array];
+  NSLog(@"results %@", results);
   if ([results count] == 2) {
-    // remove existing networks and their associated data
-    int i;
     SQLiteInstanceManager *db = [SQLiteInstanceManager sharedManager];
     @synchronized(self)  {
-    [db executeUpdateSQL:@"BEGIN TRANSACTION;"];
-    
-    // create networks from request, saving auth info
-    for (NSDictionary *d in [results objectAtIndex:0]) {
-      // get the auth stuff from the tokens array
-      i = 0;
-      NSDictionary *ad = [[results objectAtIndex:1] objectAtIndex:i];
-      while (![[ad objectForKey:@"network_id"] isEqual:[d objectForKey:@"id"]]) 
-        ad = [[results objectAtIndex:1] objectAtIndex:i++];
+      [db executeUpdateSQL:@"BEGIN TRANSACTION;"];
       
-      // create and save the network object
-      YMNetwork *n;
-      NSString *criteria = [NSString stringWithFormat:
-                            @"WHERE user_account_p_k=%i AND network_i_d='%@'",
-                            acct.pk, [d objectForKey:@"id"]];
-      
-      if (![YMNetwork countByCriteria:criteria]) {
-        n = [YMNetwork new];
-      } else {
-        n = [[YMNetwork findFirstByCriteria:criteria] autorelease];
+      // create networks from request, saving auth info
+      for (NSDictionary *d in [results objectAtIndex:0]) {
+
+        NSDictionary *ad = nil;
+        for (NSDictionary *_ in [results objectAtIndex:1]) {
+          if ([_ isKindOfClass:[NSDictionary class]] && 
+              [[_ objectForKey:@"network_id"] isEqual:[d objectForKey:@"id"]])
+            ad = _;
+        }
+        if (!ad) continue;
+        
+        // create and save the network object
+        YMNetwork *n;
+        NSString *criteria = [NSString stringWithFormat:
+                              @"WHERE user_account_p_k=%i AND network_i_d='%@'",
+                              acct.pk, [d objectForKey:@"id"]];
+        
+        if (![YMNetwork countByCriteria:criteria]) {
+          n = [YMNetwork new];
+        } else {
+          n = [[YMNetwork findFirstByCriteria:criteria] autorelease];
+        }
+        n.userAccountPK = nsni(acct.pk);
+        n.url = [d objectForKey:@"web_url"];
+        n.permalink = [d objectForKey:@"permalink"];
+        n.name = [d objectForKey:@"name"];
+        n.networkID = [d objectForKey:@"id"];
+        n.unseenMessageCount = [d objectForKey:@"unseen_message_count"];
+        n.token = [ad objectForKey:@"token"];
+        n.secret = [ad objectForKey:@"secret"];
+        n.userID = [ad objectForKey:@"user_id"];
+        [n save];
+        [networks addObject:n];
       }
-      n.userAccountPK = nsni(acct.pk);
-      n.url = [d objectForKey:@"web_url"];
-      n.permalink = [d objectForKey:@"permalink"];
-      n.name = [d objectForKey:@"name"];
-      n.networkID = [d objectForKey:@"id"];
-      n.unseenMessageCount = [d objectForKey:@"unseen_message_count"];
-      n.token = [ad objectForKey:@"token"];
-      n.secret = [ad objectForKey:@"secret"];
-      n.userID = [ad objectForKey:@"user_id"];
-      [n save];
-      [networks addObject:n];
-    }
-    [db executeUpdateSQL:@"COMMIT TRANSACTION;"];
+      [db executeUpdateSQL:@"COMMIT TRANSACTION;"];
     }
     if (self.shouldUpdateBadgeIcon) {
       [self updateUIApplicationBadge];
@@ -308,76 +335,110 @@ withID:(NSNumber *)targetID params:(NSDictionary *)params fetchToID:(NSNumber *)
             account:acct defaults:params]
            pauseFor:0 decodeFunction:callbackP(__decodeJSON)]
           addCallback:
-          curryTS(self, @selector(_gotMessages:target:targetID:page:fetchToID:results:), 
+          curryTS(self, @selector(_gotMessages:target:targetID:page:fetchToID:networkID:results:), 
                   acct, target, (targetID != nil ? targetID : (id)[NSNull null]),
-                  nsni(1), (toID != nil ? toID : (id)[NSNull null]))];
+                  nsni(1), (toID != nil ? toID : (id)[NSNull null]), [acct.activeNetworkPK copy])];
 }
 
 - (id)_gotMessages:(YMUserAccount *)acct target:(id)target targetID:(id)targetID
-page:(id)page fetchToID:(id)toID results:(id)results
+              page:(id)page fetchToID:(id)toID networkID:(id)networkID results:(id)results
 {
   return [DKDeferred deferInThread:
-          curryTS(self, @selector(_saveMessagesThread:target:targetID:page:fetchToID:results:),
-                  acct, target, targetID, page, toID)
+          curryTS(self, @selector(_saveMessagesThread:target:targetID:page:fetchToID:networkID:results:),
+                  acct, target, targetID, page, toID, networkID)
                          withObject:results];
 }
 
 - (id)_saveMessagesThread:(YMUserAccount *)acct target:(id)target targetID:(id)targetID
-page:(id)page fetchToID:(id)toID results:(id)results
+                     page:(id)page fetchToID:(id)toID networkID:(id)networkID results:(id)results
 {
   NSMutableArray *ret = [NSMutableArray array];
 
   BOOL fetchToIdFound = NO;
   BOOL fetchingTo = ![toID isEqual:[NSNull null]];
   
-//  NSLog(@" save messages thread %@ %@ %@ %@ %@ %i %@", acct, target, targetID, page, toID, fetchingTo);
+  NSLog(@" save messages thread %@ %@ %@ %@ %@ %i %@", acct, target, targetID, page, toID, fetchingTo);
   
   if (![results isKindOfClass:[NSDictionary class]]) return ret;
+  
+  NSLog(@"meta %@", [results objectForKey:@"meta"]);
+  
+  SQLiteInstanceManager *db = [SQLiteInstanceManager sharedManager];
   
   NSNumber *lastSeenID = [[results objectForKey:@"meta"] objectForKey:@"last_seen_message_id"];
   NSString *olderAvailable = [[results objectForKey:@"meta"] objectForKey:@"older_available"];
   NSNumber *unseenCount = nil;
-  if ([target isEqual:YMMessageTargetFollowing])
+  BOOL markRead = NO;
+  if ([target isEqual:YMMessageTargetFollowing]) {
     unseenCount = [[results objectForKey:@"meta"] objectForKey:@"unseen_message_count_following"];
-  if ([target isEqual:YMMessageTargetReceived])
+    markRead = YES;
+  }
+  if ([target isEqual:YMMessageTargetReceived]) {
     unseenCount = [[results objectForKey:@"meta"] objectForKey:@"unseen_message_count_received"];
+  } 
+  
+  if (markRead && lastSeenID) 
+    [db executeUpdateSQL:[NSString stringWithFormat:@"UPDATE y_m_message SET read=1 WHERE message_i_d <= %i",
+                          intv([[results objectForKey:@"meta"] objectForKey:@"last_seen_message_id"])]];
   
   if ([[results objectForKey:@"messages"] count]) {
-    SQLiteInstanceManager *db = [SQLiteInstanceManager sharedManager];
-    
-    NSArray *existingMessageIDs = 
-      [YMMessage pairedArraysForProperties:array_(@"messageID") withCriteria:
-       [NSString stringWithFormat:@"WHERE network_p_k=%i AND target='%@'%@",
-        intv(acct.activeNetworkPK), target, 
-        (![targetID isEqual:[NSNull null]] 
-         ? [NSString stringWithFormat:@" AND target_i_d='%@'", targetID] 
-         : @"")]];
-    
-    NSMutableArray *existings = [NSMutableArray array];
-    for (NSString *existingIDAsString in [existingMessageIDs objectAtIndex:1])
-      [existings addObject:nsni([existingIDAsString intValue])];
-    
     NSArray *likedIDs = [[results objectForKey:@"meta"] objectForKey:@"liked_message_ids"];
     
     @synchronized(self) {
       [db executeUpdateSQL:@"BEGIN TRANSACTION;"];
       
       for (NSDictionary *m in [results objectForKey:@"messages"]) {     
-        if (![existings containsObject:[m objectForKey:@"id"]]) {
-          YMMessage *message = [self messageFromDictionary:m 
-                                withReferences:[results objectForKey:@"references"]];
-          message.networkPK = acct.activeNetworkPK;
-          message.target = target;
-          message.targetID = (![targetID isEqual:[NSNull null]] ? targetID : nil);
-          message.read = nsnb(!lastSeenID || (intv(lastSeenID) > intv(message.messageID)));
-          message.liked = nsnb([likedIDs containsObject:message.messageID]);
-          // @"followed_user_ids", @"favorite_message_ids", @"$_id", respectively
+        NSString *q = [NSString stringWithFormat:@"WHERE message_i_d=%i AND target='%@'%@",
+                       intv([m objectForKey:@"id"]), target,
+                       (![targetID isEqual:[NSNull null]] 
+                        ? [NSString stringWithFormat:@" AND target_i_d=%i", intv(targetID)] : @"")];
+        YMMessage *message = nil;
+        if ([YMMessage countByCriteria:q])
+          message = (id)[YMMessage findFirstByCriteria:q];
+        if (!message) message = [YMMessage new];
+        message = [self messageWith:message fromDictionary:m withReferences:
+                   [results objectForKey:@"references"]];
+        
+        message.networkPK = networkID;
+        message.target = target;
+        message.targetID = (![targetID isEqual:[NSNull null]] ? targetID : nil);
+        // TODO: sometimes this marks too many messages read.
+        message.read = nsnb(!lastSeenID || (intv(lastSeenID) >= intv(message.messageID)));
+        message.liked = nsnb([likedIDs containsObject:message.messageID]);
+
+        [message save];
+        
+        // build out attachments
+        if ([[m objectForKey:@"attachments"] count]) {
+          message.hasAttachments = nsnb(YES);
           [message save];
-          [ret addObject:message];
-        } else {
-          [ret addObject:[YMMessage findFirstByCriteria:@"WHERE message_i_d=%@", 
-                          [m objectForKey:@"id"]]];
+          for (NSDictionary *a in [m objectForKey:@"attachments"]) {
+            NSLog(@"attachment %@", a);
+            YMAttachment *attachment;
+            if (!(attachment = [YMAttachment findFirstByCriteria:
+                                @"WHERE attachment_i_d=%i", intv([a objectForKey:@"id"])]))
+              attachment = (id)[YMAttachment new];
+            attachment.attachmentID = [a objectForKey:@"id"];
+            attachment.messageID = message.messageID;
+            attachment.type = [a objectForKey:@"type"];
+            attachment.name = [a objectForKey:@"name"];
+            attachment.webURL = [a objectForKey:@"web_url"];
+            attachment.messagePK = nsni(message.pk);
+            attachment.size = [a objectForKey:@"size"];
+            if ([attachment.type isEqualToString:@"image"]) {
+              attachment.size = [[a objectForKey:@"image"] objectForKey:@"size"];
+              attachment.isImage = nsnb(YES);
+              attachment.url = [[a objectForKey:@"image"] objectForKey:@"url"];
+              attachment.imageThumbnailURL = [[a objectForKey:@"image"] objectForKey:@"thumbnail_url"];
+            } else {
+              attachment.isImage = nsnb(NO);
+              attachment.url = [[a objectForKey:@"file"] objectForKey:@"url"];
+            }
+            [attachment save];
+          }
         }
+        
+        [ret addObject:message];
         if (fetchingTo && !fetchToIdFound && intv([m objectForKey:@"id"]) == intv(toID))
           fetchToIdFound = YES;
       }
@@ -402,14 +463,15 @@ page:(id)page fetchToID:(id)toID results:(id)results
   return EMPTY_DICT;
 }
 
-- (id)messageFromDictionary:(NSDictionary *)m withReferences:(NSDictionary *)refs
+- (id)messageWith:(YMMessage *)message fromDictionary:(NSDictionary *)m withReferences:(NSDictionary *)refs
 {
   static NSDateFormatter *formatter = nil;
   if (!formatter) {
     formatter = [[[NSDateFormatter alloc] init] retain];
     [formatter setDateFormat:@"yyyy/MM/dd HH:mm:ss ZZ"];
   }
-  YMMessage *message = [YMMessage new];
+  message.liked = nsnb(NO);
+  message.read = nsnb(NO);
   message.messageID = [m objectForKey:@"id"];
   message.groupID = _nil([m objectForKey:@"group_id"]);
   message.directToID = _nil([m objectForKey:@"direct_to_id"]);
@@ -424,30 +486,9 @@ page:(id)page fetchToID:(id)toID results:(id)results
   message.clientType = [m objectForKey:@"client_type"];
   message.senderID = [m objectForKey:@"sender_id"];
   message.senderType = [m objectForKey:@"sender_type"];
+  NSLog(@"sender type id %@ type %@", message.senderID, message.senderType);
   message.createdAt = [formatter dateFromString:[m objectForKey:@"created_at"]];
-  
-  // build out attachments
-  if ([[m objectForKey:@"attachments"] count]) {
-    message.hasAttachments = nsnb(YES);
-    for (NSDictionary *a in [m objectForKey:@"attachments"]) {
-      YMAttachment *attachment = [YMAttachment new];
-      attachment.attachmentID = [a objectForKey:@"id"];
-      attachment.messageID = message.messageID;
-      attachment.type = [a objectForKey:@"type"];
-      attachment.name = [a objectForKey:@"name"];
-      attachment.webURL = [a objectForKey:@"web_url"];
-      attachment.size = [a objectForKey:@"size"];
-      if ([attachment.type isEqualToString:@"image"]) {
-        attachment.size = [[a objectForKey:@"image"] objectForKey:@"size"];
-        attachment.isImage = nsnb(YES);
-        attachment.url = [[a objectForKey:@"image"] objectForKey:@"url"];
-      } else {
-        attachment.isImage = nsnb(NO);
-        attachment.url = [[a objectForKey:@"file"] objectForKey:@"url"];
-      }
-      [attachment save];
-    }
-  } else message.hasAttachments = nsnb(NO);
+  message.hasAttachments = nsnb(NO);
   
   // connect important references
   if (message.repliedToID) {
@@ -463,20 +504,44 @@ page:(id)page fetchToID:(id)toID results:(id)results
   // build out contacts
   if (message.directToID && ![YMContact countByCriteria:
                               @"WHERE user_i_d=%@", message.directToID])
-    [[self contactforId:message.directToID withReferences:refs] save];
+    [[self contactforId:message.directToID type:message.senderType withReferences:refs] save];
   if (![YMContact countByCriteria:@"WHERE user_i_d=%@", message.senderID])
-    [[self contactforId:message.senderID withReferences:refs] save];
+    [[self contactforId:message.senderID type:message.senderType withReferences:refs] save];
   if (message.repliedToSenderID && ![YMContact countByCriteria:
                                      @"WHERE user_i_d=%@", message.repliedToSenderID])
-    [[self contactforId:message.repliedToSenderID withReferences:refs] save];
+    [[self contactforId:message.repliedToSenderID type:message.senderType withReferences:refs] save];
   
-  return message;
+  for (NSDictionary *g in refs) {
+    if ([[g objectForKey:@"type"] isEqual:@"group"]) {
+      YMGroup *group;
+      if (!(group = (YMGroup *)[YMGroup findFirstByCriteria:
+                                @"WHERE group_i_d=%i", intv([g objectForKey:@"id"])]))
+        group = [YMGroup new];
+      group.groupID = [g objectForKey:@"id"];
+      group.fullName = [[g objectForKey:@"full_name"] stringByAppendingString:
+                        ([[g objectForKey:@"privacy"] isEqual:@"private"] ? @" (private)" : @"")];
+      group.name = [g objectForKey:@"name"];
+      group.url = [g objectForKey:@"url"];
+      group.privacy = [g objectForKey:@"privacy"];
+      group.webURL = [g objectForKey:@"web_url"];
+      group.mugshotURL = [g objectForKey:@"mugshot_url"];
+      [group save];
+    }
+  }
+  
+  return message;  
 }
 
-- (YMContact *)contactforId:(NSNumber *)userId withReferences:(NSDictionary *)refs
+- (id)messageFromDictionary:(NSDictionary *)m withReferences:(NSDictionary *)refs
+{
+  YMMessage *message = [YMMessage new];
+  return [self messageWith:message fromDictionary:m withReferences:refs];
+}
+
+- (YMContact *)contactforId:(NSNumber *)userId type:(id)typ withReferences:(NSDictionary *)refs
 {
   for (NSDictionary *ref in refs) {
-    if ([[ref objectForKey:@"type"] isEqual:@"user"] 
+    if ([[ref objectForKey:@"type"] isEqual:typ] 
         && [[ref objectForKey:@"id"] isEqual:userId]) {
       return [self contactFromReference:ref];
     }
@@ -516,14 +581,21 @@ page:(id)page fetchToID:(id)toID results:(id)results
     NSString *eyed = [[typeAndID objectAtIndex:1] stringByTrimmingCharactersInSet:closeBracketSet];
     for (NSDictionary *ref in refs) {
       if ([[ref objectForKey:@"type"] isEqual:typ] && intv([ref objectForKey:@"id"]) == intv(eyed)) {
-        [html appendFormat:@"<a href=\"yammer://%@/%@\">%@%@</a>", typ, eyed, 
-         ([typ isEqual:@"user"] ? @"@" : @"#"), [ref objectForKey:@"name"]];
+        if ([typ isEqual:@"user"] || [typ isEqual:@"tag"]) {
+          [html appendFormat:@"<a href=\"yammer://%@/%@\">%@%@</a>", typ, eyed, 
+           ([typ isEqual:@"user"] ? @"@" : @"#"), [ref objectForKey:@"name"]];
+        } else {
+          [html appendString:[ref objectForKey:@"name"]];
+        }
         break;
       }
     }
   }
   
   [html appendString:[parsedBody substringFromIndex:idx]];
+  
+  [html replaceOccurrencesOfString:@"\n" withString:@"<br>" options:
+   NSLiteralSearch range:NSMakeRange(0, [html length] - 1)];
   
   return html;
 }
@@ -540,11 +612,11 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches
            [self mutableMultipartRequestWithMethod:
              @"messages.json" account:acct defaults:opts]
             pauseFor:0 decodeFunction:callbackP(__decodeJSON)]
-           addCallback:curryTS(self, @selector(_didPostMessage::), acct)]
+           addCallback:curryTS(self, @selector(_didPostMessage:::), acct, [acct.activeNetworkPK copy])]
           addErrback:curryTS(self, @selector(_postMessageDidFail::), acct)];
 }
 
-- (id)_didPostMessage:(YMUserAccount *)acct :(id)results
+- (id)_didPostMessage:(YMUserAccount *)acct :(id)networkPK :(id)results
 {
 //  NSLog(@"_didPostMessage: %@ %@", acct, results);
   if ([[results objectForKey:@"messages"] count]) {
@@ -552,7 +624,8 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches
       YMMessage *message = [self messageFromDictionary:m withReferences:
                             [results objectForKey:@"references"]];
       message.target = YMMessageTargetSent;
-      message.networkPK = acct.activeNetworkPK;
+      message.targetID = nil;
+      message.networkPK = networkPK;
       message.read = nsni(1);
       [message save];
     }
@@ -567,6 +640,8 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches
   NSLog(@"_postMessageDidFail:%@ %@ %@", acct, error, [error userInfo]);
   return error;
 }
+
+
 
 - (DKDeferred *)deleteMessage:(YMUserAccount *)acct messageID:(NSString *)messageID
 {
@@ -594,16 +669,16 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches
                             @"groups.json" account:acct defaults:
                             dict_(@"1", @"page")] 
            pauseFor:0 decodeFunction:callbackP(__decodeJSON)]
-          addCallback:curryTS(self, @selector(_gotGroups:::), acct, nsni(1))];
+          addCallback:curryTS(self, @selector(_gotGroups::::), acct, [acct.activeNetworkPK copy], nsni(1))];
 }
 
-- (id)_gotGroups:(YMUserAccount *)acct :(NSNumber *)page :(id)results
+- (id)_gotGroups:(YMUserAccount *)acct :(id)networkPK :(NSNumber *)page :(id)results
 {
   BOOL fetchMore = NO;
   if ([results isKindOfClass:[NSArray class]] && [results count]) {
     fetchMore = YES;
     SQLiteInstanceManager *db = [SQLiteInstanceManager sharedManager];
-    YMNetwork *network = (YMNetwork *)[YMNetwork findByPK:intv(acct.activeNetworkPK)];
+    YMNetwork *network = (YMNetwork *)[YMNetwork findByPK:intv(networkPK)];
     @synchronized(self) {
       [db executeUpdateSQL:@"BEGIN TRANSACTION;"];
       for (NSDictionary *g in results) {
@@ -617,7 +692,8 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches
         group.mugshotURL = [g objectForKey:@"mugshot_url"];
         group.name = [g objectForKey:@"name"];
         group.groupID = [g objectForKey:@"id"];
-        group.fullName = [g objectForKey:@"full_name"];
+        group.fullName = [[g objectForKey:@"full_name"] stringByAppendingString:
+                          ([[g objectForKey:@"privacy"] isEqual:@"private"] ? @" (private)" : @"")];
         group.privacy = [g objectForKey:@"privacy"];
         group.networkID = network.networkID;
         [group save];
@@ -671,14 +747,14 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches
                                    account:acct defaults:dict_(@"1", @"page", @"foo", @"refs")];
   return [[[[DKDeferredURLConnection alloc]
             initWithRequest:req pauseFor:0 decodeFunction:callbackP(__decodeJSON)]
-           addCallback:curryTS(self, @selector(_gotUsers:::), acct, nsni(1))]
+           addCallback:curryTS(self, @selector(_gotUsers::::), acct, [acct.activeNetworkPK copy], nsni(1))]
           addErrback:callbackTS(self, _getUsersFailed:)];
 }
 
-- (id)_gotUsers:(YMUserAccount *)acct :(NSNumber *)page :(id)results
+- (id)_gotUsers:(YMUserAccount *)acct :(id)networkPK :(NSNumber *)page :(id)results
 {
   BOOL fetchMore = NO;
-  YMNetwork *curNetwork = (YMNetwork *)[YMNetwork findByPK:intv(acct.activeNetworkPK)];
+  YMNetwork *curNetwork = (YMNetwork *)[YMNetwork findByPK:intv(networkPK)];
   if ([results isKindOfClass:[NSArray class]] && [results count]) {
     fetchMore = YES;
     SQLiteInstanceManager *db = [SQLiteInstanceManager sharedManager];
@@ -699,7 +775,7 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches
               [self mutableRequestWithMethod:@"users.json"
                account:acct defaults:dict_([nextPage description], @"page", @"foo", @"refs")]
                pauseFor:0 decodeFunction:callbackP(__decodeJSON)]
-             addCallback:curryTS(self, @selector(_gotUsers:::), acct, nextPage)]
+             addCallback:curryTS(self, @selector(_gotUsers::::), acct, networkPK, nextPage)]
             addErrback:callbackTS(self, _getUsersFailed:)];
   }
   return results;
@@ -727,20 +803,26 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches
   contact.url = [u objectForKey:@"url"];
   contact.state = [u objectForKey:@"state"];
   contact.location = _nil([u objectForKey:@"location"]);
-  contact.emailAddresses = [NSMutableArray array];
+//  contact.emailAddresses = [NSMutableArray array];
+  NSMutableArray *ems = [NSMutableArray array];
   for (NSDictionary *em in [[u objectForKey:@"contact"]
                             objectForKey:@"email_addresses"])
-    [(NSMutableArray *)contact.emailAddresses addObject:em];
-  contact.phoneNumbers = [NSMutableArray array];
+    [ems addObject:em];
+  contact.emailAddresses = ems;
+//  contact.phoneNumbers = [NSMutableArray array];
+  NSMutableArray *phs = [NSMutableArray array];
   for (NSDictionary *ph in [[u objectForKey:@"contact"]
                             objectForKey:@"phone_numbers"])
-    [(NSMutableArray *)contact.phoneNumbers addObject:ph];
-  contact.im = [NSMutableArray array];
+    [phs addObject:ph];
+  contact.phoneNumbers = phs;
+//  contact.im = [NSMutableArray array];
+  NSMutableArray *ims = [NSMutableArray array];
   if ([[[[u objectForKey:@"contact"] objectForKey:@"im"] 
         objectForKey:@"provider"] length]) {
-    [(NSMutableArray *)contact.im addObject:
+    [ims addObject:
      [[u objectForKey:@"contact"] objectForKey:@"im"]];
   }
+  contact.im = ims;
   contact.externalURLs = [u objectForKey:@"external_urls"];
   contact.birthDate = _nil([u objectForKey:@"birth_date"]);
   contact.hireDate = _nil([u objectForKey:@"hire_date"]);
@@ -786,19 +868,19 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches
            dict_(@"1", @"include_followed_users", @"1", 
                  @"include_followed_tags", @"1", @"include_group_memberships")] 
            pauseFor:0 decodeFunction:callbackP(__decodeJSON)]
-          addCallback:curryTS(self, @selector(_gotCurrentUser::), acct)];
+          addCallback:curryTS(self, @selector(_gotCurrentUser:::), acct, [acct.activeNetworkPK copy])];
 }
 
-- (id)_gotCurrentUser:(YMUserAccount *)acct :(NSDictionary *)user
+- (id)_gotCurrentUser:(YMUserAccount *)acct :(id)networkPK :(NSDictionary *)user
 {
   return [DKDeferred deferInThread:
-          curryTS(self, @selector(_saveSubscriptionsThread::), acct) withObject:user];
+          curryTS(self, @selector(_saveSubscriptionsThread:::), acct, networkPK) withObject:user];
 }
 
-- (id)_saveSubscriptionsThread:(YMUserAccount *)acct :(NSDictionary *)user 
+- (id)_saveSubscriptionsThread:(YMUserAccount *)acct :(id)networkPK :(NSDictionary *)user 
 {
   // TODO: currently this ignores followed tags
-  YMNetwork *network = (YMNetwork *)[YMNetwork findByPK:intv(acct.activeNetworkPK)];
+  YMNetwork *network = (YMNetwork *)[YMNetwork findByPK:intv(networkPK)];
   
   NSMutableArray 
     *groups = [NSMutableArray array],
@@ -812,11 +894,14 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches
           @"WHERE group_i_d=%i", intv([g objectForKey:@"id"])]))
         group = [YMGroup new];
       group.groupID = [g objectForKey:@"id"];
-      group.fullName = [g objectForKey:@"full_name"];
+      group.fullName = [[g objectForKey:@"full_name"] stringByAppendingString:
+                        ([[g objectForKey:@"privacy"] isEqual:@"private"] ? @" (private)" : @"")];
       group.name = [g objectForKey:@"name"];
       group.url = [g objectForKey:@"url"];
       group.webURL = [g objectForKey:@"web_url"];
       group.mugshotURL = [g objectForKey:@"mugshot_url"];
+      group.networkID = network.networkID;
+      group.privacy = [g objectForKey:@"privacy"];
       [group save];
       [groups addObject:group.groupID];
     }
@@ -844,7 +929,7 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches
 {
   return [[[DKDeferredURLConnection alloc]
            initWithRequest:
-           [self mutableMultipartRequestWithMethod:@"messages/favorites_of/current.json"
+           [self mutableMultipartRequestWithMethod:@"messages/liked_by/current.json"
             account:acct defaults:dict_([message.messageID description], @"message_id")]
            pauseFor:0 decodeFunction:nil]
           addCallback:curryTS(self, @selector(_finishedLike:::), acct, message)];
@@ -861,9 +946,10 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches
 - (DKDeferred *)unlike:(YMUserAccount *)acct message:(YMMessage *)message
 {
   NSMutableURLRequest *req = 
-    [self mutableRequestWithMethod:@"messages/favorites_of/current.json" 
+    [self mutableMultipartRequestWithMethod:@"messages/liked_by/current.json" 
           account:acct defaults:dict_([message.messageID description], 
-                                      @"messae_id", @"DELETE", @"_method")];
+                                      @"message_id", @"DELETE", @"_method")]; 
+  [req setHTTPMethod:@"DELETE"];
   return [[[DKDeferredURLConnection alloc]
            initWithRequest:req pauseFor:0 decodeFunction:nil]
           addCallback:curryTS(self, @selector(_finishedUnlike:::), acct, message)];
@@ -875,6 +961,100 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches
   message.liked = nsnb(NO);
   [message save];
   return results;
+}
+
+- (DKDeferred *)suggestions:(YMUserAccount *)acct fromContacts:(NSArray *)contactDicts
+{
+  NSMutableURLRequest *req = [self mutableRequestWithMethod:@"suggestions/from_contacts"
+                                                    account:acct defaults:EMPTY_DICT];
+  [req setHTTPMethod:@"POST"];
+  NSString *json = [contactDicts JSONRepresentation];
+  NSData *bod = [NSData dataWithBytes:[json UTF8String] length:
+                 [json lengthOfBytesUsingEncoding:NSUTF8StringEncoding]];
+  [req setHTTPBody:bod];
+  [req setValue:[NSString stringWithFormat:@"%i", [bod length]]
+   forHTTPHeaderField:@"Content-Length"];
+  [req setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
+
+  return [[[DKDeferredURLConnection alloc]
+           initWithRequest:req pauseFor:0 decodeFunction:nil]
+          addBoth:callbackTS(self, _gotContactSuggestions:)];
+}
+
+- (id)_gotContactSuggestions:(id)r
+{
+  NSLog(@"got contact suggestions %@", [NSString stringWithUTF8String:[r bytes]]);
+  return r;
+}
+
+- (DKDeferred *)subscribe:(YMUserAccount *)acct to:(NSString *)type withID:(int)theID
+{
+  return [[[DKDeferredURLConnection alloc]
+           initWithRequest:
+           [self mutableMultipartRequestWithMethod:@"subscriptions/"
+            account:acct defaults:dict_([NSString stringWithFormat:@"%i", theID],
+                                        @"target_id", type, @"target_type")] 
+           pauseFor:0 decodeFunction:nil]
+          addBoth:callbackTS(self, _didSubscribe:)];
+}
+
+- (DKDeferred *)unsubscribe:(YMUserAccount *)acct to:(NSString *)type withID:(int)theID
+{
+  NSMutableURLRequest *req = [self mutableRequestWithMethod:@"subscriptions/" account:acct 
+                               defaults:dict_([NSString stringWithFormat:@"%i", theID],
+                               @"target_id", type, @"target_type", @"DELETE", @"_method")];
+  [req setHTTPMethod:@"DELETE"];
+  return [[[DKDeferredURLConnection alloc]
+           initWithRequest:req
+           pauseFor:0 decodeFunction:nil]
+          addBoth:callbackTS(self, _didUnsubscribe:)];
+}
+
+- _didSubscribe:(id)r
+{
+  NSLog(@"_didSubscribe %@", [NSString stringWithUTF8String:[r bytes]]);
+  return r;
+}
+
+- _didUnsubscribe:(id)r
+{
+  NSLog(@"_didUbsubscribe: %@", [NSString stringWithUTF8String:[r bytes]]);
+  return r;
+}
+
+- (DKDeferred *)joinGroup:(YMUserAccount *)acct withId:(int)theId
+{
+  return [[[DKDeferredURLConnection alloc] 
+           initWithRequest:
+           [self mutableMultipartRequestWithMethod:
+            @"group_memberships.json" account:acct 
+            defaults:dict_([NSString stringWithFormat:@"%i", theId], @"group_id")] 
+           pauseFor:0 decodeFunction:nil]
+          addBoth:callbackTS(self, _didJoinGroup:)];
+}
+
+- (DKDeferred *)leaveGroup:(YMUserAccount *)acct withId:(int)theId
+{
+  return [[[DKDeferredURLConnection alloc]
+           initWithRequest:
+           [self mutableRequestWithMethod:
+            [NSString stringWithFormat:@"group_memberships/%i.json", theId] 
+           account:acct defaults:
+            dict_([NSString stringWithFormat:@"%i", theId], @"groupID", @"DELETE", @"_method")] 
+           pauseFor:0 decodeFunction:nil]
+          addBoth:callbackTS(self, _didLeaveGroup:)];                                                                                                   
+}
+
+- _didJoinGroup:(id)r
+{
+  NSLog(@"didJoinGroup %@", [NSString stringWithUTF8String:[r bytes]]);
+  return r;
+}
+
+- _didLeaveGroup:(id)r
+{
+  NSLog(@"didLeaveGroup %@", [NSString stringWithUTF8String:[r bytes]]);
+  return r;
 }
 
 #pragma mark -
@@ -1032,6 +1212,16 @@ static DKDeferredCache *__diskCache;
   [app setApplicationIconBadgeNumber:totalUnseen];
 }
 
+- (void)subtractUnseenCount:(int)ct fromNetwork:(YMNetwork *)network
+{
+  int c = intv(network.unseenMessageCount) - ct;
+  if (c < 0) c = 0;
+  network.unseenMessageCount = nsni(c);
+  [[SQLiteInstanceManager sharedManager]
+   executeUpdateSQL:[NSString stringWithFormat:
+   @"UPDATE y_m_network SET unseen_message_count=%i WHERE pk=%i", c, network.pk]];
+}
+
 /**
  Builds a new NSMutableURLRequest with the proper headers for OAuth 1.0
  If the supplied YMUserAccount has an active network (IE: one they want
@@ -1039,8 +1229,7 @@ static DKDeferredCache *__diskCache;
  used.
  */
 - (id)mutableRequestWithMethod:(id)method 
-                       account:(YMUserAccount *)acct 
-                      defaults:(NSDictionary *)defaults
+account:(YMUserAccount *)acct defaults:(NSDictionary *)defaults
 {
   NSMutableString *params = [NSMutableString string];
   if (defaults && [[defaults allKeys] count]) {
@@ -1060,6 +1249,14 @@ static DKDeferredCache *__diskCache;
                          stringByAppendingFormat:@"/%@%@", method, params]]
                           cachePolicy:NSURLRequestUseProtocolCachePolicy
                       timeoutInterval:20.0];
+
+  [self authorizeRequest:req withAccount:acct];
+  
+  return req;
+}
+
+- (void)authorizeRequest:(NSMutableURLRequest *)req withAccount:(YMUserAccount *)acct
+{
   NSString *tok = @"", *sec = @"", *verifier = @"";
   NSString *sig = [NSString stringWithFormat:@"%@%%26", self.appSecret];
   if (acct.activeNetworkPK) {
@@ -1083,12 +1280,10 @@ static DKDeferredCache *__diskCache;
                       @"oauth_signature=\"%@\", oauth_timestamp=\"%f\", "
                       @"oauth_nounce=\"%f\", %@oauth_version=\"1.0\"",
                       self.appKey, tok, sig, ts, ts, verifier];
+  NSLog(@"auth header %@", header);
   [req setValue:header forHTTPHeaderField:@"Authorization"];
-  req.HTTPShouldHandleCookies = NO;
-  
+  [req setHTTPShouldHandleCookies:NO];
   [req setValue:@"gzip" forHTTPHeaderField:@"Accept-Encoding"];
-  
-  return req;
 }
 
 /**
