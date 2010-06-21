@@ -1,5 +1,4 @@
-Yammer for iPhone
------------------
+#Yammer for iPhone
 
 This is the full source code for the Yammer for iPhone application. To get started hacking, here are a few things you should know:
 
@@ -9,11 +8,9 @@ This is the full source code for the Yammer for iPhone application. To get start
  
  * You will have to [register a new app](http://github.com/samuraisam/DeferredKit) with Yammer to get a valid OAuth application key and secret. Once complete, add a new file directly to the project root entitled `YMWebService+Private.h` that looks something like this:
 
-<code><pre>
-\#import \<Foundation/Foundation.h\>
+    `#import <Foundation/Foundation.h>`
       
-\#define WS_APPKEY @"YOUR APP KEY"
-\#define WS_APPSECRET @"YOUR APP SECRET"
-</pre></code>
+    `#define WS_APPKEY @"YOUR APP KEY"`<br>
+    `#define WS_APPSECRET @"YOUR APP SECRET"`
 
  * Given this is an iPhone application you will also need a copy of the latest version of Xcode and an iPhone Developer Account (unless you are really clever, or just want to use the Yammer Cocoa API)
