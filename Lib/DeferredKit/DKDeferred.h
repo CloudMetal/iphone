@@ -221,6 +221,7 @@
   NSThread *thread;
   NSThread *parentThread;
   id<DKCallback> action;
+  id __result;
 }
 
 @property(readonly) NSThread *thread;
@@ -362,6 +363,8 @@
   NSTimeInterval *defaultTimeout;
   NSOperationQueue *operationQueue;
 }
+
+@property(nonatomic, readonly) NSString *dir;
 
 + (id)sharedCache;
 - (id)initWithDirectory:(NSString *)_dir 

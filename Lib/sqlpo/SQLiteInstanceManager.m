@@ -144,7 +144,7 @@ static SQLiteInstanceManager *sharedSQLiteManager = nil;
 }
 - (void)executeUpdateSQL:(NSString *) updateSQL
 {
-  NSLog(updateSQL);
+  NSLog(@"%@", updateSQL);
   char *errorMsg;
   if (sqlite3_exec([self database],[updateSQL UTF8String] , NULL, NULL, &errorMsg) != SQLITE_OK) {
     NSString *errorMessage = [NSString stringWithFormat:@"Failed to execute SQL '%@' with message '%s'.", updateSQL, errorMsg];

@@ -218,7 +218,14 @@ NSMutableArray *checkedTables;
 }
 +(SQLitePersistentObject *)findByPK:(int)inPk
 {
-  return [self findFirstByCriteria:[NSString stringWithFormat:@"WHERE pk = %d", inPk]];
+  SQLitePersistentObject *ret = nil;
+  NSString *k = [SQLitePersistentObject memoryMapKeyForObject:inPk];
+  if ([[objectMap allKeys] containsObject:k])
+    ret = [objectMap objectForKey:k];
+  if (ret == nil)
+    ret = [self findFirstByCriteria:
+           [NSString stringWithFormat:@"WHERE pk = %d", inPk]];
+  return ret;
 }
 
 +(NSArray *)findByCriteria:(NSString *)criteriaString, ...
@@ -277,6 +284,7 @@ NSMutableArray *checkedTables;
           NSString *propName = [colName stringAsPropertyString];
           
           NSString *colType = [theProps valueForKey:propName];
+//          NSLog(@"propName %@ colType %@", propName, colType);
           if (colType == nil)
             break;
           if ([colType isEqualToString:@"i"] || // int
@@ -310,7 +318,7 @@ NSMutableArray *checkedTables;
             
           {
             const char *colVal = (const char *)sqlite3_column_text(statement, i);
-            
+//            NSLog(@"colVal %s", colVal);
             if (colVal != nil)
             {
               NSString *colValString = [NSString stringWithUTF8String:colVal];
@@ -634,6 +642,38 @@ NSMutableArray *checkedTables;
   
   return ret;
 }
+
++ (NSArray *)pairedArraySelect:(NSString *)selectString fields:(NSInteger)fields
+{
+  NSMutableArray *ret = [NSMutableArray array];
+  int i;
+  for (i = 0; i < fields; i++) {
+    [ret addObject:[NSMutableArray array]];
+  }
+  [[self class] tableCheck];
+  sqlite3 *db = [[SQLiteInstanceManager sharedManager] database];
+  sqlite3_stmt *stmt;
+  if (sqlite3_prepare_v2(db, [selectString UTF8String], -1, &stmt, NULL) == SQLITE_OK) {
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+      for (i = 0; i < fields; i++) {
+        NSMutableArray *fieldArray = [ret objectAtIndex:i];
+        const char *valAsString = (const char *)sqlite3_column_text(stmt, i);
+        if (valAsString) {
+          NSString *s = [NSString stringWithUTF8String:(const char *)sqlite3_column_text(stmt, i)];
+          if (s) [fieldArray addObject:s];
+          else [fieldArray addObject:[NSNull null]];
+        } else {
+          [fieldArray addObject:[NSNull null]];
+        }
+      }
+    }
+  }
+  sqlite3_finalize(stmt);
+  NSLog(@"errmsg %s", sqlite3_errmsg(db));
+  
+  return ret;
+}
+
 #ifdef TARGET_OS_COCOTRON
 + (NSArray *)getPropertiesList
 {
@@ -1024,7 +1064,7 @@ NSMutableArray *checkedTables;
     else
       NSLog(@"Error preparing save SQL: %s", sqlite3_errmsg(database));
     // Can't register in memory map until we have PK, so do that now.
-    if (![[objectMap allKeys] containsObject:[self memoryMapKey]])
+    if ([[objectMap allKeys] containsObject:[self memoryMapKey]])
       [[self class] registerObjectInMemory:self];
     
     
@@ -1400,6 +1440,10 @@ NSMutableArray* recursionCheck;
 }
 - (void)dealloc 
 {
+  for (NSString *oneProp in [[self class] propertiesWithEncodedTypes])
+  {
+    [self removeObserver:self forKeyPath:oneProp];
+  }
   [[self class] unregisterObject:self];
   [super dealloc];
 }

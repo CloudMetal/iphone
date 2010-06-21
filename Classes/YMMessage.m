@@ -7,12 +7,27 @@
 //
 
 #import "YMMessage.h"
+#import "YMWebService.h"
+#import "NSString-SQLiteColumnName.h"
 
 
 @implementation YMMessage
 
-@synthesize messageID, groupID, directToID, URL, webURL, repliedToID, 
-            threadID, bodyPlain, bodyParsed, attachmentPKs, messageType, 
-            clientType, senderID, senderType, createdAt, networkPK, read;
+@synthesize messageID, groupID, directToID, url, webURL, repliedToID, target, 
+            threadID, bodyPlain, bodyParsed, messageType, targetID, liked, hasAttachments, 
+            clientType, senderID, senderType, createdAt, networkPK, read, repliedToSenderID;
+
++ (NSArray *) indices
+{
+  return array_(
+                array_(@"pk"),
+                array_(@"messageID", @"repliedToID"),
+                array_(@"messageID"), // TODO: add networkPK
+                array_(@"messageID", @"senderID"),
+                array_(@"messageID", @"repliedToID", @"repliedToSenderID"),
+                array_(@"messageID", @"repliedToID", @"senderID", @"repliedToSenderID"),
+                array_(@"messageID", @"targetID", @"repliedToID", @"repliedToSenderID"),
+                array_(@"messageID", @"targetID", @"repliedToID", @"repliedToSenderID", @"senderID"));
+}
 
 @end

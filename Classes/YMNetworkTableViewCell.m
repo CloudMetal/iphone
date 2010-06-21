@@ -20,8 +20,8 @@
     reuseIdentifier:(NSString *)reuseIdentifier
 {
   if ((self = [super initWithStyle:style reuseIdentifier:reuseIdentifier])) {
-    self.unreadLabel = [[[UILabel alloc] initWithFrame:CGRectMake(260, 8, 50, 28)] autorelease];
-    self.unreadLabel.layer.cornerRadius = 8;
+    self.unreadLabel = [[[UILabel alloc] initWithFrame:CGRectMake(240, 8, 50, 28)] autorelease];
+    self.unreadLabel.layer.cornerRadius = 10;
     self.unreadLabel.backgroundColor = [UIColor colorWithHexString:@"8bacd0"];
     self.unreadLabel.textAlignment = UITextAlignmentCenter;
     self.unreadLabel.contentMode = UIViewContentModeCenter;
@@ -45,6 +45,5 @@
   self.unreadLabel = nil;
   [super dealloc];
 }
-
 
 @end

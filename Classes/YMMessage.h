@@ -1,11 +1,3 @@
-//
-//  YMMessage.h
-//  Yammer
-//
-//  Created by Samuel Sutch on 5/6/10.
-//  Copyright 2010 __MyCompanyName__. All rights reserved.
-//
-
 #import <Foundation/Foundation.h>
 #import "SQLitePersistentObject.h"
 
@@ -15,15 +7,13 @@
   NSNumber *messageID;
   NSNumber *groupID;
   NSNumber *directToID;
-  NSString *URL;
+  NSString *url;
   NSString *webURL;
   NSNumber *repliedToID;
   NSNumber *threadID;
   
   NSString *bodyParsed;
   NSString *bodyPlain;
-  
-  NSArray *attachmentPKs;
   
   NSString *messageType;
   NSString *clientType;
@@ -35,30 +25,42 @@
   
   NSNumber *networkPK;
   NSNumber *read;
+  NSString *target;
+  NSNumber *targetID;
+  
+  NSNumber *repliedToSenderID;
+  
+  NSNumber *hasAttachments;
+  NSNumber *liked;
 }
 
-@property(nonatomic, retain, readwrite) NSNumber *messageID;
-@property(nonatomic, retain, readwrite) NSNumber *groupID;
-@property(nonatomic, retain, readwrite) NSNumber *directToID;
-@property(nonatomic, retain, readwrite) NSString *URL;
-@property(nonatomic, retain, readwrite) NSString *webURL;
-@property(nonatomic, retain, readwrite) NSNumber *repliedToID;
-@property(nonatomic, retain, readwrite) NSNumber *threadID;
+@property(copy) NSNumber *messageID;
 
-@property(nonatomic, retain, readwrite) NSString *bodyParsed;
-@property(nonatomic, retain, readwrite) NSString *bodyPlain;
+@property(copy) NSNumber *groupID;
+@property(copy) NSNumber *directToID;
+@property(copy) NSNumber *repliedToID;
+@property(copy) NSNumber *threadID;
 
-@property(nonatomic, retain, readwrite) NSArray *attachmentPKs;
+@property(copy) NSString *url;
+@property(copy) NSString *webURL;
+@property(copy) NSString *bodyParsed;
+@property(copy) NSString *bodyPlain;
 
-@property(nonatomic, retain, readwrite) NSString *messageType;
-@property(nonatomic, retain, readwrite) NSString *clientType;
+@property(copy) NSString *messageType;
+@property(copy) NSString *clientType;
 
-@property(nonatomic, retain, readwrite) NSNumber *senderID;
-@property(nonatomic, retain, readwrite) NSString *senderType;
+@property(copy) NSNumber *senderID;
+@property(copy) NSString *senderType;
 
-@property(nonatomic, retain, readwrite) NSDate *createdAt;
+@property(copy) NSDate *createdAt;
 
-@property(nonatomic, retain, readwrite) NSNumber *networkPK;
-@property(nonatomic, retain, readwrite) NSNumber *read;
+@property(copy) NSNumber *networkPK;
+@property(copy) NSNumber *read;
+@property(copy) NSString *target;
+@property(copy) NSNumber *targetID;
+
+@property(copy) NSNumber *repliedToSenderID;
+
+@property(copy) NSNumber *hasAttachments, *liked;
 
 @end

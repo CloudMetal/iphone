@@ -10,11 +10,21 @@
 #import "YMNetwork.h"
 #import "YMUserAccount.h"
 #import "YMMessage.h"
+#import "YMContact.h"
 #import "YMWebService+Private.h"
+#import "YMGroup.h"
+#import "YMAttachment.h"
 
-#define WS_URL @"https://staging.yammer.com"
+#define WS_URL @"https://www.yammer.com"
 #define WS_MOUNTPOINT [NSURL URLWithString:[NSString \
             stringWithFormat:@"%@%@", WS_URL, @"/api/v1"]]
+
+#define IS_TARGET(__a, __b) ([__a isEqualToString:__b])
+
+#define YMWebServiceDidUpdateMessages @"webservicedidendmessageupdates"
+#define YMWebServiceDidUpdateSubscriptions @"webservicedidupdatesubscriptions"
+
+#define YMLastSeenMessageID @"lastSeenMessageID"
 
 #define YMMessageTargetAll @""
 #define YMMessageTargetSent @"sent"
@@ -33,9 +43,10 @@
 
 #define YMBodyKey @"body"
 #define YMGroupIDKey @"group_id"
-#define YMReplyToIDKey @"reply_to_id"
+#define YMReplyToIDKey @"replied_to_id"
 #define YMDirectToIDKey @"direct_to_id"
 
+@class DataCache;
 
 @interface YMWebService : NSObject
 {
@@ -43,6 +54,10 @@
   NSString *appKey;
   NSString *appSecret;
   BOOL shouldUpdateBadgeIcon;
+  DataCache *_contactImageCache;
+  DKDeferredPool *loadingPool;
+  YMUserAccount *userAccountForCachedContactImages;
+  NSString *pushID;
 }
 
 + (id)sharedWebService;
@@ -51,10 +66,21 @@
 @property (copy) NSString *appKey;
 @property (copy) NSString *appSecret;
 @property (assign) BOOL shouldUpdateBadgeIcon;
+@property (copy) NSString *pushID;
 
 
 - (NSArray *)loggedInUsers;
 - (void)updateUIApplicationBadge;
+- (void)subtractUnseenCount:(int)ct fromNetwork:(YMNetwork *)network;
+
+// high performance contact image caching
+- (DKDeferred *)loadCachedContactImagesForUserAccount:(YMUserAccount *)acct;
+- (void)purgeCachedContactImages;
+- (void)writeCachedContactImages;
+- (id)imageForURLInMemoryCache:(NSString *)url;
+- (DKDeferred *)contactImageForURL:(NSString *)url;
+- (BOOL)didLoadContactImagesForUserAccount:(YMUserAccount *)acct;
+- (void)authorizeRequest:(NSMutableURLRequest *)req withAccount:(YMUserAccount *)acct;
 
 /** 
  Takes a YMUserAccount and authenticates it against the yammer
@@ -76,46 +102,55 @@
  */
 - (DKDeferred *)networksForUserAccount:(YMUserAccount *)acct;
 
+/**
+ Returns a NSDictionary structure of tag objects
+ */
+- (DKDeferred *)allTags:(YMUserAccount *)acct;
 
 /**
- Takes a YMUserAccount and calls back with all messages from the company-wide feed
- from the `activeNetworkPK` of the user account provided. Calls back with a list
- of YMMessage objects.
- 
- This method requires that `activeNetworkPK` be set on the user's account and that
- the YMNetwork with that PK has been fetched and has updated OAuth token/secret info.
+ Syncs users groups to YMGroup
  */
-- (DKDeferred *)getMessages:(YMUserAccount *)acct params:(NSDictionary *)params;
+- (DKDeferred *)syncGroups:(YMUserAccount *)acct;
 
-/**
- Takes a YMUserAccount and calls back with all messages from the provided target.
- IE: YMMessageTargetSent will return a list of messages the user received in their
- `activeNetworkPK`.
- 
- This method requires that `activeNetworkPK` be set on the user's account and that
- the YMNetwork with that PK has been fetched and has updated OAuth token/secret info.
- 
- Example:
- 
- You can query the most recent 20 messages delivered to you like this:
- 
- [[YMWebService sharedService]
-  getMessages:myAccount withTarget:
-  YMMessageTargetReceived params:nil]
- 
- */
-- (DKDeferred *)getMessages:(YMUserAccount *)acct 
-                 withTarget:(id)target 
-                     params:(NSDictionary *)params;
 
-/**
- Similar to `getMessage:withTarget:params` except you can provide a target ID. Some 
- message targets require an ID like YMMessageTargetInGroup will require the group ID.
- */
-- (DKDeferred *)getMessages:(YMUserAccount *)acct 
-                 withTarget:(id)target 
-                     withID:(NSString *)targetID
-                     params:(NSDictionary *)params;
+///**
+// Takes a YMUserAccount and calls back with all messages from the company-wide feed
+// from the `activeNetworkPK` of the user account provided. Calls back with a list
+// of YMMessage objects.
+// 
+// This method requires that `activeNetworkPK` be set on the user's account and that
+// the YMNetwork with that PK has been fetched and has updated OAuth token/secret info.
+// */
+////- (DKDeferred *)getMessages:(YMUserAccount *)acct params:(NSDictionary *)params;
+//
+///**
+// Takes a YMUserAccount and calls back with all messages from the provided target.
+// IE: YMMessageTargetSent will return a list of messages the user received in their
+// `activeNetworkPK`.
+// 
+// This method requires that `activeNetworkPK` be set on the user's account and that
+// the YMNetwork with that PK has been fetched and has updated OAuth token/secret info.
+// 
+// Example:
+// 
+// You can query the most recent 20 messages delivered to you like this:
+// 
+// [[YMWebService sharedService]
+//  getMessages:myAccount withTarget:
+//  YMMessageTargetReceived params:nil]
+// 
+// */
+////- (DKDeferred *)getMessages:(YMUserAccount *)acct 
+////                 withTarget:(id)target 
+////                     params:(NSDictionary *)params;
+//
+///**
+// Similar to `getMessage:withTarget:params` except you can provide a target ID. Some 
+// message targets require an ID like YMMessageTargetInGroup will require the group ID.
+// */
+
+- (DKDeferred *)getMessages:(YMUserAccount *)acct withTarget:(NSString *)target 
+withID:(NSNumber *)targetID params:(NSDictionary *)params fetchToID:(NSNumber *)toID;
 
 /**
  Posts a new message to the supplied YMUserAccount's `activeNetworkPK`. `replyOpts`
@@ -140,6 +175,54 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches;
  Calls back on success with the supplied messageID of the removed message.
  */
 - (DKDeferred *)deleteMessage:(YMUserAccount *)acct messageID:(NSString *)messageID;
+
+/**
+ */
+- (DKDeferred *)syncUsers:(YMUserAccount *)acct;
+
+/**
+ */
+- (DKDeferred *)updateUser:(YMUserAccount *)acct contact:(YMContact *)contact;
+
+/**
+ */
+- (DKDeferred *)syncSubscriptions:(YMUserAccount *)acct;
+
+/**
+ */
+- (DKDeferred *)like:(YMUserAccount *)acct message:(YMMessage *)message;
+
+/**
+ */
+- (DKDeferred *)unlike:(YMUserAccount *)acct message:(YMMessage *)message;
+
+/**
+ */
+- (DKDeferred *)subscribe:(YMUserAccount *)acct to:(NSString *)type withID:(int)theID;
+
+/**
+ */
+- (DKDeferred *)unsubscribe:(YMUserAccount *)acct to:(NSString *)type withID:(int)theID;
+
+/**
+ */
+- (DKDeferred *)suggestions:(YMUserAccount *)acct fromContacts:(NSArray *)contactDicts;
+
+/**
+ */
+- (DKDeferred *)joinGroup:(YMUserAccount *)acct withId:(int)theId;
+
+/*
+ */
+- (DKDeferred *)leaveGroup:(YMUserAccount *)acct withId:(int)theId;
+
+/**
+ */
+- (DKDeferred *)autocomplete:(YMUserAccount *)acct string:(NSString *)str;
+
+/**
+ */
+//- (DKDeferred *)send:(YMUserAccount *)acct message:(YMMessage *)message;
 
 @end
 

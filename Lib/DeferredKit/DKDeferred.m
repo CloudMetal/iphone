@@ -598,7 +598,15 @@ id _gatherResultsCallback(id results) {
   [pool drain];
 }
 
-- (void)_cbReturnFromThread:(id)result {
+- (id)_cbReturnDeferredFromThread:(id)r
+{
+  id ret = [[__result retain] autorelease];
+  [__result release];
+  __result = nil;
+  return ret;
+}
+
+- (void)_cbReturnFromThread:(id)result {  
   if ([result isKindOfClass:[NSError class]])
     [self errback:result];
   else if ([result isKindOfClass:[DKDeferred class]])
@@ -753,7 +761,7 @@ static NSInteger __urlConnectionCount;
                      connectionWithRequest:request
                      delegate:self] retain];
       __urlConnectionCount += 1;
-//      NSLog(@"loading %@ : %@ %@", self.started, url, [request allHTTPHeaderFields]);
+      NSLog(@"loading %@ : %@", self.started, url);
       if (!connection) {
         __urlConnectionCount -= 1;
         NSLog(@"error:???");
@@ -852,7 +860,7 @@ didReceiveResponse:(NSURLResponse *)response {
 }
 
 - (id)_cbStartLoading:(id)result {
-//  NSLog(@"connection: %@ : %@ %@", self.started, url, [request allHTTPHeaderFields]);
+  NSLog(@"connection: %@ : %@", self.started, url);
   connection = [[NSURLConnection connectionWithRequest:request delegate:self] retain];
   if (connection) {
     __urlConnectionCount += 1;
@@ -874,6 +882,8 @@ didReceiveResponse:(NSURLResponse *)response {
 static DKDeferredCache *__sharedCache;
 
 @implementation DKDeferredCache
+
+@synthesize dir;
 
 /// DKCache Protocol
 - (id)setValue:(NSObject *)value forKey:(NSString *)key timeout:(NSTimeInterval)timeout {
@@ -932,6 +942,7 @@ static DKDeferredCache *__sharedCache;
   for (NSString *key in keys) {
     val = [self _getValue:key];
     [ret addObject:((val == nil) ? [NSNull null] : val)];
+    val = nil;
   }
   return ret; //[NSDictionary dictionaryWithObjects:ret forKeys:keys];
 }
@@ -939,7 +950,7 @@ static DKDeferredCache *__sharedCache;
 // should always be executed in a thread
 - (id)_getValue:(NSString *)key { 
   if (key == (id)[NSNull null])
-    return key;
+    return nil;
   NSString *fname = [dir stringByAppendingPathComponent:md5(key)];
   NSFileManager *fm = [NSFileManager defaultManager];
   if ([fm fileExistsAtPath:fname]) {
@@ -1231,8 +1242,8 @@ static DKDeferredCache *__sharedCache;
   if (ret) {
     [d addBoth:curryTS(self, @selector(_cbRemoveDeferred::), k)];
   } else {
-    ret = d;
-    [ret cancel];
+    ret = [(id)_queue objForKey:k];
+    [d cancel];
   }
   [self _resumeWaiting];
   return ret;

@@ -11,7 +11,8 @@
 
 @implementation YMNetwork
 
-@synthesize token, secret, userAccountPK, networkID, 
-            permalink, url, unseenMessageCount, name;
+@synthesize token, secret, userAccountPK, networkID, lastScrapedLocalContacts, 
+            permalink, url, unseenMessageCount, name, userID,
+            groupSubscriptionIds, tagSubscriptionIds, userSubscriptionIds;
 
 @end
