@@ -202,8 +202,8 @@
 		22131F9A11936C860092F094 /* YMMessage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = YMMessage.h; path = Classes/YMMessage.h; sourceTree = "<group>"; };
 		22131F9B11936C860092F094 /* YMMessage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = YMMessage.m; path = Classes/YMMessage.m; sourceTree = "<group>"; };
 		2220A1B811ADD44D00DB3714 /* unread-msg-bg.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "unread-msg-bg.png"; path = "Resources/unread-msg-bg.png"; sourceTree = "<group>"; };
-		22235CA71190E533007F2255 /* StatusBarNotifier.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StatusBarNotifier.h; sourceTree = "<group>"; };
-		22235CA81190E533007F2255 /* StatusBarNotifier.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = StatusBarNotifier.m; sourceTree = "<group>"; };
+		22235CA71190E533007F2255 /* StatusBarNotifier.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = StatusBarNotifier.h; path = Classes/StatusBarNotifier.h; sourceTree = "<group>"; };
+		22235CA81190E533007F2255 /* StatusBarNotifier.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = StatusBarNotifier.m; path = Classes/StatusBarNotifier.m; sourceTree = "<group>"; };
 		2233D7DE11C45CED002DCDFB /* 42-photos.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "42-photos.png"; path = "Resources/42-photos.png"; sourceTree = "<group>"; };
 		2233D7DF11C45CED002DCDFB /* 68-paperclip.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "68-paperclip.png"; path = "Resources/68-paperclip.png"; sourceTree = "<group>"; };
 		2233D7F811C460BC002DCDFB /* DrillDownPage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DrillDownPage.h; path = Classes/DrillDownPage.h; sourceTree = "<group>"; };
@@ -1225,8 +1225,8 @@
 					"-ObjC",
 				);
 				PRODUCT_NAME = Yammer;
-				PROVISIONING_PROFILE = "AE248043-7B17-4951-A878-00C93821C44D";
-				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "AE248043-7B17-4951-A878-00C93821C44D";
+				PROVISIONING_PROFILE = "A20BF570-358C-4659-94E5-7DCB62DBFDAE";
+				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "A20BF570-358C-4659-94E5-7DCB62DBFDAE";
 				SDKROOT = iphoneos4.0;
 			};
 			name = Debug;
