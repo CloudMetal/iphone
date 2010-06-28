@@ -70,6 +70,10 @@
 //      [NSIndexPath indexPathForRow:0 inSection:0] 
 //     atScrollPosition:UITableViewScrollPositionTop animated:NO];
   
+  self.navigationItem.rightBarButtonItem 
+    = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:
+        UIBarButtonSystemItemRefresh target:self action:@selector(doSync:)] autorelease];
+  
   self.navigationItem.leftBarButtonItem =
   [[UIBarButtonItem alloc]
    initWithTitle:@"Networks" style:UIBarButtonItemStyleBordered target:
