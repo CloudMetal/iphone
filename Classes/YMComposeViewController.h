@@ -15,7 +15,8 @@
 @class YMComposeView;
 
 @interface YMComposeViewController : UIViewController 
-<UITableViewDataSource, UITableViewDelegate, UITextViewDelegate> {
+<UITableViewDataSource, UITableViewDelegate, UITextViewDelegate, UIActionSheetDelegate,
+UIImagePickerControllerDelegate, UINavigationControllerDelegate> {
   YMWebService *web;
   YMUserAccount *userAccount;
   YMNetwork *network;
@@ -25,9 +26,12 @@
   YMContact *directTo;
   IBOutlet UITableView *autocompleteTable;
   NSArray *usernames;
+  NSArray *fullNames;
   NSArray *hashes;
   BOOL gotPartialWillCloseMessage;
   YMComposeView *composeView;
+  NSMutableArray *attachments;
+  BOOL onPhoto;
 }
 
 @property (nonatomic, readwrite, retain) YMUserAccount *userAccount;

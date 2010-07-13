@@ -11,8 +11,8 @@
 
 @implementation YMComposeView
 
-@synthesize messageTextView, toLabel, toTargetLabel, activity,
-onUserInputsHash, onUserInputsAt, onPartialWillClose, actionBar, tableView, onHash, onUser;
+@synthesize messageTextView, toLabel, toTargetLabel, activity, onPhoto, imagePicker, onUserPhoto,
+onUserInputsHash, onUserInputsAt, onPartialWillClose, actionBar, tableView, onHash, onUser, onPartial;
 
 //- (id)initWithCoder:(NSCoder *)aDecoder
 //{
@@ -36,27 +36,31 @@ onUserInputsHash, onUserInputsAt, onPartialWillClose, actionBar, tableView, onHa
 
 -(void) kb:(id)s
 {
+  onUser = onPhoto = onHash = NO;
   [self.messageTextView becomeFirstResponder];
 }
 
 -(void) photo:(id)s
 {
+  onPhoto = YES;
+  onUser = onHash = onPartial = NO;
+  if (self.onUserPhoto) [self.onUserPhoto :nil];
 }
 
 -(void) at:(id)s
 {
   onUser = YES;
-  onHash = NO;
+  onHash = onPhoto = onPartial = NO;
   [self.messageTextView resignFirstResponder];
-  [self.onUserInputsAt :@""];
+  [self.onUserInputsAt :@"@"];
 }
 
 -(void) hash:(id)s
 {
   onHash = YES;
-  onUser = NO;
+  onUser = onPhoto = onPartial = NO;
   [self.messageTextView resignFirstResponder];
-  [self.onUserInputsHash :@""];
+  [self.onUserInputsHash :@"#"];
 }
 
 - (void) textViewDidChange:(UITextView *)textView
@@ -65,9 +69,9 @@ onUserInputsHash, onUserInputsAt, onPartialWillClose, actionBar, tableView, onHa
                  RKLDotAll | RKLMultiline | RKLUnicodeWordBoundaries inRange:
                  NSMakeRange(0, textView.text.length) capture:1 error:nil];
   
-  if (!s && messageTextView.onPartial) {
+  if (!s && onPartial) {
     if (self.onPartialWillClose) [self.onPartialWillClose :textView];
-    [messageTextView hidePartials:nil];
+    //[messageTextView hidePartials:nil];
   }
   if (!s) return;
   UIDeviceOrientation o = [[UIDevice currentDevice] orientation];
@@ -77,15 +81,43 @@ onUserInputsHash, onUserInputsAt, onPartialWillClose, actionBar, tableView, onHa
   }
   
   if ([s hasPrefix:@"#"] && self.onUserInputsHash 
-      && messageTextView.autocompleteEnabled)
+      && messageTextView.autocompleteEnabled) {
+    onHash = onPartial = YES;
+    onUser = onPhoto = NO;
     [self.onUserInputsHash :s];
-  else if ([s hasPrefix:@"@"] && self.onUserInputsAt 
-           && messageTextView.autocompleteEnabled)
+  } else if ([s hasPrefix:@"@"] && self.onUserInputsAt 
+             && messageTextView.autocompleteEnabled) {
+    onUser = onPartial = YES;
+    onHash = onPhoto = NO;
     [self.onUserInputsAt :s];
+  }
+}
+
+- (void)revealPartial
+{
+  onPartial = YES;
+  [UIView beginAnimations:nil context:nil];
+  [UIView setAnimationDuration:.25];
+  messageTextView.frame = CGRectMake(0, 20, 320, 87);
+  tableView.frame = CGRectMake(0, 107, 320, 93);
+  actionBar.alpha = 0;
+  [UIView commitAnimations];
+}
+
+- (void)hidePartial
+{
+  onPartial = onPhoto = onHash = onUser = NO;
+  [UIView beginAnimations:nil context:nil];
+  [UIView setAnimationDuration:.25];
+  messageTextView.frame = CGRectMake(0, 20, 320, 153);
+  tableView.frame = CGRectMake(0, 200, 320, 216);
+  actionBar.alpha = 1;
+  [UIView commitAnimations];
 }
 
 - (void)performAutocomplete:(NSString *)str isAppending:(BOOL)appending
 {
+  NSLog(@"autocomplete %i %@", appending, str);
   if (appending) {
     BOOL lastIsWhitespace = [messageTextView.text hasSuffix:@" "];
     messageTextView.text = [messageTextView.text stringByAppendingFormat:@"%@%@ ", 

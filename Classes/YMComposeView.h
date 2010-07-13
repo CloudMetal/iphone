@@ -16,19 +16,21 @@
   IBOutlet UILabel *toTargetLabel;
   IBOutlet UIToolbar *actionBar;
   IBOutlet UIBarButtonItem *kb, *photo, *at, *hash;
-  BOOL onHash, onUser;
+  BOOL onHash, onUser, onPartial;
   IBOutlet UITableView *tableView;
   IBOutlet UIActivityIndicatorView *activity;
-  id<DKCallback> onUserInputsHash, onUserInputsAt, onPartialWillClose, onPhoto;
+  id<DKCallback> onUserInputsHash, onUserInputsAt, onPartialWillClose, onUserPhoto;
+  IBOutlet UIImagePickerController *imagePicker;
 }
 
-@property(nonatomic, readwrite, retain) id<DKCallback> onUserInputsHash, onUserInputsAt, onPartialWillClose;
+@property(nonatomic, readwrite, retain) id<DKCallback> onUserInputsHash, onUserInputsAt, onPartialWillClose, onUserPhoto;
 @property(nonatomic, readwrite, retain) YMMessageTextView *messageTextView;
 @property(nonatomic, readwrite, retain) UILabel *toLabel, *toTargetLabel;
 @property(nonatomic, retain) UIToolbar *actionBar;
 @property(nonatomic, retain) UITableView *tableView;
-@property(nonatomic, readonly) BOOL onHash, onUser;
+@property(nonatomic, assign) BOOL onHash, onUser, onPhoto, onPartial;
 @property(nonatomic, retain) UIActivityIndicatorView *activity;
+@property(nonatomic, retain) UIImagePickerController *imagePicker;
 
 - (void)performAutocomplete:(NSString *)str isAppending:(BOOL)appending;
 
@@ -36,7 +38,7 @@
 - (IBAction)kb:(id)s;
 - (IBAction)at:(id)s;
 - (IBAction)hash:(id)s;
-- (IBAction)send:(id)s;
-- (IBAction)cancel:(id)s;
+- (void)revealPartial;
+- (void)hidePartial;
 
 @end

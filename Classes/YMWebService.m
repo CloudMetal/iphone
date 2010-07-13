@@ -16,6 +16,7 @@
 #import "SQLiteInstanceManager.h"
 #import "DataCache.h"
 #import "NSString+XMLEntities.h"
+#import "UIImage+DKDeferred.h"
 
 static YMWebService *__sharedWebService;
 
@@ -1380,7 +1381,7 @@ account:(YMUserAccount *)acct defaults:(NSDictionary *)defs
   NSString *boundary = [NSString stringWithFormat:@"--%@\r\n", boundaryID];
   
   id val;
-  int attachmentCount = 0;
+  int attachmentCount = 1;
   NSMutableData *body = [NSMutableData data];
   
   for (NSString *key in [defs allKeys]) {
@@ -1398,6 +1399,17 @@ account:(YMUserAccount *)acct defaults:(NSDictionary *)defs
       [body appendData:[@"Content-Type: application/octet-stream\r\n\r\n"
                         dataUsingEncoding:NSUTF8StringEncoding]];
       [body appendData:val];
+      attachmentCount++;
+    } else if ([val isKindOfClass:[UIImage class]]) {
+      [body appendData:[[NSString stringWithFormat:
+                         @"Content-Disposition: form-data; name=\"attachment%i\"; filename=\"%@\"\r\n",
+                         attachmentCount, key] dataUsingEncoding:NSUTF8StringEncoding]];
+      [body appendData:[@"Content-Type: image/jpeg\r\n\r\n"
+                        dataUsingEncoding:NSUTF8StringEncoding]];
+      CGSize s = [(UIImage *)val size];
+      if (s.width > 1024 || s.height > 1024)
+        val = [(UIImage *)val scaleImageToSize:CGSizeMake(1024, 1024)];
+      [body appendData:UIImagePNGRepresentation(val)];
       attachmentCount++;
     }
     [body appendData:[@"\r\n" dataUsingEncoding:NSUTF8StringEncoding]];
