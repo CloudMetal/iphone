@@ -54,20 +54,40 @@
     self.remainingUnseenItems = nil;
     self.lastLoadedMessageID = nil;
     self.lastSeenMessageID = nil;
+    self.actionTableViewHeaderClass = [YMRefreshView class];
     
+    wasInactive = NO;
     loadedAvatars = NO;
     shouldScrollToTop = YES;
     limit = 50;
     shouldUpdateBadge = NO;
+
     [[NSNotificationCenter defaultCenter]
      addObserver:self selector:@selector(messagesDidUpdate:) 
      name:YMWebServiceDidUpdateMessages object:nil];
-//    [[NSNotificationCenter defaultCenter]
-//     addObserver:self selector:@selector(subscriptionsDidUpdate:) 
-//     name:YMWebServiceDidUpdateSubscriptions object:nil];
+    [[NSNotificationCenter defaultCenter]
+     addObserver:self selector:@selector(didBackground:) name:
+     UIApplicationDidEnterBackgroundNotification object:nil];
+    [[NSNotificationCenter defaultCenter]
+     addObserver:self selector:@selector(didBecomeActive:) name:
+     UIApplicationDidBecomeActiveNotification object:nil];
+
     web = [YMWebService sharedWebService];
   }
   return self;
+}
+
+- (void)didBackground:(id)n
+{
+  wasInactive = YES;
+}
+
+- (void)didBecomeActive:(id)n
+{
+  if (wasInactive) {
+    wasInactive = NO;
+    [self reloadTableViewDataSource];
+  }
 }
 
 - (void)loadView
@@ -91,6 +111,7 @@
   [moreButton setBackgroundColor:[UIColor colorWithPatternImage:[UIImage imageNamed:@"inline-button-bg-blue.png"]]];
   [moreButton addTarget:self action:@selector(loadMore:) forControlEvents:UIControlEventTouchUpInside];
   [tf addSubview:moreButton];
+  moreButton.hidden = YES;
   
   totalLoadedLabel = [[[UILabel alloc] initWithFrame:CGRectMake(0, 0, 320, 32)] retain];
   totalLoadedLabel.text = @"0 Messages Loaded";
@@ -103,18 +124,18 @@
   
   self.tableView.tableFooterView = tf;
   
-  refreshButton = [[UIButton buttonWithType:UIButtonTypeCustom] retain];
-  refreshButton.frame = CGRectMake(0, 0, 320, 41);
-  [refreshButton setImage:[UIImage imageNamed:@"refresh-tiny.png"] forState:UIControlStateNormal];
-  refreshButton.autoresizingMask = UIViewAutoresizingFlexibleWidth;
-  [refreshButton setImageEdgeInsets:UIEdgeInsetsMake(0, -20, 0, 0)];
-  [refreshButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
-  refreshButton.titleLabel.font = [UIFont systemFontOfSize:13];
-  [refreshButton setBackgroundColor:[UIColor colorWithPatternImage:[UIImage imageNamed:@"inline-button-bg-blue.png"]]];
-  [refreshButton setTitle:@"Refresh" forState:UIControlStateNormal];
-  [refreshButton addTarget:self action:@selector(refreshFeed:) forControlEvents:UIControlEventTouchUpInside];
-
-  self.tableView.tableFooterView.hidden = YES;
+//  refreshButton = [[UIButton buttonWithType:UIButtonTypeCustom] retain];
+//  refreshButton.frame = CGRectMake(0, 0, 320, 41);
+//  [refreshButton setImage:[UIImage imageNamed:@"refresh-tiny.png"] forState:UIControlStateNormal];
+//  refreshButton.autoresizingMask = UIViewAutoresizingFlexibleWidth;
+//  [refreshButton setImageEdgeInsets:UIEdgeInsetsMake(0, -20, 0, 0)];
+//  [refreshButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+//  refreshButton.titleLabel.font = [UIFont systemFontOfSize:13];
+//  [refreshButton setBackgroundColor:[UIColor colorWithPatternImage:[UIImage imageNamed:@"inline-button-bg-blue.png"]]];
+//  [refreshButton setTitle:@"Refresh" forState:UIControlStateNormal];
+//  [refreshButton addTarget:self action:@selector(refreshFeed:) forControlEvents:UIControlEventTouchUpInside];
+//
+//  self.tableView.tableFooterView.hidden = YES;
 }
 
 - (void) viewWillAppear:(BOOL)animated
@@ -122,18 +143,18 @@
   self.selectedIndexPath = nil;
   if (!messagePKs || ![messagePKs count]) {
     [self refreshMessagePKs];
-    [self.tableView reloadData];
-    if (shouldScrollToTop && [messagePKs count]) {
-      [self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0] 
-                            atScrollPosition:UITableViewScrollPositionTop animated:YES];
-      shouldScrollToTop = NO;
-    }
+//    if (shouldScrollToTop && [messagePKs count]) {
+//      [self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0] 
+//                            atScrollPosition:UITableViewScrollPositionTop animated:YES];
+//      shouldScrollToTop = NO;
+//    }
   }
   loadedAvatars = [web didLoadContactImagesForUserAccount:self.userAccount];
   if (!loadedAvatars)
     [[web loadCachedContactImagesForUserAccount:self.userAccount]
      addBoth:callbackTS(self, _imagesLoaded:)];
   viewHasAppeared = YES;
+  [self.tableView reloadData];
   [super viewWillAppear:animated];
 }
 
@@ -162,8 +183,8 @@
 - (void)messagesDidUpdate:(id)note
 {
   NSLog(@"%@ got %@", self, note);
-  if (![self.target isEqual:YMMessageTargetFollowing] 
-      && ![self.target isEqual:YMMessageTargetReceived]) [self doReload:nil];
+//  if (![self.target isEqual:YMMessageTargetFollowing] 
+//      && ![self.target isEqual:YMMessageTargetReceived]) [self doReload:nil];
 }
 
 - (void)subscriptionsDidUpdate:(id)note
@@ -185,13 +206,15 @@
 //    [opts setObject:[self.newerThan description] forKey:@"newer_than"];
   
   [[[web getMessages:self.userAccount withTarget:target withID:self.targetID 
-              params:opts fetchToID:self.newerThan]
+              params:opts fetchToID:self.newerThan unseenLeft:self.remainingUnseenItems]
     addCallback:callbackTS(self, _gotMessages:)] 
    addErrback:callbackTS(self, _failedGetMessages:)];
   if (loadingDeferred && loadingDeferred.fired == -1) [loadingDeferred callback:nil];
   loadingDeferred = nil;
   loadingDeferred = [[DKDeferred deferred] retain];
-  [[StatusBarNotifier sharedNotifier] flashLoading:@"Refreshing Messages" deferred:loadingDeferred];
+  if (!self.reloading)
+    [[StatusBarNotifier sharedNotifier] flashLoading:
+     @"Loading Messages" deferred:loadingDeferred];
   
   return arg;
 }
@@ -231,6 +254,11 @@
   [self doReload:nil];
 }
 
+- (void)reloadTableViewDataSource
+{
+  [self refreshFeed:nil];
+}
+
 - (void)refreshFeed:(id)sender
 {
   if ([messagePKs count]) {
@@ -264,15 +292,17 @@
   
   self.selectedIndexPath = nil;
   self.tableView.tableFooterView.hidden = NO;
-  self.tableView.tableHeaderView = refreshButton;
+//  self.tableView.tableHeaderView = refreshButton;
   shouldUpdateBadge = NO;
   
   if ([results objectForKey:@"unseenItemsLeftToFetch"]) {
     self.remainingUnseenItems = [results objectForKey:@"unseenItemsLeftToFetch"];
     self.lastLoadedMessageID = [results objectForKey:@"lastFetchedID"];
     self.lastSeenMessageID = [results objectForKey:@"lastSeenID"];
-    [moreButton setTitle:[NSString stringWithFormat:@"More (%@ unread)", 
-                          self.remainingUnseenItems] forState:UIControlStateNormal];
+    int u = intv(self.remainingUnseenItems);
+    [moreButton setTitle:[NSString stringWithFormat:@"More (%i unread)", 
+                          ((u > 0) ? u : 0)] forState:UIControlStateNormal];
+    moreButton.hidden = NO;
     shouldUpdateBadge = NO;
   } else {
     shouldUpdateBadge = YES;
@@ -285,8 +315,9 @@
   if ([results objectForKey:@"olderAvailable"] && 
       [YMMessage countByCriteria:@"WHERE message_i_d=%@", 
         [results objectForKey:@"lastFetchedID"]]) {
+    moreButton.hidden = NO;
     self.lastLoadedMessageID = [results objectForKey:@"lastFetchedID"];
-  }
+  } else moreButton.hidden = YES;
   
   [self refreshMessagePKs];
   
@@ -296,13 +327,21 @@
   
   [lastUpdated release];
   lastUpdated = [[NSDate date] retain];
-  [refreshButton setTitle:[NSString stringWithFormat:@"Refresh (last updated %@)",
-                           [NSDate stringForDisplayFromDate:lastUpdated]] 
-                 forState:UIControlStateNormal];
+//  [refreshButton setTitle:[NSString stringWithFormat:@"Refresh (last updated %@)",
+//                           [NSDate stringForDisplayFromDate:lastUpdated]] 
+//                 forState:UIControlStateNormal];
+  ((YMRefreshView *)self.refreshHeaderView).lastUpdatedDate = lastUpdated;
   [self updateBadge];
   [self.tableView reloadData];
   if (loadingDeferred && loadingDeferred.fired == -1) [loadingDeferred callback:nil];
   loadingDeferred = nil;
+  
+//  if ([self.target isEqual:YMMessageTargetFollowing])
+//    [web performSelector:@selector(syncUsers:) withObject:
+//     self.userAccount afterDelay:5.0];
+  
+  [self dataSourceDidFinishLoadingNewData];
+  
   return results;
 }
 
@@ -357,7 +396,8 @@
                  @"(SELECT full_name FROM y_m_contact AS ymc WHERE " 
                  @"y_m_message.replied_to_sender_i_d = ymc.user_i_d), y_m_message.body_plain, "
                  @"y_m_message.created_at, y_m_message.read, y_m_message.liked, "
-                 @"y_m_message.has_attachments, y_m_message.sender_i_d, (SELECT full_name FROM y_m_contact AS ymc WHERE y_m_message.direct_to_i_d = ymc.user_i_d), "
+                 @"y_m_message.has_attachments, y_m_message.sender_i_d, (SELECT full_name " 
+                 @"FROM y_m_contact AS ymc WHERE y_m_message.direct_to_i_d = ymc.user_i_d), "
                  @"(SELECT full_name FROM y_m_group AS ymg WHERE y_m_message.group_i_d = ymg.group_i_d) "
                  @"FROM y_m_message INNER JOIN y_m_contact ON y_m_message.sender_i_d " 
                  @"= y_m_contact.user_i_d %@ ORDER BY y_m_message.created_at DESC LIMIT %i", 
@@ -404,7 +444,7 @@
                             nsni(intv([_senderIds objectAtIndex:i]))] ? nsnb(YES) : nsnb(NO))];
     if (![[groups objectAtIndex:i] isEqual:[NSNull null]]) {
       if ([[groups objectAtIndex:i] hasSuffix:@"(private)"]) {
-        [privates replaceObjectAtIndex:i withObject:@"ass"];
+        [(NSMutableArray *)privates replaceObjectAtIndex:i withObject:@"ass"];
       }
     }
   }
@@ -495,6 +535,7 @@
 
 - (void) scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate
 {
+  [super scrollViewDidEndDragging:scrollView willDecelerate:decelerate];
   if (!decelerate) {
     [self updateNewlyReadMessages];
     [self updateBadge];
@@ -576,7 +617,9 @@ cellForRowAtIndexPath:(NSIndexPath *)indexPath
     img = [UIImage imageNamed:@"user-70.png"];
     NSString *ms = [mugshotURLs objectAtIndex:idx];
     if (!loadedAvatars) { // do nothing if we haven't yet loaded
-    } else if ([ms isKindOfClass:[NSString class]] && [ms length]) {
+    } else if ([ms isKindOfClass:[NSString class]] && [ms length] &&
+               !(img = [web imageForURLInMemoryCache:ms])) {
+      img = [UIImage imageNamed:@"user-70.png"];
       [[web contactImageForURL:ms]
        addCallback:curryTS(self, @selector(_gotMugshot::), [messagePKs objectAtIndex:idx])];
     }
@@ -758,15 +801,15 @@ willSelectRowAtIndexPath:(NSIndexPath *)indexPath
   [super didReceiveMemoryWarning];
 }
 
-- (void)viewDidUnload
-{
-  [[NSNotificationCenter defaultCenter]
-   removeObserver:self];
-  [super viewDidUnload];
-}
+//- (void)viewDidUnload
+//{
+//  [super viewDidUnload];
+//}
 
 - (void)dealloc
 {
+  [[NSNotificationCenter defaultCenter]
+   removeObserver:self];
   [bodies release];
   [messagePKs release];
   [mugshots release];

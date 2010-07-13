@@ -74,10 +74,10 @@
     = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:
         UIBarButtonSystemItemRefresh target:self action:@selector(doSync:)] autorelease];
   
-  self.navigationItem.leftBarButtonItem =
-  [[UIBarButtonItem alloc]
-   initWithTitle:@"Networks" style:UIBarButtonItemStyleBordered target:
-   self.parentViewController action:@selector(dismissModalViewControllerAnimated:)];
+//  self.navigationItem.leftBarButtonItem =
+//  [[UIBarButtonItem alloc]
+//   initWithTitle:@"Networks" style:UIBarButtonItemStyleBordered target:
+//   self.parentViewController action:@selector(dismissModalViewControllerAnimated:)];
 }
 
 - (void) viewDidAppear:(BOOL)animated

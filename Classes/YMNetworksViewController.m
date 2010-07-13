@@ -120,17 +120,31 @@
       nav.navigationBar.tintColor = self.navigationController.navigationBar.tintColor;
       [a addObject:nav];
       
-      c.navigationItem.leftBarButtonItem =
-      [[UIBarButtonItem alloc]
-       initWithTitle:@"Networks" style:UIBarButtonItemStyleBordered target:self
-       action:@selector(fuckOffYouDirtyHonkyNetwork)];
+      //UIImageView *img = [[[UIImageView alloc] initWithImage:[UIImage imageNamed:@"backbutton.png"]] autorelease];
+      UIButton *back = [[[UIButton alloc] initWithFrame:CGRectMake(0, 0, 76, 30)] autorelease];
+      back.showsTouchWhenHighlighted = YES;
+      back.titleLabel.font = [UIFont boldSystemFontOfSize:12];
+      [back setTitleEdgeInsets:UIEdgeInsetsMake(0, 4, 0, 0)];
+      [back setBackgroundImage:[[UIImage imageNamed:@"backbutton.png"] stretchableImageWithLeftCapWidth:17 topCapHeight:15] forState:UIControlStateNormal];
+      [back setBackgroundImage:[[UIImage imageNamed:@"backbutton-h.png"] stretchableImageWithLeftCapWidth:17 topCapHeight:15] forState:UIControlStateHighlighted];
+      [back setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+      [back setTitle:@"Networks" forState:UIControlStateNormal];
+      [back addTarget:self action:@selector(fuckOffYouDirtyHonkyNetwork:) forControlEvents:UIControlEventTouchUpInside];
+      
+      UIBarButtonItem *it = [[[UIBarButtonItem alloc] initWithCustomView:back] autorelease];
+      
+      c.navigationItem.leftBarButtonItem = it;
+      
+//      [[UIBarButtonItem alloc]
+//       initWithTitle:@"Networks" style:UIBarButtonItemStyleBordered target:self
+//       action:@selector(fuckOffYouDirtyHonkyNetwork)];
     }
     tabs.viewControllers = a;
 //  }
   return tabs;
 }
 
-- (void)fuckOffYouDirtyHonkyNetwork
+- (void)fuckOffYouDirtyHonkyNetwork:(id)s
 {
   if (PREF_KEY(@"lastNetworkPK")) {
     YMNetwork *n = (YMNetwork *)[YMNetwork findByPK:
@@ -270,11 +284,9 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath
   acct.activeNetworkPK = nsni(network.pk);
   [acct save];
   [web syncSubscriptions:acct];
-//  if (network.lastScrapedLocalContacts == nil) {
-//    network.lastScrapedLocalContacts = [NSDate date];
-//    [network save];
-//    [web suggestions:acct fromContacts:[self _allAddressBookContacts]];
-//  }
+  
+  [self doContactScrape:acct network:network];
+  
   network.unseenMessageCount = nsni(0);
   [network save];
   [web updateUIApplicationBadge];
@@ -309,6 +321,31 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath
   [[StatusBarNotifier sharedNotifier] setTopOffset:411];
 }
 
+- (void)doContactScrape:(YMUserAccount *)_acct network:(YMNetwork *)_network
+{
+  scrape_network = _network;
+  scrape_acct = _acct;
+  if (scrape_network.lastScrapedLocalContacts == nil && 
+      !PREF_KEY(([NSString stringWithFormat:@"dontlookatmycontacts:%@", _network.networkID])) && 
+      !intv(_network.community)) {
+    [[[[UIAlertView alloc] initWithTitle:@"Yammer" message:
+     @"Yammer would like permission to look in your address book to suggest coworkers to follow. Is this okay?" 
+                                delegate:self cancelButtonTitle:@"No" otherButtonTitles:@"Yes", nil] autorelease] show];
+  }
+}
+
+- (void) alertView:(UIAlertView *)alertView didDismissWithButtonIndex:(NSInteger)buttonIndex
+{
+  if (buttonIndex == 0) PREF_SET(([NSString stringWithFormat:@"dontlookatmycontacts:%@", scrape_network.networkID]), nsnb(YES));
+  else {
+    scrape_network.lastScrapedLocalContacts = [NSDate date];
+    [scrape_network save];
+    [web suggestions:scrape_acct fromContacts:[self _allAddressBookContacts]];
+    scrape_network = nil;
+    scrape_acct = nil;
+  }
+}
+
 - (NSArray *)_allAddressBookContacts
 {
   NSMutableArray *ret = [NSMutableArray array];
@@ -338,7 +375,7 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath
     if ([name length] && CFArrayGetCount(emails))
       [ret addObject:
        dict_(name, @"name", 
-             [NSArray arrayWithArray:(id)emails], @"emails")];
+             [NSArray arrayWithArray:(id)emails], @"addresses")];
     
     CFRelease(fn); 
     CFRelease(ln); 

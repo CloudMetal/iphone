@@ -19,6 +19,7 @@
   NSNumber *unseenMessageCount;
   NSDate *lastScrapedLocalContacts;
   NSString *name;
+  NSNumber *community;
   NSNumber *userID;
   
   NSArray *groupSubscriptionIds;
@@ -26,7 +27,7 @@
   NSArray *userSubscriptionIds;
 }
 
-@property (copy) NSNumber *userAccountPK, *userID;
+@property (copy) NSNumber *userAccountPK, *userID, *community;
 @property (copy) NSDate *lastScrapedLocalContacts;
 @property (copy) NSNumber *networkID, *unseenMessageCount;
 @property (copy) NSString *permalink, *url, *name;

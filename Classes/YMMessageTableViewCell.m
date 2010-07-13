@@ -70,6 +70,7 @@ static UIFont *titleFont = nil;
 static UIFont *bodyFont = nil;
 static UIFont *groupFont = nil;
 static UIColor *bodyColor = nil;
+static UIFont *dateFont = nil;
 static UIColor *groupColor = nil;
 static UIColor *dateColor = nil;
 static UIImage *backgroundImage = nil;
@@ -92,6 +93,7 @@ static UIImage *smallPrivateImage = nil;
     titleFont = [[UIFont boldSystemFontOfSize:13] retain];
     bodyFont = [[UIFont systemFontOfSize:13] retain];
     bodyColor = [[UIColor colorWithWhite:.15 alpha:1] retain];
+    dateFont = [[UIFont systemFontOfSize:13] retain];
     groupFont = [[UIFont systemFontOfSize:12] retain];
     groupColor = [[UIColor colorWithWhite:.3 alpha:1] retain];
     dateColor = [[UIColor colorWithRed:(65.0/255.0) green:(87.0/255.0) blue:(143.0/255.0) alpha:1] retain]; // 65 87 143
@@ -276,7 +278,7 @@ static UIImage *smallPrivateImage = nil;
      lineBreakMode:UILineBreakModeWordWrap alignment:UITextAlignmentLeft];
   
   [dateColor set];
-  [date drawInRect:dateLabel withFont:titleFont 
+  [date drawInRect:dateLabel withFont:dateFont 
      lineBreakMode:UILineBreakModeClip alignment:UITextAlignmentRight];
   
   [imageView.layer drawInContext:ctx];

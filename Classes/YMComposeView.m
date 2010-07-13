@@ -11,12 +11,57 @@
 
 @implementation YMComposeView
 
-@synthesize messageTextView, toLabel, toTargetLabel,
-            onUserInputsHash, onUserInputsAt, onPartialWillClose;
+@synthesize messageTextView, toLabel, toTargetLabel, activity,
+onUserInputsHash, onUserInputsAt, onPartialWillClose, actionBar, tableView, onHash, onUser;
+
+//- (id)initWithCoder:(NSCoder *)aDecoder
+//{
+//  if ((self = [super initWithCoder:aDecoder])) {
+//    [cancel setBackgroundImage:[[UIImage imageNamed:@"toolbarbutton.png"] stretchableImageWithLeftCapWidth:7 topCapHeight:7] forState:UIControlStateNormal];
+//    [send setBackgroundImage:[[UIImage imageNamed:@"toolbarbutton.png"] stretchableImageWithLeftCapWidth:7 topCapHeight:7] forState:UIControlStateNormal];
+//    CGRect f = actionBar.frame;
+//    f.size.height = 27;
+//    actionBar.frame = f;
+//  }
+//  return self;
+//}
+
+//-(void) send:(id)s
+//{
+//}
+//
+//-(void) cancel:(id)s
+//{
+//}
+
+-(void) kb:(id)s
+{
+  [self.messageTextView becomeFirstResponder];
+}
+
+-(void) photo:(id)s
+{
+}
+
+-(void) at:(id)s
+{
+  onUser = YES;
+  onHash = NO;
+  [self.messageTextView resignFirstResponder];
+  [self.onUserInputsAt :@""];
+}
+
+-(void) hash:(id)s
+{
+  onHash = YES;
+  onUser = NO;
+  [self.messageTextView resignFirstResponder];
+  [self.onUserInputsHash :@""];
+}
 
 - (void) textViewDidChange:(UITextView *)textView
 {
-  NSString *s = [textView.text stringByMatching:@"((@|#)[a-zA-Z0-9]*)$" options:
+  NSString *s = [textView.text stringByMatching:@"((@|#)[a-zA-Z0-9-]+)$" options:
                  RKLDotAll | RKLMultiline | RKLUnicodeWordBoundaries inRange:
                  NSMakeRange(0, textView.text.length) capture:1 error:nil];
   
@@ -47,7 +92,7 @@
                             (lastIsWhitespace ? @"" : @" "), str];
   } else {
     messageTextView.text = [messageTextView.text stringByReplacingOccurrencesOfRegex:
-                            @"(@|#)[a-zA-Z0-9]*$" withString:
+                            @"(@|#)[a-zA-Z0-9-]*$" withString:
                             [str stringByAppendingString:@" "]];
   }
 }

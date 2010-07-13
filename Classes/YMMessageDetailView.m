@@ -11,11 +11,12 @@
 #import <QuartzCore/QuartzCore.h>
 #import "DrillDownWebController.h"
 #import "NSDate+Helper.h"
+#import "NSString+XMLEntities.h"
 
 
 @implementation YMMessageDetailFooter
 
-@synthesize onUser, onTag, onLike, onThread , onReply , onBookmark , onAttachments, onSend, onFollow, likeButton;
+@synthesize onUser, onTag, onLike, onThread , onReply , onBookmark , onAttachments, onSend, onFollow, likeButton, userButton;
 
 - (IBAction)user:(id)sender { if (self.onUser) [self.onUser :self]; }
 - (IBAction)like:(id)sender { if (self.onLike) [self.onLike :self]; }
@@ -59,6 +60,9 @@
                               @"WHERE user_i_d=%i", intv(message.directToID)];
     direct = YES;
   }
+  
+  footerView.userButton.enabled = [fromContact.type isEqual:@"user"];
+  
   if (message.groupID) {
     YMGroup *g = (id)[YMGroup findFirstByCriteria:@"WHERE group_i_d=%i", intv(message.groupID)];
     headerView.postedInLabel.text = [@"posted in " stringByAppendingString:g.fullName];
@@ -103,8 +107,7 @@
   @"<html><head><style>"
   @"html { background-color: #f9f9f9}"
   @"body { font-size: 14px; font-family: Helvetica; margin: 0; padding: 10px;}"
-  @"a { font-size:13px; font-weight: bold; color: white; display:inline-block; " 
-  @"    padding: 2px 3px; background-color: #256ac7; -webkit-border-radius:2px; text-decoration:none;}"
+  @"a { font-weight: bold; text-decoration: underline; color: #374a70; }" 
   @"</style></head><body>%@</body></html>";
   
   return [NSString stringWithFormat:template, self.message.bodyParsed];

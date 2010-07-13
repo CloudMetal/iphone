@@ -40,10 +40,25 @@
     self.view = v;
   }
   self.title = @"New Message";
+  composeView = (YMComposeView *)self.view;
+  
+//  UIButton *cancel = [(id)self.view cancel], *send = [(id)self.view send];
+//  UIToolbar *actionBar = [(id)self.view actionBar];
+  
+//  [composeView.cancel setBackgroundImage:
+//   [[UIImage imageNamed:@"toolbarbutton.png"] stretchableImageWithLeftCapWidth:
+//    10 topCapHeight:10] forState:UIControlStateNormal];
+//  [composeView.send setBackgroundImage:
+//   [[UIImage imageNamed:@"toolbarbutton.png"] stretchableImageWithLeftCapWidth:
+//    10 topCapHeight:10] forState:UIControlStateNormal];
+  CGRect f = composeView.actionBar.frame;
+  f.size.height = 27;
+  composeView.actionBar.frame = f;
   
   textView = ((YMComposeView *)self.view).messageTextView;
-  textView.userDataSource = self;
-  textView.hashDataSource = self;
+//  textView.userDataSource = self;
+//  textView.hashDataSource = self;
+  
   textView.font = [UIFont systemFontOfSize:13];
   [(id)self.view setOnUserInputsAt:callbackTS(self, userInputAt:)];
   [(id)self.view setOnUserInputsHash:callbackTS(self, userInputHash:)];
@@ -142,8 +157,8 @@
 
 - (id)textViewPartialWillClose:(id)sender
 {
-  [self.navigationController setNavigationBarHidden:NO animated:YES];
-  gotPartialWillCloseMessage = YES;
+//  [self.navigationController setNavigationBarHidden:NO animated:YES];
+//  gotPartialWillCloseMessage = YES;
   if (usernames) [usernames release];
   usernames = [[[YMContact pairedArraysForProperties:array_(@"username") 
                  withCriteria:@"WHERE network_i_d=%i", intv(network.networkID)]
@@ -154,16 +169,17 @@
 - (id)userInputAt:(NSString *)username
 {
   NSLog(@"username %@", username);
-  gotPartialWillCloseMessage = NO;
+//  gotPartialWillCloseMessage = NO;
   [[web autocomplete:self.userAccount string:username]
    addBoth:callbackTS(self, _gotAutocompleteUsers:)];
+  [composeView.activity startAnimating];
   return nil;
 }
 
 - (id)_gotAutocompleteUsers:(id)results
 {
-  NSLog(@"autocomplete? %@", results);
-  if (gotPartialWillCloseMessage) return results;
+//  NSLog(@"autocomplete? %@", results);
+//  if (gotPartialWillCloseMessage) return results;
   if (![results isKindOfClass:[NSDictionary class]]) return results;
   
   if (usernames) [usernames release];
@@ -174,24 +190,31 @@
   }
   usernames = [newUsernames retain];
   
-  [self.navigationController setNavigationBarHidden:YES animated:YES];
-  [textView revealPartialAt:nil];
+  composeView.tableView.delegate = self;
+  composeView.tableView.dataSource = self;
+  [composeView.tableView reloadData];
+  
+  [composeView.activity stopAnimating];
+  
+//  [self.navigationController setNavigationBarHidden:YES animated:YES];
+//  [textView revealPartialAt:nil];
   return results;
 }
 
 - (id)userInputHash:(NSString *)hash
 {
   NSLog(@"hash %@", hash);
-  gotPartialWillCloseMessage = NO;
+//  gotPartialWillCloseMessage = NO;
   [[web autocomplete:self.userAccount string:hash]
    addBoth:callbackTS(self, _gotAutocompleteHashes:)];
+  [composeView.activity startAnimating];
   return nil;
 }
 
 - (id)_gotAutocompleteHashes:(id)results
 {
-  NSLog(@"_gotAutocompleteHashes %@", results);
-  if (gotPartialWillCloseMessage) return results;
+//  NSLog(@"_gotAutocompleteHashes %@", results);
+//  if (gotPartialWillCloseMessage) return results;
   if (![results isKindOfClass:[NSDictionary class]]) return results;
   
   if (hashes) [hashes release];
@@ -202,8 +225,14 @@
   }
   hashes = [newHashes retain];
   
-  [self.navigationController setNavigationBarHidden:YES animated:YES];
-  [textView revealPartialHash:nil];
+  composeView.tableView.delegate = self;
+  composeView.tableView.dataSource = self;
+  [composeView.tableView reloadData];
+  
+  [composeView.activity stopAnimating];
+  
+//  [self.navigationController setNavigationBarHidden:YES animated:YES];
+//  [textView revealPartialHash:nil];
   
   return results;
 }
@@ -216,9 +245,9 @@
 - (NSInteger) tableView:(UITableView *)table
 numberOfRowsInSection:(NSInteger)section
 {
-  if (table == textView.userTableView) {
+  if (composeView.onUser) {
     return [usernames count];
-  } else if (table == textView.hashTableView) {
+  } else if (composeView.onHash) {
     return [hashes count];
   }
   return 0;
@@ -248,7 +277,7 @@ cellForRowAtIndexPath:(NSIndexPath *)indexPath
     c.textLabel.font = [UIFont systemFontOfSize:15];
   }
   
-  if (table == textView.userTableView) {
+  if (composeView.onUser) {
     YMContact *contact = (YMContact *)[YMContact findFirstByCriteria:
                @"WHERE network_i_d=%i AND username='%@'", 
                intv(network.networkID), [usernames objectAtIndex:indexPath.row]];
@@ -259,7 +288,7 @@ cellForRowAtIndexPath:(NSIndexPath *)indexPath
     c.imageView.image = img;
     c.textLabel.text = [NSString stringWithFormat:@"%@ (%@)", 
                         [usernames objectAtIndex:indexPath.row], contact.fullName];
-  } else if (table == textView.hashTableView) {
+  } else if (composeView.onHash) {
     c.imageView.image = nil;
     c.detailTextLabel.text = @"";
     c.textLabel.text = [hashes objectAtIndex:indexPath.row];

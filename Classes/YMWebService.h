@@ -15,9 +15,8 @@
 #import "YMGroup.h"
 #import "YMAttachment.h"
 
-#define WS_URL @"https://www.yammer.com"
-#define WS_MOUNTPOINT [NSURL URLWithString:[NSString \
-            stringWithFormat:@"%@%@", WS_URL, @"/api/v1"]]
+#define WS_MOUNTPOINT(__THE_URL) [NSURL URLWithString:[NSString \
+            stringWithFormat:@"%@%@", __THE_URL, @"/api/v1"]]
 
 #define IS_TARGET(__a, __b) ([__a isEqualToString:__b])
 
@@ -50,7 +49,7 @@
 
 @interface YMWebService : NSObject
 {
-  NSURL *mountPoint;
+//  NSURL *mountPoint;
   NSString *appKey;
   NSString *appSecret;
   BOOL shouldUpdateBadgeIcon;
@@ -58,15 +57,17 @@
   DKDeferredPool *loadingPool;
   YMUserAccount *userAccountForCachedContactImages;
   NSString *pushID;
+  DKDeferred *syncUsersDeferred;
 }
 
 + (id)sharedWebService;
 
-@property (copy) NSURL *mountPoint;
+//@property (copy) NSURL *mountPoint;
 @property (copy) NSString *appKey;
 @property (copy) NSString *appSecret;
 @property (assign) BOOL shouldUpdateBadgeIcon;
 @property (copy) NSString *pushID;
+@property (retain) DKDeferred *syncUsersDeferred;
 
 
 - (NSArray *)loggedInUsers;
@@ -150,7 +151,8 @@
 // */
 
 - (DKDeferred *)getMessages:(YMUserAccount *)acct withTarget:(NSString *)target 
-withID:(NSNumber *)targetID params:(NSDictionary *)params fetchToID:(NSNumber *)toID;
+withID:(NSNumber *)targetID params:(NSDictionary *)params fetchToID:(NSNumber *)toID 
+                 unseenLeft:(NSNumber *)unseenLeftCount;
 
 /**
  Posts a new message to the supplied YMUserAccount's `activeNetworkPK`. `replyOpts`

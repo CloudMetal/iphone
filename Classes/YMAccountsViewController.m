@@ -19,7 +19,7 @@
 - (IBAction)addAccount:(UIControl *)sender
 {
   [self.navigationController pushViewController:
-   [[YMLoginViewController alloc] init] animated:YES];
+   [[[YMLoginViewController alloc] init] autorelease] animated:YES];
 }
 
 - (void)loadView
@@ -52,7 +52,7 @@
     = [UIColor colorWithRed:0.27 green:0.34 blue:0.39 alpha:1.0];
   if (![[self.web loggedInUsers] count]) {
     [self.navigationController pushViewController:
-     [[YMLoginViewController alloc] init] animated:NO];
+     [[[YMLoginViewController alloc] init] autorelease] animated:NO];
   } else {    
     [self.tableView reloadData];
     [self.tableView setEditing:YES animated:YES];

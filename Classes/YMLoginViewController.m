@@ -9,6 +9,7 @@
 #import "YMLoginViewController.h"
 #import "YMWebService.h"
 #import "CFPrettyView.h"
+#import <QuartzCore/QuartzCore.h>
 #import "UIColor+Extensions.h"
 
 //#import "LocalStorage.h"
@@ -19,10 +20,126 @@
 #define LOGIN_USERNAME_TAG 34343
 #define LOGIN_PASSWORD_TAG 34443
 
+/*
+ 
+ @protocol ActionTableViewHeader
+ 
+ - (void)flipImageAnimated:(BOOL)animated;
+ - (void)toggleActivityView:(BOOL)isON;
+ - (void)setStatus:(int)status;
+ 
+ @property BOOL isFlipped;
+ 
+ @end
+*/
+
+@interface CFSpecialTextField : UITextField
+
+@end
+
+@implementation CFSpecialTextField
+
+- (CGRect) textRectForBounds:(CGRect)bounds
+{
+  return CGRectInset([super textRectForBounds:bounds], 10, 0);
+}
+
+- (CGRect) editingRectForBounds:(CGRect)bounds 
+{
+  return CGRectInset([super textRectForBounds:bounds], 10, 0);
+}
+
+@end
+
+@implementation YMThisIsWhereIWantToGoView
+
+@synthesize isFlipped, theTextField;
+
+- (void)flipImageAnimated:(BOOL)animated { }
+
+- (void)toggleActivityView:(BOOL)isOn 
+{
+  if (isOn) [self setStatus:kLoadingStatus];
+}
+
+- (id) initWithFrame:(CGRect)frame
+{
+  if ((self = [super initWithFrame:frame])) {
+    hasFlipped = NO;
+    theTextField = [[[CFSpecialTextField alloc]
+                   initWithFrame:CGRectMake(10, frame.size.height - 50.0, 300, 44)] retain];
+    theTextField.autoresizingMask = UIViewAutoresizingFlexibleWidth;
+    theTextField.delegate = self;
+    theTextField.font = [UIFont boldSystemFontOfSize:17];
+    theTextField.textColor = [UIColor colorWithHexString:@"486681"];
+    theTextField.placeholder = @"Pulll down to change URL";
+    theTextField.textAlignment = UITextAlignmentLeft;
+    theTextField.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter;
+    theTextField.backgroundColor = [UIColor whiteColor];
+    theTextField.layer.cornerRadius = 10;
+    theTextField.layer.borderColor = [UIColor colorWithHexString:@"919191"].CGColor;
+    theTextField.layer.borderWidth = 1;
+    theTextField.autocorrectionType = UITextAutocorrectionTypeNo;
+    theTextField.autocapitalizationType = UITextAutocapitalizationTypeNone;
+    theTextField.keyboardType = UIKeyboardTypeURL;
+    [self addSubview:theTextField];
+  }
+  return self;
+}
+
+- (BOOL) textFieldShouldReturn:(UITextField *)textField
+{
+  hasFlipped = YES;
+  [theTextField resignFirstResponder];
+  return YES;
+}
+
+- (void)setStatus:(int)status
+{
+  if (hasFlipped) return;
+	switch (status) {
+		case kReleaseToReloadStatus:
+			theTextField.placeholder = @"Release to change URL";
+			break;
+		case kPullToReloadStatus:
+			theTextField.placeholder = @"Pull down to change URL";
+			break;
+		case kLoadingStatus:
+      theTextField.placeholder = WS_URL;
+      [theTextField becomeFirstResponder];
+		default:
+			break;
+	}
+}
+
+
+//- (BOOL) textFieldShouldEndEditing:(UITextField *)textField
+//{
+//  [textField resignFirstResponder];
+//  return YES;
+//}
+
+//- (void) textFieldDidEndEditing:(UITextField *)textField
+//{
+//  [textField resignFirstResponder];
+//}
+
+@end
+
+
 @implementation YMLoginViewController
 
 @synthesize web;
 
+- (id) init
+{
+  if ((self = [super init])) {
+    self.actionTableViewHeaderClass = [YMThisIsWhereIWantToGoView class];
+  }
+  return self;
+}
+
+- (void)reloadTableViewDataSource { }
 
 - (void)loadView
 {
@@ -160,11 +277,20 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 }
 
 - (void)performLoginWithUsername:(id)username password:(id)password
-{
-  NSLog(@"performLoginWithUsername %@ %@", username, password);
+{  
+  YMUserAccount *acct = [YMUserAccount new];
+  acct.username = username;
+  acct.password = password;
+  id url = [[(id)self.refreshHeaderView theTextField] text];
+  NSLog(@"url %@", url);
+  if (url && ![[url stringByTrimmingCharactersInSet:
+                [NSCharacterSet whitespaceCharacterSet]] isEqual:@""]) {
+    acct.serviceUrl = url;
+  } else url = WS_URL;
+  NSLog(@"performLoginWithUsername %@ %@ %@", username, password, url);
   
   // check for dups
-  if ([YMUserAccount countByCriteria:@"WHERE username='%@'", username]) {
+  if ([YMUserAccount countByCriteria:@"WHERE username='%@' AND service_url='%@'", username, url]) {
     [(UIAlertView *)[[[UIAlertView alloc]
      initWithTitle:@"Duplicate Account"
      message:[NSString stringWithFormat:@"%@ is already logged in on this device.", username]
@@ -172,9 +298,6 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath
     return;
   }
   
-  YMUserAccount *acct = [YMUserAccount new];
-  acct.username = username;
-  acct.password = password;
   DKDeferred *d = [[self.web loginUserAccount:acct]
                    addCallbacks:callbackTS(self, _cbLoginSucceeded:) 
                    :callbackTS(self, _cbLoginFailed:)];

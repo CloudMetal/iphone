@@ -7,12 +7,13 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "YMTableViewController.h"
 
 @class YMWebService;
 @class YMUserAccount;
 @class YMNetwork;
 
-@interface YMMessageListViewController : UITableViewController {
+@interface YMMessageListViewController : YMTableViewController {
   YMWebService *web;
   YMUserAccount *userAccount;
   YMNetwork *network;
@@ -57,6 +58,9 @@
   NSNumber *remainingUnseenItems;
   NSNumber *lastLoadedMessageID;
   NSNumber *lastSeenMessageID;
+  
+  // state specific stuffs
+  BOOL wasInactive;
 }
 
 @property(nonatomic, assign) int limit;

@@ -16,7 +16,15 @@
 @implementation YMUserAccount
 
 @synthesize activeNetworkPK, username, password, 
-            wrapToken, wrapSecret, loggedIn;
+            wrapToken, wrapSecret, loggedIn, serviceUrl;
+
+- (id) init
+{
+  if ((self = [super init])) {
+    self.serviceUrl = WS_URL; // default to WS_URL
+  }
+  return self;
+}
 
 - (void) clearNetworks
 {

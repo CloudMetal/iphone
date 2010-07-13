@@ -42,9 +42,9 @@ static UIView *toolbarView  = nil;
                 forState:UIControlStateNormal];
     [atButton setImage:[UIImage imageNamed:@"kb-tab-at.png"] 
               forState:UIControlStateNormal];
-    atButton.hidden = YES;
-    hashButton.hidden = YES;
-    kbButton.hidden = YES;
+//    atButton.hidden = YES;
+//    hashButton.hidden = YES;
+//    kbButton.hidden = YES;
     
     if (!toolbarView) toolbarView = [[[UIView alloc] initWithFrame:
                                       CGRectMake(0, 0, 320, 37)] retain];
@@ -78,12 +78,12 @@ static UIView *toolbarView  = nil;
   hashButtonCenter = CGPointZero;
   atButtonCenter = CGPointZero;
   kbButtonCenter = CGPointZero;
-  [[NSNotificationCenter defaultCenter] 
-   addObserver:self selector:@selector(keyboardWillShow:) 
-   name:UIKeyboardWillShowNotification object:nil];
-  [[NSNotificationCenter defaultCenter]
-   addObserver:self selector:@selector(keyboardWillHide:) 
-   name:UIKeyboardWillHideNotification object:nil];
+//  [[NSNotificationCenter defaultCenter] 
+//   addObserver:self selector:@selector(keyboardWillShow:) 
+//   name:UIKeyboardWillShowNotification object:nil];
+//  [[NSNotificationCenter defaultCenter]
+//   addObserver:self selector:@selector(keyboardWillHide:) 
+//   name:UIKeyboardWillHideNotification object:nil];
 }
 
 - (void)keyboardWillShow:(NSNotification *)note

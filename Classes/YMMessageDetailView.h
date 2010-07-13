@@ -23,7 +23,7 @@
 @property(nonatomic, readwrite, retain) id<DKCallback> 
 onUser, onTag, onLike, onThread, onReply, onBookmark, 
 onAttachments, onSend, onFollow;
-@property(nonatomic, assign) UIButton *likeButton;
+@property(nonatomic, assign) UIButton *likeButton, *userButton;
 
 - (IBAction)user:(id)sender;
 - (IBAction)like:(id)sender;

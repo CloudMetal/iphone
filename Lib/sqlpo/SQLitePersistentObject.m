@@ -219,7 +219,7 @@ NSMutableArray *checkedTables;
 +(SQLitePersistentObject *)findByPK:(int)inPk
 {
   SQLitePersistentObject *ret = nil;
-  NSString *k = [SQLitePersistentObject memoryMapKeyForObject:inPk];
+  NSString *k = [[self class] memoryMapKeyForObject:inPk];
   if ([[objectMap allKeys] containsObject:k])
     ret = [objectMap objectForKey:k];
   if (ret == nil)
@@ -249,16 +249,14 @@ NSMutableArray *checkedTables;
     while (sqlite3_step(statement) == SQLITE_ROW)
     {
       BOOL foundInMemory = NO;
-      id oneItem = [[[self class] alloc] init];
+      int thePk = sqlite3_column_int(statement, 0);
+      NSString *mapKey = [[self class] memoryMapKeyForObject:thePk];
       
-      [oneItem setPk:sqlite3_column_int(statement, 0)];
-      NSString *mapKey = [oneItem memoryMapKey];
       if ([[objectMap allKeys] containsObject:mapKey])
       {
         SQLitePersistentObject *testObject = [objectMap objectForKey:mapKey];
         if (testObject != nil)
         {
-          [oneItem release];
           [ret addObject: [testObject retain] ];
           foundInMemory = YES;
         }
@@ -266,6 +264,9 @@ NSMutableArray *checkedTables;
       
       if(foundInMemory)
         continue;
+      
+      id oneItem = [[[self class] alloc] init];
+      [oneItem setPk:thePk];
       
       [[self class] registerObjectInMemory:oneItem];
       
@@ -684,6 +685,7 @@ NSMutableArray *checkedTables;
 +(NSDictionary *)propertiesWithEncodedTypes
 {
   // Recurse up the classes, but stop at NSObject. Each class only reports its own properties, not those inherited from its superclass
+  
   NSMutableDictionary *theProps;
   
   if ([self superclass] != [NSObject class])
@@ -1434,19 +1436,27 @@ NSMutableArray* recursionCheck;
     for (NSString *oneProp in [[self class] propertiesWithEncodedTypes])
       [self addObserver:self forKeyPath:oneProp options:0 context:nil];
     
-    
   }
   return self;
 }
 - (void)dealloc 
 {
-  for (NSString *oneProp in [[self class] propertiesWithEncodedTypes])
-  {
-    [self removeObserver:self forKeyPath:oneProp];
-  }
+//  [self observationInfo]
+  
   [[self class] unregisterObject:self];
   [super dealloc];
 }
+
+//- (void)release
+//{
+//  if ([self retainCount] == 1) {
+//    for (NSString *oneProp in [[self class] propertiesWithEncodedTypes]) {
+//      [self removeObserver:self forKeyPath:oneProp];
+//    }
+//  }
+//  [super release];
+//}
+
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context
 {
   dirty = YES;
@@ -1798,7 +1808,8 @@ NSMutableArray* recursionCheck;
   
   // We have to make sure we're not removing objects from memory map when deleting partially created ones...
   SQLitePersistentObject *compare = [objectMap objectForKey:[theObject memoryMapKey]];
-  if (compare == theObject)
+  if (compare == theObject) {
     [objectMap removeObjectForKey:[theObject memoryMapKey]]; 
+  }
 }
 @end

@@ -13,6 +13,6 @@
 
 @synthesize token, secret, userAccountPK, networkID, lastScrapedLocalContacts, 
             permalink, url, unseenMessageCount, name, userID,
-            groupSubscriptionIds, tagSubscriptionIds, userSubscriptionIds;
+            groupSubscriptionIds, tagSubscriptionIds, userSubscriptionIds, community;
 
 @end

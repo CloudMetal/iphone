@@ -27,6 +27,7 @@
   NSArray *usernames;
   NSArray *hashes;
   BOOL gotPartialWillCloseMessage;
+  YMComposeView *composeView;
 }
 
 @property (nonatomic, readwrite, retain) YMUserAccount *userAccount;

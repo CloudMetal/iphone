@@ -285,7 +285,7 @@ static StatusBarNotifier *__sharedNotifier;
   
   UIActivityIndicatorView *activityIndicator =
   [[[UIActivityIndicatorView alloc] 
-    initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray]
+    initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhite]
    autorelease];
   [activityIndicator startAnimating];
   activityIndicator.frame = CGRectMake(l.frame.size.width + 16, 0, 20, 20);

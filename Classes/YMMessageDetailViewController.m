@@ -45,6 +45,7 @@
 - (void)setMessage:(YMMessage *)m
 {
   [message release];
+  message = nil;
   message = [m retain];
 }
 
@@ -219,7 +220,11 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
   if (indexPath.section == 1) {
     YMAttachment *a = [attachments objectAtIndex:indexPath.row];
-    if (!boolv(a.isImage)) {
+    NSString *ext = [a.name pathExtension];
+    NSArray *sup = array_(@"xls", @"key.zip", @"numbers.zip", @"pages.zip", @"pdf", 
+                          @"ppt", @"doc", @"rft", @"rtfd.zip", @"key", @"numbers", @"pages");
+    NSLog(@"ext %@ sup %@", ext, sup);
+    if (![sup containsObject:ext] && !boolv(a.isImage)) {
       [[[[UIAlertView alloc]
          initWithTitle:@"Unsupported Attachment" message:
          @"Cannot open that type of attachment in this app. Please use the web interface to download it." 
@@ -231,29 +236,42 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath
                                    [NSURL URLWithString:a.url]] autorelease];
       [web authorizeRequest:req withAccount:self.userAccount];
       [[[StatusBarNotifier sharedNotifier]
-        flashLoading:@"Loading Image" deferred:
+        flashLoading:@"Loading File" deferred:
         [[[DKDeferredURLConnection alloc] initRequest:
           req decodeFunction:nil paused:NO] autorelease]]
-       addCallback:curryTS(self, @selector(_showFullsize::), [NSURL URLWithString:a.url])];
+       addCallback:curryTS(self, @selector(_showFullsize:::), [NSURL fileURLWithPath:[NSString stringWithFormat:@"/%@", a.name]], a.isImage)];
     }
   }
+  [self.tableView deselectRowAtIndexPath:indexPath animated:YES];
 }
 
-- (id)_showFullsize:(NSURL *)url :(id)result
+- (id)_showFullsize:(NSURL *)url :(NSNumber *)isImage :(id)result
 {
-  if ([result isKindOfClass:[NSData class]])
+  if ([result isKindOfClass:[NSData class]] && boolv(isImage))
     result = [UIImage imageWithData:result];
   if ([result isKindOfClass:[UIImage class]]) {
-    NSString *fn = [[[DKDeferredCache sharedCache] dir] stringByAppendingPathComponent:[[NSString stringWithUUID] stringByAppendingString:@".jpg"]];
+    NSString *fn = [[[DKDeferredCache sharedCache] dir] stringByAppendingPathComponent:
+                    [[NSString stringWithUUID] stringByAppendingString:@".jpg"]];
     [UIImageJPEGRepresentation(result, 7) writeToFile:fn atomically:NO];
     NSString *html = [NSString stringWithFormat:
                       @"<html><body><img src=\"file://%@\" /></body></html>", fn];
     YMSimpleWebView *c = [[[YMSimpleWebView alloc] initWithNibName:@"YMSimpleWebView" bundle:nil] autorelease];
     
-    c.title = @"Image";
+    c.title = [[url relativePath] lastPathComponent];
     [self.navigationController pushViewController:c animated:YES];
     [c.webView loadHTMLString:html baseURL:[[NSURL URLWithString:fn] baseURL]];
     NSLog(@"html %@ %@", html, c.webView);
+  } else if ([result isKindOfClass:[NSData class]]) {
+    NSString *fn = [[[DKDeferredCache sharedCache] dir] stringByAppendingPathComponent:
+                    [[NSString stringWithUUID] stringByAppendingFormat:@".%@", [[url relativePath] pathExtension]]];
+    NSLog(@"loading %@", fn);
+    [(NSData *)result writeToFile:fn atomically:NO];
+    NSURL *u = [NSURL fileURLWithPath:fn];
+    NSURLRequest *req = [NSURLRequest requestWithURL:u];
+    YMSimpleWebView *c = [[[YMSimpleWebView alloc] initWithNibName:@"YMSimpleWebView" bundle:nil] autorelease];
+    c.title = [[url relativePath] lastPathComponent];
+    [self.navigationController pushViewController:c animated:YES];
+    [c.webView loadRequest:req];
   }
   return result;
 }

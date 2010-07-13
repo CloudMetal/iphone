@@ -15,6 +15,7 @@
 #import "NSString+URLEncoding.h"
 #import "SQLiteInstanceManager.h"
 #import "DataCache.h"
+#import "NSString+XMLEntities.h"
 
 static YMWebService *__sharedWebService;
 
@@ -23,6 +24,7 @@ static YMWebService *__sharedWebService;
 - (id)mutableRequestWithMethod:(id)method account:(YMUserAccount *)acct defaults:(NSDictionary *)defaults;
 - (id)mutableMultipartRequestWithMethod:(id)method account:(YMUserAccount *)acct defaults:(NSDictionary *)defs;
 - (NSString *)parseMessageBody:(NSString *)parsedBody withReferences:(NSDictionary *)refs;
+- (NSString *)truncateLinks:(NSString *)html plain:(BOOL)isPlain;
 - (id)messageWith:(YMMessage *)message fromDictionary:(NSDictionary *)m withReferences:(NSDictionary *)refs;
 - (id)messageFromDictionary:(NSDictionary *)m withReferences:(NSDictionary *)refs;
 - (YMContact *)contactforId:(NSNumber *)userId type:(id)typ withReferences:(NSDictionary *)refs;
@@ -98,8 +100,8 @@ id _nil(id r)
 
 @implementation YMWebService
 
-@synthesize mountPoint, appKey, appSecret;
-@synthesize shouldUpdateBadgeIcon, pushID;
+@synthesize appKey, appSecret;
+@synthesize shouldUpdateBadgeIcon, pushID, syncUsersDeferred;
 
 ///
 /// constructors
@@ -110,7 +112,6 @@ id _nil(id r)
   @synchronized(self) {
     if (!__sharedWebService || __sharedWebService == nil) {
       __sharedWebService = [[[self alloc] init] retain];
-      __sharedWebService.mountPoint = WS_MOUNTPOINT;
       __sharedWebService.appKey = WS_APPKEY;
       __sharedWebService.appSecret = WS_APPSECRET;
       __sharedWebService.shouldUpdateBadgeIcon = NO;
@@ -135,7 +136,8 @@ id _nil(id r)
       acct.activeNetworkPK = nsni(n.pk);
       [[[DKDeferredURLConnection alloc] initWithRequest:
         [self mutableMultipartRequestWithMethod:@"feed_clients/" 
-        account:acct defaults:dict_(pushID, @"client_id", @"ApplePushDevice", @"type")] pauseFor:0 decodeFunction:nil]
+        account:acct defaults:dict_(pushID, @"client_id", @"ApplePushDevice", @"type")]
+                                               pauseFor:0 decodeFunction:nil]
        addBoth:callbackTS(self, _registeredPush:)];
     }
     acct.activeNetworkPK = pk;
@@ -166,7 +168,7 @@ id _nil(id r)
   NSMutableURLRequest *req = 
     [NSMutableURLRequest requestWithURL:
      [NSURL URLWithString:[NSString stringWithFormat:@"%@%@", 
-                           WS_URL, @"/oauth_wrap/access_token"]]];
+                           acct.serviceUrl, @"/oauth_wrap/access_token"]]];
   const char* theData = 
     [[array_(nsstrf(@"wrap_username=%@", [acct.username encodedURLParameterString]),
              nsstrf(@"wrap_password=%@", [acct.password encodedURLParameterString]),
@@ -237,6 +239,11 @@ id _nil(id r)
 
 - (id)_gotNetworksAndTokens:(YMUserAccount *)acct :(id)results
 {
+  return [DKDeferred deferInThread:curryTS(self, @selector(_processNetworksAndTokensThread::), acct) withObject:results];
+}
+
+- (id)_processNetworksAndTokensThread:(YMUserAccount *)acct :(id)results
+{
   NSMutableArray *networks = [NSMutableArray array];
   NSLog(@"results %@", results);
   if ([results count] == 2) {
@@ -267,6 +274,7 @@ id _nil(id r)
           n = [[YMNetwork findFirstByCriteria:criteria] autorelease];
         }
         n.userAccountPK = nsni(acct.pk);
+        n.community = [d objectForKey:@"community"];
         n.url = [d objectForKey:@"web_url"];
         n.permalink = [d objectForKey:@"permalink"];
         n.name = [d objectForKey:@"name"];
@@ -312,7 +320,7 @@ id _nil(id r)
 #pragma mark Messages
 
 - (DKDeferred *)getMessages:(YMUserAccount *)acct withTarget:(NSString *)target 
-withID:(NSNumber *)targetID params:(NSDictionary *)params fetchToID:(NSNumber *)toID 
+withID:(NSNumber *)targetID params:(NSDictionary *)params fetchToID:(NSNumber *)toID unseenLeft:(NSNumber *)unseenLeftCount
 {
   NSString *method = nil;
   target = (target != nil ? target : YMMessageTargetAll);
@@ -335,29 +343,32 @@ withID:(NSNumber *)targetID params:(NSDictionary *)params fetchToID:(NSNumber *)
             account:acct defaults:params]
            pauseFor:0 decodeFunction:callbackP(__decodeJSON)]
           addCallback:
-          curryTS(self, @selector(_gotMessages:target:targetID:page:fetchToID:networkID:results:), 
+          curryTS(self, @selector(_gotMessages:target:targetID:page:fetchToID:networkID:unseenLeft:results:), 
                   acct, target, (targetID != nil ? targetID : (id)[NSNull null]),
-                  nsni(1), (toID != nil ? toID : (id)[NSNull null]), [acct.activeNetworkPK copy])];
+                  nsni(1), (toID != nil ? toID : (id)[NSNull null]), [acct.activeNetworkPK copy], 
+                  (unseenLeftCount != nil ? unseenLeftCount : nsni(0)))];
 }
 
 - (id)_gotMessages:(YMUserAccount *)acct target:(id)target targetID:(id)targetID
-              page:(id)page fetchToID:(id)toID networkID:(id)networkID results:(id)results
+              page:(id)page fetchToID:(id)toID networkID:(id)networkID unseenLeft:(id)unseenLeftCount results:(id)results
 {
   return [DKDeferred deferInThread:
-          curryTS(self, @selector(_saveMessagesThread:target:targetID:page:fetchToID:networkID:results:),
-                  acct, target, targetID, page, toID, networkID)
+          curryTS(self, @selector(_saveMessagesThread:target:targetID:page:fetchToID:networkID:unseenLeft:results:),
+                  acct, target, targetID, page, toID, networkID, unseenLeftCount)
                          withObject:results];
 }
 
+/// yes this method has become rediculiously bloated
+/// im sorry.
 - (id)_saveMessagesThread:(YMUserAccount *)acct target:(id)target targetID:(id)targetID
-                     page:(id)page fetchToID:(id)toID networkID:(id)networkID results:(id)results
+                     page:(id)page fetchToID:(id)toID networkID:(id)networkID unseenLeft:(id)unseenLeftCount results:(id)results 
 {
   NSMutableArray *ret = [NSMutableArray array];
 
   BOOL fetchToIdFound = NO;
   BOOL fetchingTo = ![toID isEqual:[NSNull null]];
   
-  NSLog(@" save messages thread %@ %@ %@ %@ %@ %i %@", acct, target, targetID, page, toID, fetchingTo);
+  NSLog(@" save messages thread %@ %@ %@ %@ %@ %i %@", acct, target, targetID, page, toID, fetchingTo, unseenLeftCount);
   
   if (![results isKindOfClass:[NSDictionary class]]) return ret;
   
@@ -377,9 +388,10 @@ withID:(NSNumber *)targetID params:(NSDictionary *)params fetchToID:(NSNumber *)
     unseenCount = [[results objectForKey:@"meta"] objectForKey:@"unseen_message_count_received"];
   } 
   
-  if (markRead && lastSeenID) 
+  if (markRead && lastSeenID && intv(unseenLeftCount) == 0) {
     [db executeUpdateSQL:[NSString stringWithFormat:@"UPDATE y_m_message SET read=1 WHERE message_i_d <= %i",
                           intv([[results objectForKey:@"meta"] objectForKey:@"last_seen_message_id"])]];
+  }
   
   if ([[results objectForKey:@"messages"] count]) {
     NSArray *likedIDs = [[results objectForKey:@"meta"] objectForKey:@"liked_message_ids"];
@@ -403,7 +415,10 @@ withID:(NSNumber *)targetID params:(NSDictionary *)params fetchToID:(NSNumber *)
         message.target = target;
         message.targetID = (![targetID isEqual:[NSNull null]] ? targetID : nil);
         // TODO: sometimes this marks too many messages read.
-        message.read = nsnb(!lastSeenID || (intv(lastSeenID) >= intv(message.messageID)));
+        if (intv(unseenLeftCount) > 0)
+          message.read = nsnb(NO);
+        else
+          message.read = nsnb(!lastSeenID || (intv(lastSeenID) >= intv(message.messageID)));
         message.liked = nsnb([likedIDs containsObject:message.messageID]);
 
         [message save];
@@ -415,7 +430,7 @@ withID:(NSNumber *)targetID params:(NSDictionary *)params fetchToID:(NSNumber *)
           for (NSDictionary *a in [m objectForKey:@"attachments"]) {
             NSLog(@"attachment %@", a);
             YMAttachment *attachment;
-            if (!(attachment = [YMAttachment findFirstByCriteria:
+            if (!(attachment = (id)[YMAttachment findFirstByCriteria:
                                 @"WHERE attachment_i_d=%i", intv([a objectForKey:@"id"])]))
               attachment = (id)[YMAttachment new];
             attachment.attachmentID = [a objectForKey:@"id"];
@@ -432,6 +447,7 @@ withID:(NSNumber *)targetID params:(NSDictionary *)params fetchToID:(NSNumber *)
               attachment.imageThumbnailURL = [[a objectForKey:@"image"] objectForKey:@"thumbnail_url"];
             } else {
               attachment.isImage = nsnb(NO);
+              attachment.size = [[a objectForKey:@"file"] objectForKey:@"size"];
               attachment.url = [[a objectForKey:@"file"] objectForKey:@"url"];
             }
             [attachment save];
@@ -447,10 +463,12 @@ withID:(NSNumber *)targetID params:(NSDictionary *)params fetchToID:(NSNumber *)
   }
   
   if ([target isEqual:YMMessageTargetFollowing] || [target isEqual:YMMessageTargetReceived]) {
-    if (unseenCount && intv(unseenCount) > [ret count]) {
+    if (intv(unseenLeftCount) > 0 || (unseenCount && intv(unseenCount) > [ret count])) {
       YMMessage *lastFetched = [ret lastObject];
       return dict_(nsnb(YES), @"olderAvailable",
-                   nsni(intv(unseenCount) - [ret count]), @"unseenItemsLeftToFetch",
+                   ((intv(unseenLeftCount) > 0) 
+                    ? nsni(intv(unseenLeftCount) - [ret count]) 
+                    : nsni(intv(unseenCount) - [ret count])), @"unseenItemsLeftToFetch",
                    lastSeenID, @"lastSeenID",
                    lastFetched.messageID, @"lastFetchedID");
     }
@@ -479,14 +497,14 @@ withID:(NSNumber *)targetID params:(NSDictionary *)params fetchToID:(NSNumber *)
   message.webURL = [m objectForKey:@"web_url"];
   message.repliedToID = _nil([m objectForKey:@"replied_to_id"]);
   message.threadID = _nil([m objectForKey:@"thread_id"]);
-  message.bodyPlain = [[m objectForKey:@"body"] objectForKey:@"plain"];
+  message.bodyPlain = [self truncateLinks:[[m objectForKey:@"body"] objectForKey:@"plain"] plain:YES]; //[[m objectForKey:@"body"] objectForKey:@"plain"];
   message.bodyParsed = [self parseMessageBody:[[m objectForKey:@"body"] objectForKey:@"parsed"]
                                withReferences:refs];
   message.messageType = [m objectForKey:@"message_type"];
   message.clientType = [m objectForKey:@"client_type"];
   message.senderID = [m objectForKey:@"sender_id"];
   message.senderType = [m objectForKey:@"sender_type"];
-  NSLog(@"sender type id %@ type %@", message.senderID, message.senderType);
+//  NSLog(@"sender type id %@ type %@", message.senderID, message.senderType);
   message.createdAt = [formatter dateFromString:[m objectForKey:@"created_at"]];
   message.hasAttachments = nsnb(NO);
   
@@ -553,9 +571,12 @@ withID:(NSNumber *)targetID params:(NSDictionary *)params fetchToID:(NSNumber *)
 {
   static NSCharacterSet *openBracketSet = nil;
   static NSCharacterSet *closeBracketSet = nil;
-  static NSString *parsedBodyRegex = @"\\[\\[([a-z]+:[0-9]+)\\]\\]";
+  static NSString *parsedBodyRegex = @"\\[\\[([^\\[\\]]*?)\\]\\]";
+  
   static RKLRegexOptions opts = (RKLCaseless | RKLMultiline 
                                  | RKLDotAll | RKLUnicodeWordBoundaries);
+  
+  parsedBody = [parsedBody stringByEncodingXMLEntities];
   
   if (!openBracketSet) 
     openBracketSet = [[NSCharacterSet characterSetWithCharactersInString:@"["] retain];
@@ -577,6 +598,10 @@ withID:(NSNumber *)targetID params:(NSDictionary *)params fetchToID:(NSNumber *)
     // TODO: this could be optimized
     NSArray *typeAndID = [[parsedBody substringWithRange:match]
                           componentsSeparatedByString:@":"];
+    if ([typeAndID count] != 2) {
+      [html appendString:[typeAndID componentsJoinedByString:@""]];
+      continue;
+    }
     NSString *typ = [[typeAndID objectAtIndex:0] stringByTrimmingCharactersInSet:openBracketSet];
     NSString *eyed = [[typeAndID objectAtIndex:1] stringByTrimmingCharactersInSet:closeBracketSet];
     for (NSDictionary *ref in refs) {
@@ -597,7 +622,35 @@ withID:(NSNumber *)targetID params:(NSDictionary *)params fetchToID:(NSNumber *)
   [html replaceOccurrencesOfString:@"\n" withString:@"<br>" options:
    NSLiteralSearch range:NSMakeRange(0, [html length] - 1)];
   
-  return html;
+  return [self truncateLinks:html plain:NO];
+}
+
+- (NSString *)truncateLinks:(NSString *)html plain:(BOOL)isPlain
+{
+  static NSString *linkRegex = @"((?:(?:ht|f)tp(?:s?)\\:\\/\\/|www\\.[^\\.])\\S+[A-Za-z0-9\\/])";
+  static RKLRegexOptions opts = (RKLCaseless | RKLMultiline | RKLDotAll | RKLUnicodeWordBoundaries);
+  
+  NSMutableString *ret = [NSMutableString string];
+  int idx = 0;
+  NSRange match;
+  NSString *word;
+  
+  while (idx <= [html length]) {
+    match = [html rangeOfRegex:linkRegex options:opts inRange:
+             NSMakeRange(idx, [html length] - idx) capture:0 error:nil];
+    if (match.location != NSNotFound) {
+      [ret appendString:[html substringWithRange:NSMakeRange(idx, match.location - idx)]];
+      idx = match.location + match.length;
+    } else break;
+    word = [html substringWithRange:match];
+    if (!isPlain)
+      [ret appendFormat:@"<a href=\"%@\">%@...</a>", word, ([word length] > 20 ? [word substringToIndex:20] : word)];
+    else 
+      [ret appendFormat:@"%@...", ([word length] > 20 ? [word substringToIndex:20] : word)];
+  }
+  
+  [ret appendString:[html substringFromIndex:idx]];
+  return ret;
 }
 
 - (DKDeferred *)postMessage:(YMUserAccount *)acct body:(NSString *)body 
@@ -742,17 +795,45 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches
 
 - (DKDeferred *)syncUsers:(YMUserAccount *)acct 
 {
-  NSLog(@"mm sync? %@", acct);
+  if (self.syncUsersDeferred)
+    return self.syncUsersDeferred;
   NSMutableURLRequest *req = [self mutableRequestWithMethod:@"users.json" 
-                                   account:acct defaults:dict_(@"1", @"page", @"foo", @"refs")];
-  return [[[[DKDeferredURLConnection alloc]
+                              account:acct defaults:dict_(@"1", @"page", @"foo", @"refs")];
+  id d = [[[[DKDeferredURLConnection alloc]
             initWithRequest:req pauseFor:0 decodeFunction:callbackP(__decodeJSON)]
            addCallback:curryTS(self, @selector(_gotUsers::::), acct, [acct.activeNetworkPK copy], nsni(1))]
           addErrback:callbackTS(self, _getUsersFailed:)];
+  self.syncUsersDeferred = d;
+  return d;
 }
 
 - (id)_gotUsers:(YMUserAccount *)acct :(id)networkPK :(NSNumber *)page :(id)results
 {
+  return [[DKDeferred deferInThread:curryTS(self, @selector(_importUsersThread::::), acct, networkPK, page) withObject:results]
+          addCallback:curryTS(self, @selector(_doneImportingPageOfUsers::::), acct, networkPK, page)];
+}
+
+- (id)_doneImportingPageOfUsers:(id)a :(id)n :(id)p :(id)r
+{
+  NSString *nextPage;
+  if ([r isKindOfClass:[NSDictionary class]] && 
+      (nextPage = [r objectForKey:@"nextPage"]))
+    return [[[[DKDeferredURLConnection alloc] initWithRequest:
+              [self mutableRequestWithMethod:@"users.json"
+                account:a defaults:dict_([nextPage description], @"page", @"foo", @"refs")]
+               pauseFor:0 decodeFunction:callbackP(__decodeJSON)]
+             addCallback:curryTS(self, @selector(_gotUsers::::), a, n, nextPage)]
+            addErrback:callbackTS(self, _getUsersFailed:)];
+  self.syncUsersDeferred = nil;
+  return r;
+}
+
+- (id)_importUsersThread:(YMUserAccount *)acct :(id)networkPK :(NSNumber *)page :(id)results
+{
+  id thr = [NSThread currentThread];
+  if ([thr respondsToSelector:@selector(setThreadPriority:)]) [thr setThreadPriority:0.0]; 
+  [[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:1.0]];
+  
   BOOL fetchMore = NO;
   YMNetwork *curNetwork = (YMNetwork *)[YMNetwork findByPK:intv(networkPK)];
   if ([results isKindOfClass:[NSArray class]] && [results count]) {
@@ -771,12 +852,10 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches
   if (fetchMore) {
     NSNumber *nextPage = nsni((intv(page)+1));
     NSLog(@"nextPage %@", nextPage);
-    return [[[[DKDeferredURLConnection alloc] initWithRequest:
-              [self mutableRequestWithMethod:@"users.json"
-               account:acct defaults:dict_([nextPage description], @"page", @"foo", @"refs")]
-               pauseFor:0 decodeFunction:callbackP(__decodeJSON)]
-             addCallback:curryTS(self, @selector(_gotUsers::::), acct, networkPK, nextPage)]
-            addErrback:callbackTS(self, _getUsersFailed:)];
+    return dict_(nextPage, @"nextPage");
+  } else {
+    id k = [NSString stringWithFormat:@"YMGotFullContactsFor%@", curNetwork.networkID];
+    PREF_SET(k, nsnb(YES));
   }
   return results;
 }
@@ -978,7 +1057,7 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches
 
   return [[[DKDeferredURLConnection alloc]
            initWithRequest:req pauseFor:0 decodeFunction:nil]
-          addBoth:callbackTS(self, _gotContactSuggestions:)];
+          addCallback:callbackTS(self, _gotContactSuggestions:)];
 }
 
 - (id)_gotContactSuggestions:(id)r
@@ -1245,7 +1324,7 @@ account:(YMUserAccount *)acct defaults:(NSDictionary *)defaults
   
   NSMutableURLRequest *req = 
   [NSMutableURLRequest requestWithURL:
-   [NSURL URLWithString:[[self.mountPoint description] 
+   [NSURL URLWithString:[[WS_MOUNTPOINT(acct.serviceUrl) description]
                          stringByAppendingFormat:@"/%@%@", method, params]]
                           cachePolicy:NSURLRequestUseProtocolCachePolicy
                       timeoutInterval:20.0];
@@ -1280,7 +1359,7 @@ account:(YMUserAccount *)acct defaults:(NSDictionary *)defaults
                       @"oauth_signature=\"%@\", oauth_timestamp=\"%f\", "
                       @"oauth_nounce=\"%f\", %@oauth_version=\"1.0\"",
                       self.appKey, tok, sig, ts, ts, verifier];
-  NSLog(@"auth header %@", header);
+//  NSLog(@"auth header %@", header);
   [req setValue:header forHTTPHeaderField:@"Authorization"];
   [req setHTTPShouldHandleCookies:NO];
   [req setValue:@"gzip" forHTTPHeaderField:@"Accept-Encoding"];

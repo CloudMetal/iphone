@@ -7,10 +7,24 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "YMTableViewController.h"
 
 @class YMWebService;
 
-@interface YMLoginViewController : UITableViewController
+@interface YMThisIsWhereIWantToGoView : UIView <ActionTableViewHeader, UITextFieldDelegate>
+{
+  UITextField *theTextField;
+  BOOL isFlipped;
+  BOOL hasFlipped;
+}
+
+@property BOOL isFlipped;
+@property (retain) UITextField *theTextField;
+
+@end
+
+
+@interface YMLoginViewController : YMTableViewController
 <UITextFieldDelegate>
 {
   YMWebService *web;
