@@ -535,12 +535,14 @@
   CGFloat ret = 60;
   CGSize max = CGSizeMake(
   UIInterfaceOrientationIsPortrait(self.interfaceOrientation) ? 247 : 407 , 480);
-  CGFloat sizeNeeded = [[bodies objectAtIndex:idx] sizeWithFont:
+  CGFloat sizeNeeded = ([[bodies objectAtIndex:idx] sizeWithFont:
                        [UIFont systemFontOfSize:previousFontSize] 
                        constrainedToSize:max lineBreakMode:
-                       UILineBreakModeWordWrap].height + ([[groups objectAtIndex:idx] isEqual:
-                                                    [NSNull null]] ? 0 : ([[groups objectAtIndex:idx] 
-                                                                           sizeWithFont:[UIFont systemFontOfSize:previousFontSize-1]].height + 4));
+                       UILineBreakModeWordWrap].height 
+                        + ([[groups objectAtIndex:idx] isEqual:[NSNull null]] 
+                           ? 0 : ([[groups objectAtIndex:idx] sizeWithFont:
+                                   [UIFont systemFontOfSize:
+                                    previousFontSize-1]].height + 4)));
   if (sizeNeeded > 28.0)
     ret = sizeNeeded + 32.0;
   return ret;
