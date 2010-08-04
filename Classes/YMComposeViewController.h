@@ -16,7 +16,7 @@
 
 @interface YMComposeViewController : UIViewController 
 <UITableViewDataSource, UITableViewDelegate, UITextViewDelegate, UIActionSheetDelegate,
-UIImagePickerControllerDelegate, UINavigationControllerDelegate> {
+UIImagePickerControllerDelegate, UINavigationControllerDelegate, UISearchBarDelegate> {
   YMWebService *web;
   YMUserAccount *userAccount;
   YMNetwork *network;
@@ -28,18 +28,25 @@ UIImagePickerControllerDelegate, UINavigationControllerDelegate> {
   NSArray *usernames;
   NSArray *fullNames;
   NSArray *hashes;
+  NSMutableArray *searchIndexSet;
   BOOL gotPartialWillCloseMessage;
   YMComposeView *composeView;
   NSMutableArray *attachments;
   BOOL onPhoto;
+  NSIndexPath *hmm;
+  id<DKCallback> onCompleteSend;
+  BOOL searchBarWillClear;
 }
 
+@property (nonatomic, retain) id<DKCallback> onCompleteSend;
 @property (nonatomic, readwrite, retain) YMUserAccount *userAccount;
 @property (nonatomic, readwrite, retain) YMGroup *inGroup;
 @property (nonatomic, readwrite, retain) YMNetwork *network;
 @property (nonatomic, readwrite, retain) YMMessage *inReplyTo;
 @property (nonatomic, readwrite, retain) YMContact *directTo;
+@property (nonatomic, readonly) UIImagePickerController *imagePicker;
 
 - (void)showFromController:(UIViewController *)controller animated:(BOOL)animated;
+- (void)addAttachment:(id)s;
 
 @end

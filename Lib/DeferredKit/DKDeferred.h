@@ -295,6 +295,7 @@
   id<DKCallback> progressCallback;
   id<DKCallback> decodeFunction;
   NSTimeInterval refreshFrequency;
+  NSURLResponse *response;
 }
 
 @property(nonatomic, readonly) NSString *url;
@@ -487,5 +488,20 @@
 - (void)_resumeWaiting;
 - (void)_checkFinalization;
 - (void)setFinalizeFunc:(id<DKCallback>)f;
+
+@end
+
+
+@interface DKRequestData : NSData
+{
+  id URLResponse;
+  NSData *data;
+}
+
+- (NSUInteger)length;
+- (const void *)bytes;
+
+@property (nonatomic, readwrite, retain) id URLResponse;
+@property (nonatomic, readwrite, retain) NSData *data;
 
 @end

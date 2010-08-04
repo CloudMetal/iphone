@@ -11,8 +11,8 @@
 
 @implementation YMComposeView
 
-@synthesize messageTextView, toLabel, toTargetLabel, activity, onPhoto, imagePicker, onUserPhoto,
-onUserInputsHash, onUserInputsAt, onPartialWillClose, actionBar, tableView, onHash, onUser, onPartial;
+@synthesize messageTextView, toLabel, toTargetLabel, activity, onPhoto, onUserPhoto,
+onUserInputsHash, onUserInputsAt, onPartialWillClose, actionBar, tableView, onHash, onUser, onPartial, interfaceOrientation;
 
 //- (id)initWithCoder:(NSCoder *)aDecoder
 //{
@@ -74,8 +74,8 @@ onUserInputsHash, onUserInputsAt, onPartialWillClose, actionBar, tableView, onHa
     //[messageTextView hidePartials:nil];
   }
   if (!s) return;
-  UIDeviceOrientation o = [[UIDevice currentDevice] orientation];
-  if (!s || (o == UIDeviceOrientationLandscapeLeft || o == UIDeviceOrientationLandscapeRight)) {
+  //UIDeviceOrientation o = [[UIDevice currentDevice] orientation];
+  if (!s) { // || (o == UIDeviceOrientationLandscapeLeft || o == UIDeviceOrientationLandscapeRight)) {
     if (self.onPartialWillClose) [self.onPartialWillClose :textView];
     return;
   }
@@ -98,8 +98,15 @@ onUserInputsHash, onUserInputsAt, onPartialWillClose, actionBar, tableView, onHa
   onPartial = YES;
   [UIView beginAnimations:nil context:nil];
   [UIView setAnimationDuration:.25];
-  messageTextView.frame = CGRectMake(0, 20, 320, 87);
-  tableView.frame = CGRectMake(0, 107, 320, 93);
+  if (UIInterfaceOrientationIsPortrait(self.interfaceOrientation)) {
+    messageTextView.frame = CGRectMake(0, 20, 320, 87);
+    tableView.frame = CGRectMake(0, 107, 320, 93);
+  } else {
+    messageTextView.frame = CGRectMake(0, 5, 480, 45);
+    tableView.frame = CGRectMake(0, 60, 480, 48);
+    toLabel.alpha = 0;
+    toTargetLabel.alpha = 0;
+  }
   actionBar.alpha = 0;
   [UIView commitAnimations];
 }
@@ -109,8 +116,15 @@ onUserInputsHash, onUserInputsAt, onPartialWillClose, actionBar, tableView, onHa
   onPartial = onPhoto = onHash = onUser = NO;
   [UIView beginAnimations:nil context:nil];
   [UIView setAnimationDuration:.25];
-  messageTextView.frame = CGRectMake(0, 20, 320, 153);
-  tableView.frame = CGRectMake(0, 200, 320, 216);
+  if (UIInterfaceOrientationIsPortrait(self.interfaceOrientation)) {
+    messageTextView.frame = CGRectMake(0, 20, 320, 153);
+    tableView.frame = CGRectMake(0, 200, 320, 216);
+  } else {
+    tableView.frame = CGRectMake(0, 106, 480, 162);
+    messageTextView.frame = CGRectMake(0, 20, 480, 100);
+  }
+  toTargetLabel.alpha = 1;
+  toLabel.alpha = 1;
   actionBar.alpha = 1;
   [UIView commitAnimations];
 }

@@ -27,12 +27,12 @@
   NSArray *userSubscriptionIds;
 }
 
-@property (copy) NSNumber *userAccountPK, *userID, *community;
-@property (copy) NSDate *lastScrapedLocalContacts;
-@property (copy) NSNumber *networkID, *unseenMessageCount;
-@property (copy) NSString *permalink, *url, *name;
-@property (copy) NSString *token, *secret;
-@property (copy) NSArray 
+@property (nonatomic, readwrite, retain) NSNumber *userAccountPK, *userID, *community;
+@property (nonatomic, readwrite, retain) NSDate *lastScrapedLocalContacts;
+@property (nonatomic, readwrite, retain) NSNumber *networkID, *unseenMessageCount;
+@property (nonatomic, readwrite, retain) NSString *permalink, *url, *name;
+@property (nonatomic, readwrite, retain) NSString *token, *secret;
+@property (nonatomic, readwrite, retain) NSArray 
   *groupSubscriptionIds, *tagSubscriptionIds, *userSubscriptionIds;
 
 @end

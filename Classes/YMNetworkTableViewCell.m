@@ -27,7 +27,8 @@
     self.unreadLabel.contentMode = UIViewContentModeCenter;
     self.unreadLabel.textColor = [UIColor whiteColor];
     self.unreadLabel.font = [UIFont boldSystemFontOfSize:17];
-    self.unreadLabel.text = @"60+";
+    self.unreadLabel.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin;
+    self.unreadLabel.text = @"";
     [self addSubview:self.unreadLabel];
   }
   return self;

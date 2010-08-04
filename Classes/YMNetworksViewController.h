@@ -13,6 +13,7 @@
 @class YMMessageListViewController;
 @class YMContactsListViewController;
 @class YMFeedListViewController;
+@class YMSettingsViewController;
 
 
 @interface YMNetworksViewController : UITableViewController <UIAlertViewDelegate>
@@ -23,6 +24,7 @@
   YMMessageListViewController *myMessagesController;
   YMMessageListViewController *receivedMessagesController;
   YMFeedListViewController *feedsController;
+  YMSettingsViewController *settingsController;
   BOOL animateNetworkTransition;
   NSArray *networkPKs;
   

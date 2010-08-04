@@ -53,6 +53,14 @@ followingCountLabel, followersLabel, yamCountLabel, joinDateLabel;
   followingCountLabel.text = [[c.stats objectForKey:@"following"] description];
   yamCountLabel.text = [[c.stats objectForKey:@"updates"] description];
   followersLabel.text = [[c.stats objectForKey:@"followers"] description];
+  if (![c.type isEqual:@"user"]) {
+    [self hideFollowAndPM];
+    followersLabel.hidden = YES;
+    followingCountLabel.hidden = YES;
+  } else {
+    followersLabel.hidden = NO;
+    followingCountLabel.hidden = NO;
+  }
   
   if (contact) [contact release];
   contact = nil;

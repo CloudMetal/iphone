@@ -16,8 +16,10 @@
   
 	BOOL checkForRefresh;
 	BOOL reloading;
+  BOOL useSubtitleHeader;
   
   Class actionTableViewHeaderClass;
+  NSString *subtitle;
   
 //	SoundEffect *psst1Sound;
 //	SoundEffect *psst2Sound;
@@ -27,8 +29,10 @@
 @property(assign) Class actionTableViewHeaderClass;
 @property(readonly) UIView<ActionTableViewHeader> *refreshHeaderView;
 @property(readonly) BOOL reloading;
+@property(assign) BOOL useSubtitleHeader;
 
 - (void)dataSourceDidFinishLoadingNewData;
 - (void) showReloadAnimationAnimated:(BOOL)animated;
+-(void) setHeaderTitle:(NSString*)headerTitle andSubtitle:(NSString*)headerSubtitle;
 
 @end

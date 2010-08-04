@@ -25,6 +25,8 @@
 
 - (void)loadView
 {
+  self.actionTableViewHeaderClass = NULL;
+//  self.useSubtitleHeader = YES;
   self.tableView = [[UITableView alloc] initWithFrame:
                     CGRectMake(0, 0, 320, 460) style:UITableViewStylePlain];
   self.tableView.autoresizingMask = (UIViewAutoresizingFlexibleWidth |
@@ -51,6 +53,7 @@
   [super viewWillAppear:animated];
   [self refreshFeeds];
   [self.tableView reloadData];
+  [self setHeaderTitle:self.title andSubtitle:self.network.name];
 }
 
 - (void)viewDidAppear:(BOOL)animated

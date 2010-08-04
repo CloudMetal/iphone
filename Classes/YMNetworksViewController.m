@@ -19,6 +19,7 @@
 #import "YMFeedListViewController.h"
 #import <AddressBook/AddressBook.h>
 #import "SQLiteInstanceManager.h"
+#import "YMSettingsViewController.h"
 
 @interface YMNetworksViewController (PrivateParts)
 
@@ -82,65 +83,87 @@
     [[[UIBarButtonItem alloc]
       initWithTitle:@"Accounts" style:UIBarButtonItemStylePlain 
       target:self action:@selector(gotoAccounts:)] autorelease];
+  self.navigationItem.leftBarButtonItem =
+  [[[UIBarButtonItem alloc]
+    initWithTitle:@"Settings" style:
+    UIBarButtonItemStyleBordered target:self action:
+    @selector(showSettings:)] autorelease];
   
   if (!web) web = [YMWebService sharedWebService];
 }
 
+- (void)showSettings:(id)s
+{
+  [self.navigationController pushViewController:
+   [[[YMSettingsViewController alloc] init] autorelease] animated:YES];
+}
+
 - (UITabBarController *)tabs
 {
-//  if (!tabs) {
-    tabs = [[[UITabBarController alloc] init] retain];
-    myMessagesController = [[[YMMessageListViewController alloc] init] retain];
-    myMessagesController.tabBarItem = 
-    [[[UITabBarItem alloc] initWithTitle:@"My Feed" image:
-      [UIImage imageNamed:@"53-house.png"] tag:0] autorelease];
-    myMessagesController.shouldUpdateBadge = YES;
+  tabs = [[UITabBarController alloc] init];
+  myMessagesController = [[YMMessageListViewController alloc] init];
+  myMessagesController.tabBarItem = 
+  [[[UITabBarItem alloc] initWithTitle:@"My Feed" image:
+    [UIImage imageNamed:@"53-house.png"] tag:0] autorelease];
+  myMessagesController.shouldUpdateBadge = YES;
+  
+  receivedMessagesController = [[YMMessageListViewController alloc] init];
+  receivedMessagesController.tabBarItem = 
+  [[[UITabBarItem alloc] initWithTitle:@"Received" image:
+    [UIImage imageNamed:@"received.png"] tag:1] autorelease];
+  receivedMessagesController.shouldUpdateBadge = YES;
+  
+  directoryController = [[YMContactsListViewController alloc] init];
+  directoryController.tabBarItem =
+  [[[UITabBarItem alloc] initWithTitle:@"Directory" image:
+    [UIImage imageNamed:@"123-id-card.png"] tag:2] autorelease];
+  
+  feedsController = [[YMFeedListViewController alloc] init];
+  feedsController.tabBarItem = 
+  [[[UITabBarItem alloc] initWithTitle:@"Feeds" image:
+    [UIImage imageNamed:@"feeds.png"] tag:3] autorelease];
     
-    receivedMessagesController = [[[YMMessageListViewController alloc] init] retain];
-    receivedMessagesController.tabBarItem = 
-    [[[UITabBarItem alloc] initWithTitle:@"Received" image:
-      [UIImage imageNamed:@"received.png"] tag:1] autorelease];
-    receivedMessagesController.shouldUpdateBadge = YES;
+  YMNetwork *last = (YMNetwork *)[YMNetwork findByPK:intv(PREF_KEY(@"lastNetworkPK"))];
+  
+  NSMutableArray *a = [NSMutableArray array];
+  for (UIViewController *c in array_(myMessagesController, receivedMessagesController,
+                                     feedsController, directoryController)) {
+    UINavigationController *nav = [[[UINavigationController alloc] 
+                                    initWithRootViewController:c] autorelease];
+    nav.navigationBar.tintColor = self.navigationController.navigationBar.tintColor;
+    [a addObject:nav];
     
-    directoryController = [[[YMContactsListViewController alloc] init] retain];
-    directoryController.tabBarItem =
-    [[[UITabBarItem alloc] initWithTitle:@"Directory" image:
-      [UIImage imageNamed:@"123-id-card.png"] tag:2] autorelease];
+    UIButton *back = [[[UIButton alloc] initWithFrame:CGRectMake(0, 0, 76, 30)] autorelease];
+    back.titleLabel.lineBreakMode = UILineBreakModeTailTruncation;
+    back.showsTouchWhenHighlighted = YES;
+    back.titleLabel.font = [UIFont boldSystemFontOfSize:12];
+    [back setTitleEdgeInsets:UIEdgeInsetsMake(0, 4, 0, 0)];
+    [back setBackgroundImage:[[UIImage imageNamed:@"backbutton.png"] 
+                              stretchableImageWithLeftCapWidth:17 topCapHeight:15]
+                    forState:UIControlStateNormal];
+    [back setBackgroundImage:[[UIImage imageNamed:@"backbutton-h.png"] 
+                              stretchableImageWithLeftCapWidth:17 topCapHeight:15]
+                    forState:UIControlStateHighlighted];
+    [back setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+
+//    CGFloat max = 110.0;
+//    CGFloat a = [last.name sizeWithFont:[UIFont boldSystemFontOfSize:12]].width;
+//    if (a > max) a = max;
+//    CGRect r = back.frame;
+//    if (a > 64)
+//      r.size.width += (a - 64.0) + 16.0;
+//    if (r.size.width < 76.0) r.size.width = 76.0;
+//    back.frame = r;
+    [back setTitle:@"Networks" forState:UIControlStateNormal];
+    [back addTarget:self action:@selector(fuckOffYouDirtyHonkyNetwork:) 
+     forControlEvents:UIControlEventTouchUpInside];
     
-    feedsController = [[[YMFeedListViewController alloc] init] retain];
-    feedsController.tabBarItem = 
-    [[[UITabBarItem alloc] initWithTitle:@"Feeds" image:
-      [UIImage imageNamed:@"feeds.png"] tag:3] autorelease];
+    UIBarButtonItem *it = [[[UIBarButtonItem alloc] initWithCustomView:back] autorelease];
     
-    NSMutableArray *a = [NSMutableArray array];
-    for (UIViewController *c in array_(myMessagesController, receivedMessagesController,
-                                       feedsController, directoryController)) {
-      UINavigationController *nav = [[[UINavigationController alloc] 
-                                      initWithRootViewController:c] autorelease];
-      nav.navigationBar.tintColor = self.navigationController.navigationBar.tintColor;
-      [a addObject:nav];
-      
-      //UIImageView *img = [[[UIImageView alloc] initWithImage:[UIImage imageNamed:@"backbutton.png"]] autorelease];
-      UIButton *back = [[[UIButton alloc] initWithFrame:CGRectMake(0, 0, 76, 30)] autorelease];
-      back.showsTouchWhenHighlighted = YES;
-      back.titleLabel.font = [UIFont boldSystemFontOfSize:12];
-      [back setTitleEdgeInsets:UIEdgeInsetsMake(0, 4, 0, 0)];
-      [back setBackgroundImage:[[UIImage imageNamed:@"backbutton.png"] stretchableImageWithLeftCapWidth:17 topCapHeight:15] forState:UIControlStateNormal];
-      [back setBackgroundImage:[[UIImage imageNamed:@"backbutton-h.png"] stretchableImageWithLeftCapWidth:17 topCapHeight:15] forState:UIControlStateHighlighted];
-      [back setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-      [back setTitle:@"Networks" forState:UIControlStateNormal];
-      [back addTarget:self action:@selector(fuckOffYouDirtyHonkyNetwork:) forControlEvents:UIControlEventTouchUpInside];
-      
-      UIBarButtonItem *it = [[[UIBarButtonItem alloc] initWithCustomView:back] autorelease];
-      
-      c.navigationItem.leftBarButtonItem = it;
-      
-//      [[UIBarButtonItem alloc]
-//       initWithTitle:@"Networks" style:UIBarButtonItemStyleBordered target:self
-//       action:@selector(fuckOffYouDirtyHonkyNetwork)];
-    }
-    tabs.viewControllers = a;
-//  }
+    c.navigationItem.leftBarButtonItem = it;
+    
+  }
+  tabs.viewControllers = a;
   return tabs;
 }
 
@@ -156,6 +179,8 @@
         @"UPDATE y_m_message SET read=1 WHERE network_p_k=%i", n.pk]];
     }
   }
+  NSUserDefaults *defs = [NSUserDefaults standardUserDefaults];
+  [defs removeObjectForKey:@"lastNetworkPK"];
   if (tabs) [tabs release];
   tabs = nil;
   if (myMessagesController) [myMessagesController release];
@@ -265,14 +290,12 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
   YMNetwork *network = (YMNetwork *)[YMNetwork findByPK:
                        intv([networkPKs objectAtIndex:indexPath.row])];
-//  [network save];
   PREF_SET(@"lastNetworkPK", nsni(network.pk));
+  PREF_SYNCHRONIZE;
   
   [web updateUIApplicationBadge];
   
   [table deselectRowAtIndexPath:indexPath animated:YES];
-//  [table reloadRowsAtIndexPaths:array_(indexPath) 
-//               withRowAnimation:UITableViewRowAnimationNone];
   
   [self gotoNetwork:network];
 }
@@ -283,7 +306,7 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath
                                           intv(network.userAccountPK)];
   acct.activeNetworkPK = nsni(network.pk);
   [acct save];
-  [web syncSubscriptions:acct];
+  [web performSelector:@selector(syncSubscriptions:) withObject:acct afterDelay:5.0];
   
   [self doContactScrape:acct network:network];
   
@@ -299,13 +322,17 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath
   myMessagesController.network = network;
   myMessagesController.target = YMMessageTargetFollowing;
   myMessagesController.title = @"My Feed";
+  myMessagesController.useSubtitleHeader = YES;
   receivedMessagesController.userAccount = acct;
   receivedMessagesController.target = YMMessageTargetReceived;
   receivedMessagesController.network = network;
   receivedMessagesController.title = @"Received";
+  receivedMessagesController.useSubtitleHeader = YES;
   directoryController.userAccount = acct;
+  directoryController.useSubtitleHeader = YES;
   feedsController.userAccount = acct;
   feedsController.network = network;
+  feedsController.useSubtitleHeader = YES;
   
   c.modalTransitionStyle = UIModalTransitionStyleCrossDissolve;
   [self.navigationController presentModalViewController:c animated:animateNetworkTransition];

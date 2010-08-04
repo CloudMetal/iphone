@@ -220,9 +220,10 @@ NSMutableArray *checkedTables;
 {
   SQLitePersistentObject *ret = nil;
   NSString *k = [[self class] memoryMapKeyForObject:inPk];
-  if ([[objectMap allKeys] containsObject:k])
-    ret = [objectMap objectForKey:k];
-  if (ret == nil)
+  ret = [objectMap objectForKey:k];
+//  if ([[objectMap allKeys] containsObject:k])
+//    ret = [objectMap objectForKey:k];
+  if (!ret)
     ret = [self findFirstByCriteria:
            [NSString stringWithFormat:@"WHERE pk = %d", inPk]];
   return ret;
@@ -248,24 +249,17 @@ NSMutableArray *checkedTables;
   {
     while (sqlite3_step(statement) == SQLITE_ROW)
     {
-      BOOL foundInMemory = NO;
       int thePk = sqlite3_column_int(statement, 0);
       NSString *mapKey = [[self class] memoryMapKeyForObject:thePk];
+      id oneItem = [objectMap objectForKey:mapKey];
       
-      if ([[objectMap allKeys] containsObject:mapKey])
+      if (oneItem)
       {
-        SQLitePersistentObject *testObject = [objectMap objectForKey:mapKey];
-        if (testObject != nil)
-        {
-          [ret addObject: [testObject retain] ];
-          foundInMemory = YES;
-        }
+        [ret addObject:[oneItem retain]];
+        continue;
       }
       
-      if(foundInMemory)
-        continue;
-      
-      id oneItem = [[[self class] alloc] init];
+      oneItem = [[[self class] alloc] init];
       [oneItem setPk:thePk];
       
       [[self class] registerObjectInMemory:oneItem];

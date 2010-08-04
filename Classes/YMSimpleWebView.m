@@ -11,7 +11,7 @@
 
 @implementation YMSimpleWebView
 
-@synthesize webView;
+@synthesize webView, req;
 
 /*
  // The designated initializer.  Override if you create the controller programmatically and want to perform customization that is not appropriate for viewDidLoad.
@@ -38,6 +38,36 @@
 }
 */
 
+- (void)viewDidAppear:(BOOL)animated
+{
+  [super viewDidAppear:animated];
+  [webView loadRequest:self.req];
+}
+
+-(void) webView:(UIWebView *)webView didFailLoadWithError:(NSError *)error
+{
+  NSLog(@"fail load with error %@ %@", error, [error userInfo]);
+}
+
+-(BOOL) webView:(UIWebView *)webView shouldStartLoadWithRequest:(NSURLRequest *)request
+ navigationType:(UIWebViewNavigationType)navigationType
+{
+  NSLog(@"should start load %@ %@", request, [request allHTTPHeaderFields]);
+  return YES;
+}
+
+-(void) webViewDidFinishLoad:(UIWebView *)webView
+{
+  [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
+  NSLog(@"should finish");
+}
+
+- (void) webViewDidStartLoad:(UIWebView *)webView
+{
+  [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:YES];
+  NSLog(@"did start");
+}
+
 - (void)didReceiveMemoryWarning {
     // Releases the view if it doesn't have a superview.
     [super didReceiveMemoryWarning];
@@ -53,6 +83,7 @@
 
 
 - (void)dealloc {
+  self.req = nil;
     [super dealloc];
 }
 

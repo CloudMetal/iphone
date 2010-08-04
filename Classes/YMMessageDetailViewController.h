@@ -23,6 +23,7 @@
   NSArray *attachments;
   NSMutableDictionary *attachmentCache;
   id<DKKeyedPool> loadingPool;
+  BOOL fetchingAttachment;
 }
 
 @property (nonatomic, readwrite, retain) YMMessage *message;

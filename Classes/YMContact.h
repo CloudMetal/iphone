@@ -44,15 +44,15 @@
   NSNumber *gotFullRep;
 }
 
-@property(copy) 
+@property(nonatomic, readwrite, retain) 
   NSString *type, *state, *username, *fullName, *mugshotURL, 
            *url, *webURL, *jobTitle, *location, *summary, 
            *timeZone, *networkName;
-@property(copy) NSDictionary *stats;
-@property(copy) NSArray *im, *networkDomains, *externalURLs,
+@property(nonatomic, readwrite, retain) NSDictionary *stats;
+@property(nonatomic, readwrite, retain) NSArray *im, *networkDomains, *externalURLs,
                                                 *emailAddresses, *phoneNumbers;
-@property(copy) NSString *birthDate, *hireDate;
-@property(copy) NSNumber *userID, *networkID;
-@property(copy) NSNumber *gotFullRep;
+@property(nonatomic, readwrite, retain) NSString *birthDate, *hireDate;
+@property(nonatomic, readwrite, retain) NSNumber *userID, *networkID;
+@property(nonatomic, readwrite, retain) NSNumber *gotFullRep;
 
 @end

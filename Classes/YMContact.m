@@ -25,4 +25,32 @@
                 array_(@"userID", @"username", @"mugshotURL"));
 }
 
+- (void)dealloc
+{
+  self.type = nil;
+  self.userID = nil;
+  self.state = nil;
+  self.username = nil;
+  self.fullName = nil;
+  self.mugshotURL = nil;
+  self.url = nil;
+  self.webURL = nil;
+  self.jobTitle = nil;
+  self.location = nil;
+  self.emailAddresses = nil;
+  self.phoneNumbers = nil;
+  self.im  = nil;
+  self.externalURLs = nil;
+  self.birthDate = nil;
+  self.hireDate = nil;
+  self.summary = nil;
+  self.timeZone = nil;
+  self.networkID = nil;
+  self.networkDomains = nil;
+  self.networkName = nil;
+  self.stats = nil;
+  self.gotFullRep = nil;
+  [super dealloc];
+}
+
 @end

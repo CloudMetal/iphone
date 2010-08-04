@@ -42,5 +42,6 @@
 @property(nonatomic, retain) UIImage *avatar;
 
 - (void)drawContentView:(CGRect)r;
++ (void)updateFontSize;
 
 @end

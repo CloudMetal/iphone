@@ -59,6 +59,7 @@ static StatusBarNotifier *__sharedNotifier;
     self.currentLine = nil;
     self.isShown = NO;
     self.isError = NO;
+    views = [[NSMutableArray array] retain];
     orientation = [[UIDevice currentDevice] orientation];
     self.userInteractionEnabled = NO;
     [[NSNotificationCenter defaultCenter]
@@ -78,15 +79,19 @@ static StatusBarNotifier *__sharedNotifier;
 
 - (void)orientationChanged:(NSNotification *)note
 {
-  if (UIDeviceOrientationIsLandscape([[UIDevice currentDevice] orientation])) {
-    if (self.isShown) {
-      [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:YES];
-      self.hidden = YES;
-    }
-  } else {
-    [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
-    self.hidden = NO;
-  }
+  UIDeviceOrientation o = [[UIDevice currentDevice] orientation];
+  if (UIDeviceOrientationIsLandscape(o) || 
+      !UIDeviceOrientationIsValidInterfaceOrientation(o)) {
+    self.hidden = YES;
+  } else self.hidden = NO;
+//    if (self.isShown) {
+//      [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:YES];
+//      self.hidden = YES;
+//    }
+//  } else {
+//    [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
+//    self.hidden = NO;
+//  }
   orientation = [[UIDevice currentDevice] orientation];
 //  [self flashLoading:@"omgwtf" deferred:[DKDeferred wait:1000 value:nil]];
 //  UIDeviceOrientation o = [[UIDevice currentDevice] orientation]; 
@@ -141,6 +146,7 @@ static StatusBarNotifier *__sharedNotifier;
   [self _continueFlashing];
   return d;
 }
+
 
 - _cbContinueFlashingView:(UIView *)v 
                  deferred:(DKDeferred *)d result:(id)result {
@@ -302,36 +308,46 @@ static StatusBarNotifier *__sharedNotifier;
   if (self.isShown) 
     return;
   //  [[UIApplication sharedApplication] setStatusBarHidden:YES animated:YES];
+  self.isShown = YES;
   [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:YES];
+  
+  return;
+  
   UIWindow *window = [[UIApplication sharedApplication] keyWindow];
   //  window.autoresizesSubviews = NO;
   //  window.autoresizingMask = UIViewAutoresizingNone;
+  
   [CATransaction begin];
   self.alpha = 0;
-  self.hidden = UIDeviceOrientationIsLandscape([[UIDevice currentDevice] orientation]);
-  self.backgroundColor = REGULAR_BACKGROUND;
-  self.frame = CGRectMake(0, topOffset + (self.isError ? -18 : 0), 320, self.isError ? 38 :  20);
-  [self _changingSize];
-  [window insertSubview:self atIndex:0];
-  [UIView beginAnimations:nil context:nil];
-  [UIView setAnimationDuration:.35];
-  [UIView setAnimationCurve:UIViewAnimationCurveEaseOut];
-  self.alpha = 1;
-  for (UIView *wv in [window subviews]) {
-    [wv setNeedsLayout];
+  //self.hidden = UIDeviceOrientationIsLandscape([[UIDevice currentDevice] orientation]);
+  UIDeviceOrientation o = [[UIDevice currentDevice] orientation];
+  if (!UIDeviceOrientationIsLandscape(o) && UIDeviceOrientationIsValidInterfaceOrientation(o)) {
+    NSLog(@"device orientation is not landscape???");
+    self.backgroundColor = REGULAR_BACKGROUND;
+    self.frame = CGRectMake(0, topOffset + (self.isError ? -18 : 0), 320, self.isError ? 38 :  20);
+    [self _changingSize];
+    [window insertSubview:self atIndex:0];
+    [UIView beginAnimations:nil context:nil];
+    [UIView setAnimationDuration:.35];
+    [UIView setAnimationCurve:UIViewAnimationCurveEaseOut];
+    self.alpha = 1;
+    for (UIView *wv in [window subviews]) {
+      [wv setNeedsLayout];
+    }
+    [UIView commitAnimations];
+    [CATransaction flush];
+    [CATransaction commit];
+    [window bringSubviewToFront:self];
   }
-  [UIView commitAnimations];
-  [CATransaction flush];
-  [CATransaction commit];
-  self.isShown = YES;
-  [window bringSubviewToFront:self];
   //NSLog(@"window.subviews %@", window.subviews);
 }
 
 - (void)hide {
   if (!self.isShown)
     return;
+  self.isShown = NO;
   [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
+  return;
   [CATransaction begin];
   //  [[UIApplication sharedApplication] setStatusBarHidden:NO animated:YES];
   [UIView beginAnimations:nil context:nil];
@@ -342,8 +358,7 @@ static StatusBarNotifier *__sharedNotifier;
   [self setAlpha:0];
   [UIView commitAnimations];
   [CATransaction flush];
-  [CATransaction commit];
-  self.isShown = NO;
+  [CATransaction commit];  
   self.isError = NO;
 }
 

@@ -9,10 +9,12 @@
 #import <UIKit/UIKit.h>
 
 
-@interface YMSimpleWebView : UIViewController {
+@interface YMSimpleWebView : UIViewController <UIWebViewDelegate> {
   IBOutlet UIWebView *webView;
+  NSMutableURLRequest *req;
 }
 
+@property (nonatomic, retain) NSMutableURLRequest *req;
 @property (nonatomic, assign) UIWebView *webView;
 
 @end

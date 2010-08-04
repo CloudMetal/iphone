@@ -20,14 +20,15 @@
   NSString *wrapToken, *wrapSecret;
   NSNumber *loggedIn;
   NSString *serviceUrl;
+  NSString *cookie;
 }
 
-@property (copy) NSNumber *activeNetworkPK;
+@property (nonatomic, readwrite, retain) NSNumber *activeNetworkPK;
 // for login
-@property (copy) NSString *username, *password, *serviceUrl;
-@property (copy) NSNumber *loggedIn;
+@property (nonatomic, readwrite, retain) NSString *username, *password, *serviceUrl;
+@property (nonatomic, readwrite, retain) NSNumber *loggedIn;
 // to get network/user lists from server
-@property (copy) NSString *wrapSecret, *wrapToken;
+@property (nonatomic, readwrite, retain) NSString *wrapSecret, *wrapToken, *cookie;
 
 - (void)clearNetworks;
 

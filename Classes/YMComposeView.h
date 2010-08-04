@@ -20,9 +20,11 @@
   IBOutlet UITableView *tableView;
   IBOutlet UIActivityIndicatorView *activity;
   id<DKCallback> onUserInputsHash, onUserInputsAt, onPartialWillClose, onUserPhoto;
-  IBOutlet UIImagePickerController *imagePicker;
+//  IBOutlet UIImagePickerController *imagePicker;
+  UIInterfaceOrientation interfaceOrientation;
 }
 
+@property(nonatomic, assign) UIInterfaceOrientation interfaceOrientation;
 @property(nonatomic, readwrite, retain) id<DKCallback> onUserInputsHash, onUserInputsAt, onPartialWillClose, onUserPhoto;
 @property(nonatomic, readwrite, retain) YMMessageTextView *messageTextView;
 @property(nonatomic, readwrite, retain) UILabel *toLabel, *toTargetLabel;
@@ -30,7 +32,7 @@
 @property(nonatomic, retain) UITableView *tableView;
 @property(nonatomic, assign) BOOL onHash, onUser, onPhoto, onPartial;
 @property(nonatomic, retain) UIActivityIndicatorView *activity;
-@property(nonatomic, retain) UIImagePickerController *imagePicker;
+//@property(nonatomic, retain) UIImagePickerController *imagePicker;
 
 - (void)performAutocomplete:(NSString *)str isAppending:(BOOL)appending;
 

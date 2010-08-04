@@ -28,6 +28,32 @@ id _gatherResultsCallback(id results) {
 }
 
 
+@implementation DKRequestData
+
+@synthesize URLResponse, data;
+
+- (id) initWithBytes:(const void *)bytes length:(NSUInteger)length
+{
+  if (self = [super init]) {
+    data = [[NSData dataWithBytes:bytes length:length] retain];
+    self.URLResponse = nil;
+  }
+  return self;
+}
+
+- (NSUInteger) length { return [data length]; }
+
+- (const void *)bytes { return [data bytes]; }
+
+- (void)dealloc
+{
+  self.URLResponse = nil;
+  [super dealloc];
+}
+
+@end
+
+
 @implementation NSObject(DKDeferredCache)
 
 + (BOOL)canBeStoredInCache { return [self conformsToProtocol:@protocol(NSCoding)]; }
@@ -677,6 +703,13 @@ id _gatherResultsCallback(id results) {
 @end
 
 
+@interface DKDeferredURLConnection (PrivateParts)
+
+- (id)privateInit;
+
+@end
+
+
 @implementation DKDeferredURLConnection
 
 static NSInteger __urlConnectionCount;
@@ -720,17 +753,13 @@ static NSInteger __urlConnectionCount;
     if (!__urlConnectionCount) {
       __urlConnectionCount = 0;
     }
-    refreshFrequency = 1.0f;
-    expectedContentLength = 0L;
-    percentComplete = 0.0f;
-    progressCallback = nil;
+    [self privateInit];
     url = [[req URL] retain];
-    _data = [[NSMutableData data] retain];
-    [_data setLength:0];
     request = [req retain];
     decodeFunction = [decodeF retain];
     if (_paused) {
-      return [[DKDeferred deferred] addCallback:callbackTS(self, _cbStartLoading:)];
+      return [[DKDeferred deferred] addCallback:
+              callbackTS(self, _cbStartLoading:)];
     } else {
       [self _cbStartLoading:nil];
     }
@@ -741,17 +770,9 @@ static NSInteger __urlConnectionCount;
 - (id)initWithRequest:(NSURLRequest *)req pauseFor:(NSTimeInterval)pause
        decodeFunction:(id<DKCallback>)decodeF {
   if ((self = [super initWithCanceller:nil])) {
-    // init __urlConnetionCount
-    if (!__urlConnectionCount) {
-      __urlConnectionCount = 0;
-    }
-    refreshFrequency = 1.0f;
-    expectedContentLength = 0L;
-    percentComplete = 0.0f;
-    progressCallback = nil;
+    [self privateInit];
     url = [[req URL] retain];
-    _data = [[NSMutableData data] retain];
-    [_data setLength:0];
+    
     request = [req retain];
     decodeFunction = [decodeF retain];
     if (pause > 0) {
@@ -776,6 +797,21 @@ static NSInteger __urlConnectionCount;
   return self;
 }
 
+- (id)privateInit
+{
+  if (!__urlConnectionCount) {
+    __urlConnectionCount = 0;
+  }
+  refreshFrequency = 1.0f;
+  expectedContentLength = 0L;
+  percentComplete = 0.0f;
+  progressCallback = nil;
+  response = nil;
+  _data = [[NSMutableData data] retain];
+  [_data setLength:0];
+  return self;
+}
+
 - (void)setProgressCallback:(id<DKCallback>)callback {
   if (progressCallback) {
     [progressCallback release];
@@ -795,9 +831,14 @@ static NSInteger __urlConnectionCount;
 }
 
 - (void)connection:(NSURLConnection *)aConnection 
-didReceiveResponse:(NSURLResponse *)response {
-  expectedContentLength = [response expectedContentLength];
-//  NSLog(@" - didreceiveresponse - %@", [(NSHTTPURLResponse *)response allHeaderFields]);
+didReceiveResponse:(NSURLResponse *)resp {
+  expectedContentLength = [resp expectedContentLength];
+  if (response) [response release];
+  response = nil;
+  response = [resp retain];
+  //  NSLog(@" - didreceiveresponse - %@", 
+  //        [(NSHTTPURLResponse *)response allHeaderFields]);
+  
   percentComplete = 0.0f;
   [_data setLength:0];
   [self _cbProgressUpdate];
@@ -829,8 +870,12 @@ didReceiveResponse:(NSURLResponse *)response {
   if (progressCallback)
     [self _cbProgressUpdate];
   __urlConnectionCount -= 1;
-  [self callback:(ret == nil) ? [NSData dataWithData:_data] : ret];
-//  [aConnection release];
+  
+  if (ret == nil) {
+    ret = [DKRequestData dataWithData:_data];
+    [ret setURLResponse:response];
+    [self callback:ret];
+  } else [self callback:ret];
 }
 
 - (void)_cbProgressUpdate {
@@ -850,6 +895,7 @@ didReceiveResponse:(NSURLResponse *)response {
   if (connection) [connection release];
   [request release];
   [progressCallback release];
+  [response release];
   [url release];
   [_data release];
   [super dealloc];

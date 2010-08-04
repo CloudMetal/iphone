@@ -39,6 +39,7 @@
 		lastUpdatedLabel.backgroundColor = self.backgroundColor;
 		lastUpdatedLabel.opaque = YES;
 		lastUpdatedLabel.textAlignment = UITextAlignmentCenter;
+    lastUpdatedLabel.autoresizingMask = (UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleLeftMargin);
 		[self addSubview:lastUpdatedLabel];
 		[lastUpdatedLabel release];
     
@@ -51,6 +52,7 @@
 		statusLabel.backgroundColor = self.backgroundColor;
 		statusLabel.opaque = YES;
 		statusLabel.textAlignment = UITextAlignmentCenter;
+    statusLabel.autoresizingMask = (UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleLeftMargin);
 		[self setStatus:kPullToReloadStatus];
 		[self addSubview:statusLabel];
 		[statusLabel release];
@@ -60,6 +62,7 @@
                              - 65.0f, 30.0f, 55.0f)];
 		arrowImage.contentMode = UIViewContentModeScaleAspectFit;
 		arrowImage.image = [UIImage imageNamed:@"blueArrow.png"];
+    arrowImage.autoresizingMask = (UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleLeftMargin);
 		[arrowImage layer].transform =
     CATransform3DMakeRotation(M_PI, 0.0f, 0.0f, 1.0f);
 		[self addSubview:arrowImage];
@@ -71,6 +74,7 @@
 		activityView.frame = CGRectMake(25.0f, frame.size.height
                                     - 38.0f, 20.0f, 20.0f);
 		activityView.hidesWhenStopped = YES;
+    activityView.autoresizingMask = (UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleLeftMargin);
 		[self addSubview:activityView];
 		[activityView release];
     

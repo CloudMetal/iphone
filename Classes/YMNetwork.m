@@ -15,4 +15,22 @@
             permalink, url, unseenMessageCount, name, userID,
             groupSubscriptionIds, tagSubscriptionIds, userSubscriptionIds, community;
 
+- (void)dealloc
+{
+  self.token = nil;
+  self.secret = nil;
+  self.userID = nil;
+  self.userAccountPK = nil;
+  self.networkID = nil;
+  self.lastScrapedLocalContacts = nil;
+  self.permalink = nil;
+  self.url = nil;
+  self.name = nil;
+  self.groupSubscriptionIds = nil;
+  self.tagSubscriptionIds = nil;
+  self.userSubscriptionIds = nil;
+  self.community = nil;
+  [super dealloc];
+}
+
 @end

@@ -71,6 +71,7 @@
 
 
 - (NSArray *)loggedInUsers;
+- (int)totalUnseen;
 - (void)updateUIApplicationBadge;
 - (void)subtractUnseenCount:(int)ct fromNetwork:(YMNetwork *)network;
 

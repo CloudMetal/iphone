@@ -16,9 +16,9 @@
   NSString *url, *imageThumbnailURL;
 }
 
-@property(copy) NSString 
+@property(nonatomic, readwrite, retain) NSString 
   *type, *name, *webURL, *url, *imageThumbnailURL;
-@property(copy) NSNumber 
+@property(nonatomic, readwrite, retain) NSNumber 
   *isImage, *attachmentID, *size, *messageID, *messagePK;
 
 @end

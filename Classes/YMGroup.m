@@ -14,4 +14,19 @@
 @synthesize groupID, fullName, name, privacy, url, webURL, 
             members, updates, networkID, mugshotURL;
 
+- (void)dealloc
+{
+  self.groupID = nil;
+  self.fullName = nil;
+  self.name = nil;
+  self.privacy = nil;
+  self.url = nil;
+  self.webURL = nil;
+  self.members = nil;
+  self.updates = nil;
+  self.networkID = nil;
+  self.mugshotURL = nil;
+  [super dealloc];
+}
+
 @end

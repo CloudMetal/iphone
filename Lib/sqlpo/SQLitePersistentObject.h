@@ -63,6 +63,7 @@
  Returns the name of the table that this object will use to save its data
  */
 + (NSString *)tableName;
++ (void)tableCheck;
 
 + (void)clearCache;
 

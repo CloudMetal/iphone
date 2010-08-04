@@ -13,7 +13,11 @@
 
 @implementation YMTableViewController
 
-@synthesize actionTableViewHeaderClass, refreshHeaderView, reloading;
+@synthesize actionTableViewHeaderClass, refreshHeaderView, reloading, useSubtitleHeader;
+
+//- (void)loadView
+//{
+//  [super loadView];
 
 - (void)viewDidLoad
 {
@@ -24,10 +28,47 @@
     refreshHeaderView = [[self.actionTableViewHeaderClass alloc] initWithFrame:
                          CGRectMake(0.0f, 0.0f - self.view.bounds.size.height,
                                     320.0f, self.view.bounds.size.height)];
+    refreshHeaderView.autoresizingMask = UIViewAutoresizingFlexibleWidth;
     [self.tableView addSubview:refreshHeaderView];
   }
   
 	self.tableView.showsVerticalScrollIndicator = YES;
+  
+  if (self.useSubtitleHeader) {
+    CGRect headerTitleSubtitleFrame = CGRectMake(0, 0, 160, 44); 
+    UIView *_headerTitleSubtitleView = [[[UILabel alloc] initWithFrame:headerTitleSubtitleFrame] autorelease]; 
+    _headerTitleSubtitleView.backgroundColor = [UIColor clearColor]; 
+    _headerTitleSubtitleView.autoresizesSubviews = YES; 
+    _headerTitleSubtitleView.autoresizingMask = UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleLeftMargin;
+    CGRect titleFrame = CGRectMake(0, 2, 160, 24); 
+    UILabel *titleView = [[[UILabel alloc] initWithFrame:titleFrame] autorelease]; 
+    titleView.backgroundColor = [UIColor clearColor]; 
+    titleView.font = [UIFont boldSystemFontOfSize:18]; 
+    titleView.textAlignment = UITextAlignmentCenter; 
+    titleView.textColor = [UIColor whiteColor]; 
+    titleView.minimumFontSize = 13;
+    titleView.lineBreakMode = UILineBreakModeTailTruncation;
+    titleView.shadowColor = [UIColor darkGrayColor]; 
+    titleView.shadowOffset = CGSizeMake(0, -1); 
+    titleView.text = @""; 
+    titleView.adjustsFontSizeToFitWidth = YES; 
+    [_headerTitleSubtitleView addSubview:titleView]; 
+    CGRect subtitleFrame = CGRectMake(0, 19, 160, 44-24); 
+    UILabel *subtitleView = [[[UILabel alloc] initWithFrame:subtitleFrame] autorelease]; 
+    subtitleView.backgroundColor = [UIColor clearColor]; 
+    subtitleView.font = [UIFont boldSystemFontOfSize:13]; 
+    subtitleView.textAlignment = UITextAlignmentCenter; 
+    subtitleView.textColor = [UIColor colorWithWhite:.8 alpha:1]; 
+    subtitleView.shadowColor = [UIColor darkGrayColor]; 
+    subtitleView.shadowOffset = CGSizeMake(0, -1); 
+    subtitleView.text = @""; 
+    subtitleView.adjustsFontSizeToFitWidth = YES; 
+    [_headerTitleSubtitleView addSubview:subtitleView]; 
+    _headerTitleSubtitleView.autoresizingMask = (UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin 
+                                                 | UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleBottomMargin); 
+    self.navigationItem.titleView = _headerTitleSubtitleView;
+  }
+  
   
 	// pre-load sounds
 //	psst1Sound = [[SoundEffect alloc] initWithContentsOfFile:
@@ -41,6 +82,34 @@
 //                                               ofType:@"wav"]];
   
 }
+
+-(void) setHeaderTitle:(NSString*)headerTitle andSubtitle:(NSString*)headerSubtitle
+{ 
+//  assert(self.navigationItem.titleView != nil); 
+  UIView *headerTitleSubtitleView = self.navigationItem.titleView; 
+  UILabel *titleView = (UILabel *)[headerTitleSubtitleView.subviews objectAtIndex:0]; 
+  UILabel *subtitleView = (UILabel *)[headerTitleSubtitleView.subviews objectAtIndex:1]; 
+//  assert((titleView != nil) && (subtitleView != nil) && ([titleView isKindOfClass:[UILabel class]]) 
+//         && ([subtitleView isKindOfClass:[UILabel class]])); 
+  titleView.text = headerSubtitle; 
+  subtitleView.text = headerTitle;
+}
+
+- (void)willAnimateRotationToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration
+{
+  [super willAnimateRotationToInterfaceOrientation:toInterfaceOrientation duration:duration];
+  UIView *headerTitleSubtitleView = self.navigationItem.titleView; 
+  UILabel *titleView = (UILabel *)[headerTitleSubtitleView.subviews objectAtIndex:0]; 
+  UILabel *subtitleView = (UILabel *)[headerTitleSubtitleView.subviews objectAtIndex:1]; 
+  if (UIInterfaceOrientationIsLandscape(toInterfaceOrientation)) {
+    titleView.font = [UIFont boldSystemFontOfSize:16];
+    subtitleView.font = [UIFont boldSystemFontOfSize:12];
+  } else {
+    titleView.font = [UIFont boldSystemFontOfSize:18];
+    subtitleView.font = [UIFont boldSystemFontOfSize:13];
+  }
+}
+
 
 - (void)dealloc
 {

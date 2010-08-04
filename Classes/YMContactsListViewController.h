@@ -7,10 +7,11 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "YMTableViewController.h"
 
 @class YMWebService, YMUserAccount;
 
-@interface YMContactsListViewController : UITableViewController
+@interface YMContactsListViewController : YMTableViewController
 <UISearchBarDelegate>
 {
   YMWebService *web;

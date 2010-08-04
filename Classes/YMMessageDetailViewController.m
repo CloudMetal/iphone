@@ -52,15 +52,18 @@
 - (id)showUser:(id)contact
 {
   if (![contact isKindOfClass:[YMContact class]]) {
-    YMContactDetailViewController *c = [[[YMContactDetailViewController alloc] init] autorelease];
-    c.contact = (YMContact *)[YMContact findFirstByCriteria:@"WHERE user_i_d=%i",
+    YMContactDetailViewController *c = [[[YMContactDetailViewController alloc]
+                                         init] autorelease];
+    c.contact = (YMContact *)
+      [YMContact findFirstByCriteria:@"WHERE user_i_d=%i",
                               intv(self.message.senderID)];
     c.userAccount = self.userAccount;
     [self.navigationController pushViewController:c animated:YES];
     return nil;
   }
   
-  YMContactDetailViewController *c = [[[YMContactDetailViewController alloc] init] autorelease];
+  YMContactDetailViewController *c = [[[YMContactDetailViewController alloc] 
+                                       init] autorelease];
   c.contact = contact;
   c.userAccount = self.userAccount;
   
@@ -70,9 +73,11 @@
 
 - (id)showTag:(NSString *)tag
 {
-  YMMessageListViewController *c = [[[YMMessageListViewController alloc] init] autorelease];
+  YMMessageListViewController *c = [[[YMMessageListViewController alloc] 
+                                     init] autorelease];
   c.userAccount = self.userAccount;
-  c.network = (YMNetwork *)[YMNetwork findByPK:intv(self.userAccount.activeNetworkPK)];
+  c.network = (YMNetwork *)[YMNetwork findByPK:
+                            intv(self.userAccount.activeNetworkPK)];
   c.target = YMMessageTargetTaggedWith;
   c.targetID = nsni(intv(tag));
   [self.navigationController pushViewController:c animated:YES];
@@ -81,9 +86,11 @@
 
 - (id)showThread:(NSString *)sender
 {
-  YMMessageListViewController *c = [[[YMMessageListViewController alloc] init] autorelease];
+  YMMessageListViewController *c = [[[YMMessageListViewController alloc] 
+                                     init] autorelease];
   c.userAccount = self.userAccount;
-  c.network = (YMNetwork *)[YMNetwork findByPK:intv(self.userAccount.activeNetworkPK)];
+  c.network = (YMNetwork *)[YMNetwork findByPK:
+                            intv(self.userAccount.activeNetworkPK)];
   c.target = YMMessageTargetInThread;
   c.title = @"Thread";
   c.targetID = self.message.threadID;
@@ -93,9 +100,11 @@
 
 - (id)showReply:(id)sender
 {
-  YMComposeViewController *c = [[[YMComposeViewController alloc] init] autorelease];
+  YMComposeViewController *c = [[[YMComposeViewController alloc]
+                                 init] autorelease];
   c.userAccount = self.userAccount;
-  c.network = (YMNetwork *)[YMNetwork findByPK:intv(self.userAccount.activeNetworkPK)];
+  c.network = (YMNetwork *)[YMNetwork findByPK:
+                            intv(self.userAccount.activeNetworkPK)];
   c.inReplyTo = self.message;
   [c showFromController:self animated:YES];
   return nil;
@@ -126,7 +135,8 @@
   self.tableView.tableFooterView = detailView.footerView;
   if (attachments) [attachments release];
   attachments = nil;
-  attachments = [[YMAttachment findByCriteria:@"WHERE message_p_k=%i", message.pk] retain];
+  attachments = [[YMAttachment findByCriteria:@"WHERE message_p_k=%i",
+                  message.pk] retain];
   if (attachmentCache) [attachmentCache release];
   attachmentCache = [[NSMutableDictionary dictionary] retain];
   if (!loadingPool) loadingPool = [[[DKDeferredPool alloc] init] retain];
@@ -161,7 +171,8 @@
 - (CGFloat) tableView:(UITableView *)table
 heightForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-  return indexPath.section == 0 ? detailView.frame.size.height : detailView.headerView.frame.size.height;
+  return indexPath.section == 0 ? detailView.frame.size.height : 
+    detailView.headerView.frame.size.height;
 }
 
 - (NSInteger) numberOfSectionsInTableView:(UITableView *)table
@@ -175,7 +186,8 @@ numberOfRowsInSection:(NSInteger)section
   return section == 0 ? 1 : [attachments count];
 }
 
-- (NSString *) tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section
+- (NSString *) tableView:(UITableView *)tableView 
+ titleForHeaderInSection:(NSInteger)section
 {
   if (section == 0) return nil;
   if (![attachments count]) return nil;
@@ -190,10 +202,12 @@ cellForRowAtIndexPath:(NSIndexPath *)indexPath
   static NSString *ident = @"YMAttachmentCell1";
   UITableViewCell *cell = [table dequeueReusableCellWithIdentifier:ident];
   if (!cell) cell = [[[UITableViewCell alloc] initWithStyle:
-                      UITableViewCellStyleSubtitle reuseIdentifier:ident] autorelease];
+                      UITableViewCellStyleSubtitle reuseIdentifier:ident]
+                     autorelease];
   YMAttachment *a = [attachments objectAtIndex:indexPath.row];
   cell.textLabel.text = a.name;
-  cell.detailTextLabel.text = [NSString stringWithFormat:@"%dk", intv(a.size)/1024];
+  cell.detailTextLabel.text = [NSString stringWithFormat:@"%dk",
+                               intv(a.size)/1024];
   NSLog(@"a %@ %@", a, a.imageThumbnailURL);
   UIImage *image = nil;
   if ([attachmentCache objectForKey:a.imageThumbnailURL]) {
@@ -202,10 +216,12 @@ cellForRowAtIndexPath:(NSIndexPath *)indexPath
     image = [UIImage imageNamed:@"42-photos.png"];
     
     NSMutableURLRequest *req = [[[NSMutableURLRequest alloc] initWithURL:
-                                 [NSURL URLWithString:a.imageThumbnailURL]] autorelease];
+                                 [NSURL URLWithString:a.imageThumbnailURL]]
+                                autorelease];
     [web authorizeRequest:req withAccount:self.userAccount];
     [[loadingPool add:[[[DKDeferredURLConnection alloc] 
-                        initRequest:req decodeFunction:nil paused:YES] autorelease]
+                        initRequest:req decodeFunction:nil paused:YES]
+                       autorelease]
                   key:a.imageThumbnailURL]
      addCallback:curryTS(self, @selector(_gotThumbnail::), indexPath)];
   } else {
@@ -218,57 +234,101 @@ cellForRowAtIndexPath:(NSIndexPath *)indexPath
 - (void) tableView:(UITableView *)table
 didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
-  if (indexPath.section == 1) {
+  if (indexPath.section == 1 && !fetchingAttachment) {
     YMAttachment *a = [attachments objectAtIndex:indexPath.row];
+    NSLog(@"attachment %@", a);
     NSString *ext = [a.name pathExtension];
-    NSArray *sup = array_(@"xls", @"key.zip", @"numbers.zip", @"pages.zip", @"pdf", 
-                          @"ppt", @"doc", @"rft", @"rtfd.zip", @"key", @"numbers", @"pages");
+    NSArray *sup = array_(@"xls", @"key.zip", @"numbers.zip", @"pages.zip", 
+                          @"pdf", @"ppt", @"doc", @"rft", @"rtfd.zip", @"key", 
+                          @"numbers", @"pages");
     NSLog(@"ext %@ sup %@", ext, sup);
     if (![sup containsObject:ext] && !boolv(a.isImage)) {
-      [[[[UIAlertView alloc]
-         initWithTitle:@"Unsupported Attachment" message:
-         @"Cannot open that type of attachment in this app. Please use the web interface to download it." 
-         delegate:nil cancelButtonTitle:@"Dismiss" otherButtonTitles:nil]
-        autorelease]
-       show];
+      if ([a.type isEqual:@"ymodule"]) {
+        YMSimpleWebView *w = [[[YMSimpleWebView alloc] initWithNibName:
+                               @"YMSimpleWebView" bundle:nil] autorelease];
+        w.title = a.name;
+        w.req = [[[NSURLRequest alloc] initWithURL:[NSURL URLWithString:a.webURL]] autorelease];
+        NSMutableURLRequest *req = [[NSMutableURLRequest alloc] initWithURL:
+                                     [NSURL URLWithString:a.webURL]];
+        NSLog(@"cookie:%@", self.userAccount.cookie);
+        [req setValue:self.userAccount.cookie forHTTPHeaderField:@"Cookie"];
+        w.req = req;
+        [self.navigationController pushViewController:w animated:YES];
+      } else {
+        [[[[UIAlertView alloc]
+           initWithTitle:@"Unsupported Attachment" message:
+           @"Cannot open that type of attachment in this app. "
+           @"Please use the web interface to download it." 
+           delegate:nil cancelButtonTitle:@"Dismiss" otherButtonTitles:nil]
+          autorelease]
+         show];
+      }
     } else {
       NSMutableURLRequest *req = [[[NSMutableURLRequest alloc] initWithURL:
                                    [NSURL URLWithString:a.url]] autorelease];
+      fetchingAttachment = YES;
       [web authorizeRequest:req withAccount:self.userAccount];
-      [[[StatusBarNotifier sharedNotifier]
+      [[[[StatusBarNotifier sharedNotifier]
         flashLoading:@"Loading File" deferred:
         [[[DKDeferredURLConnection alloc] initRequest:
           req decodeFunction:nil paused:NO] autorelease]]
-       addCallback:curryTS(self, @selector(_showFullsize:::), [NSURL fileURLWithPath:[NSString stringWithFormat:@"/%@", a.name]], a.isImage)];
+       addCallback:curryTS(self, @selector(_showFullsize:::), 
+                           [NSURL fileURLWithPath:
+                            [NSString stringWithFormat:@"/%@", a.name]], 
+                           a.isImage)]
+       addErrback:callbackTS(self, _failShowFullsize:)];
     }
   }
   [self.tableView deselectRowAtIndexPath:indexPath animated:YES];
 }
 
+- (id)_gotResponseBlah:(id)asdf
+{
+  NSLog(@"got response blah %@ %@", NSStringFromClass([asdf class]), asdf);
+  return asdf;
+}
+
+-_failShowFullsize:r
+{
+  fetchingAttachment = NO;
+  [[[[UIAlertView alloc]
+     initWithTitle:@"Download Failed" message:
+     @"An error occured while downloading the attachment" delegate:nil 
+     cancelButtonTitle:@"Dismiss" otherButtonTitles:nil] autorelease] show];
+  return r;
+}
+
 - (id)_showFullsize:(NSURL *)url :(NSNumber *)isImage :(id)result
 {
+  fetchingAttachment = NO;
   if ([result isKindOfClass:[NSData class]] && boolv(isImage))
     result = [UIImage imageWithData:result];
   if ([result isKindOfClass:[UIImage class]]) {
-    NSString *fn = [[[DKDeferredCache sharedCache] dir] stringByAppendingPathComponent:
-                    [[NSString stringWithUUID] stringByAppendingString:@".jpg"]];
+    NSString *fn = [[[DKDeferredCache sharedCache] dir] 
+                    stringByAppendingPathComponent:
+                    [[NSString stringWithUUID] stringByAppendingString:
+                     @".jpg"]];
     [UIImageJPEGRepresentation(result, 7) writeToFile:fn atomically:NO];
     NSString *html = [NSString stringWithFormat:
-                      @"<html><body><img src=\"file://%@\" /></body></html>", fn];
-    YMSimpleWebView *c = [[[YMSimpleWebView alloc] initWithNibName:@"YMSimpleWebView" bundle:nil] autorelease];
+                  @"<html><body><img src=\"file://%@\" /></body></html>", fn];
+    YMSimpleWebView *c = [[[YMSimpleWebView alloc] initWithNibName:
+                           @"YMSimpleWebView" bundle:nil] autorelease];
     
     c.title = [[url relativePath] lastPathComponent];
     [self.navigationController pushViewController:c animated:YES];
     [c.webView loadHTMLString:html baseURL:[[NSURL URLWithString:fn] baseURL]];
     NSLog(@"html %@ %@", html, c.webView);
   } else if ([result isKindOfClass:[NSData class]]) {
-    NSString *fn = [[[DKDeferredCache sharedCache] dir] stringByAppendingPathComponent:
-                    [[NSString stringWithUUID] stringByAppendingFormat:@".%@", [[url relativePath] pathExtension]]];
+    NSString *fn = [[[DKDeferredCache sharedCache] dir] 
+                    stringByAppendingPathComponent:
+                    [[NSString stringWithUUID] stringByAppendingFormat:@".%@",
+                     [[url relativePath] pathExtension]]];
     NSLog(@"loading %@", fn);
     [(NSData *)result writeToFile:fn atomically:NO];
     NSURL *u = [NSURL fileURLWithPath:fn];
     NSURLRequest *req = [NSURLRequest requestWithURL:u];
-    YMSimpleWebView *c = [[[YMSimpleWebView alloc] initWithNibName:@"YMSimpleWebView" bundle:nil] autorelease];
+    YMSimpleWebView *c = [[[YMSimpleWebView alloc] initWithNibName:
+                           @"YMSimpleWebView" bundle:nil] autorelease];
     c.title = [[url relativePath] lastPathComponent];
     [self.navigationController pushViewController:c animated:YES];
     [c.webView loadRequest:req];

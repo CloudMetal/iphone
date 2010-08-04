@@ -7,12 +7,13 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "YMTableViewController.h"
 
 @class YMWebService;
 @class YMUserAccount;
 @class YMNetwork;
 
-@interface YMFeedListViewController : UITableViewController
+@interface YMFeedListViewController : YMTableViewController
 {
   YMWebService *web;
   YMUserAccount *userAccount;

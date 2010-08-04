@@ -48,10 +48,15 @@
 
 - (id)gotoUserFeed:(YMContact *)ct
 {
-  YMMessageListViewController *c = [[[YMMessageListViewController alloc] init] autorelease];
+  YMMessageListViewController *c = [[[YMMessageListViewController alloc]
+                                     init] autorelease];
   c.userAccount = self.userAccount;
-  c.network = (YMNetwork *)[YMNetwork findByPK:intv(self.userAccount.activeNetworkPK)];
-  c.target = YMMessageTargetFromUser;
+  c.network = (YMNetwork *)[YMNetwork findByPK:
+                            intv(self.userAccount.activeNetworkPK)];
+  if ([ct.type isEqual:@"user"]) 
+    c.target = YMMessageTargetFromUser;
+  else 
+    c.target = YMMessageTargetFromBot;
   c.targetID = ct.userID; 
   c.title = ct.fullName;
   c.hidesBottomBarWhenPushed = NO;
@@ -62,15 +67,18 @@
 - (void)viewWillAppear:(BOOL)animated
 { 
   [self updateUserInfo];
-  [[StatusBarNotifier sharedNotifier] flashLoading:@"Updating User Info..." deferred:
-   [[web updateUser:self.userAccount contact:self.contact]
-   addCallback:callbackTS(self, _updatedUser:)]];
+  if (contact && [contact.type isEqual:@"user"])
+    [[StatusBarNotifier sharedNotifier] flashLoading:@"Updating User Info..." 
+    deferred:[[web updateUser:self.userAccount contact:self.contact]
+     addCallback:callbackTS(self, _updatedUser:)]];
 }
 
 - (void)updateUserInfo
 {
   [network release];
-  network = [(id)[YMNetwork findByPK:intv(self.userAccount.activeNetworkPK)] retain];
+  network = nil;
+  network = [(id)[YMNetwork findByPK:
+                  intv(self.userAccount.activeNetworkPK)] retain];
   
   YMContactDetailView *det = [YMContactDetailView contactDetailViewWithRect:
                               CGRectMake(0, 0, 320, 239)];
@@ -91,7 +99,8 @@
 
 - (id)sendMessage:(YMContact *)ct
 {
-  YMComposeViewController *c = [[[YMComposeViewController alloc] init] autorelease];
+  YMComposeViewController *c = [[[YMComposeViewController alloc]
+                                 init] autorelease];
   c.directTo = self.contact;
   c.userAccount = self.userAccount;
   c.network = network;
@@ -103,13 +112,16 @@
 {
   if ([network.userSubscriptionIds containsObject:self.contact.userID]) {
     [[[StatusBarNotifier sharedNotifier] flashLoading:
-      [NSString stringWithFormat:@"Unfollowing %@", self.contact.username] deferred:
-      [web unsubscribe:self.userAccount to:@"user" withID:intv(self.contact.userID)]]
+      [NSString stringWithFormat:@"Unfollowing %@", 
+       self.contact.username] deferred:
+      [web unsubscribe:self.userAccount to:@"user" withID:
+       intv(self.contact.userID)]]
      addCallback:callbackTS(self, _unfollowSuccess:)];
   } else {
     [[[StatusBarNotifier sharedNotifier] flashLoading:
-      [NSString stringWithFormat:@"Following %@", self.contact.username] deferred:
-      [web subscribe:self.userAccount to:@"user" withID:intv(self.contact.userID)]]
+      [NSString stringWithFormat:@"Following %@", self.contact.username] 
+       deferred:[web subscribe:self.userAccount to:@"user" 
+                        withID:intv(self.contact.userID)]]
      addCallback:callbackTS(self, _followSuccess:)];
   }
   return nil;
@@ -117,11 +129,13 @@
 
 - _unfollowSuccess:(id)r
 {
-  NSMutableArray *ar = [network.userSubscriptionIds mutableCopy];
+  NSMutableArray *ar = [[network.userSubscriptionIds mutableCopy] autorelease];
   [ar removeObject:self.contact.userID];
-  YMContactDetailView *det = (YMContactDetailView *)self.tableView.tableHeaderView;
+  YMContactDetailView *det 
+    = (YMContactDetailView *)self.tableView.tableHeaderView;
   [det.followButton setTitle:@"Follow" forState:UIControlStateNormal];
-  det.followersLabel.text = [NSString stringWithFormat:@"%i", intv(det.followersLabel.text) - 1];
+  det.followersLabel.text = [NSString stringWithFormat:@"%i", 
+                             intv(det.followersLabel.text) - 1];
   network.userSubscriptionIds = ar;
   [network save];
   return r;
@@ -129,13 +143,15 @@
 
 - _followSuccess:(id)r
 {
-  NSMutableArray *ar = [network.userSubscriptionIds mutableCopy];
+  NSMutableArray *ar = [[network.userSubscriptionIds mutableCopy] autorelease];
   [ar addObject:self.contact.userID];
   network.userSubscriptionIds = ar;
   [network save];
-  YMContactDetailView *det = (YMContactDetailView *)self.tableView.tableHeaderView;
+  YMContactDetailView *det 
+    = (YMContactDetailView *)self.tableView.tableHeaderView;
   [det.followButton setTitle:@"Unfollow" forState:UIControlStateNormal];
-  det.followersLabel.text = [NSString stringWithFormat:@"%i", intv(det.followersLabel.text) + 1];
+  det.followersLabel.text = [NSString stringWithFormat:@"%i", 
+                             intv(det.followersLabel.text) + 1];
   return r;
 }
 
@@ -171,16 +187,18 @@ cellForRowAtIndexPath:(NSIndexPath *)indexPath
                            UITableViewCellStyleValue2 reuseIdentifier:ident];
   
   if (indexPath.section == 0) {
-    cell.detailTextLabel.text = [[self.contact.phoneNumbers objectAtIndex:indexPath.row]
+    cell.detailTextLabel.text = [[self.contact.phoneNumbers 
+                                  objectAtIndex:indexPath.row]
                                  objectForKey:@"number"];
-    cell.textLabel.text = [[self.contact.phoneNumbers objectAtIndex:indexPath.row]
-                           objectForKey:@"type"];
+    cell.textLabel.text = [[self.contact.phoneNumbers 
+                            objectAtIndex:indexPath.row] objectForKey:@"type"];
   } else if (indexPath.section == 1) {
     NSString *typ = @"Personal Email";
-    if ([[[self.contact.emailAddresses objectAtIndex:indexPath.row] objectForKey:@"type"] isEqual:@"primary"])
+    if ([[[self.contact.emailAddresses objectAtIndex:indexPath.row] 
+          objectForKey:@"type"] isEqual:@"primary"])
       typ = @"Work Email";
-    cell.detailTextLabel.text = [[self.contact.emailAddresses objectAtIndex:indexPath.row]
-                                 objectForKey:@"address"];
+    cell.detailTextLabel.text = [[self.contact.emailAddresses 
+                        objectAtIndex:indexPath.row] objectForKey:@"address"];
     cell.textLabel.text = typ;
   } else if (indexPath.section == 2) {
     cell.detailTextLabel.text = [[self.contact.im objectAtIndex:indexPath.row]
@@ -198,8 +216,9 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath
   [table deselectRowAtIndexPath:indexPath animated:YES];
   if (indexPath.section == 0)
     [[UIApplication sharedApplication] openURL:
-     [NSURL URLWithString:[@"tel://" stringByAppendingString:[[self.contact.phoneNumbers 
-                            objectAtIndex:indexPath.row] objectForKey:@"number"]]]];
+     [NSURL URLWithString:[@"tel://" stringByAppendingString:
+                           [[self.contact.phoneNumbers objectAtIndex:
+                             indexPath.row] objectForKey:@"number"]]]];
   else if (indexPath.section == 1) {
     if (![MFMailComposeViewController canSendMail]) {
       [(UIAlertView *)[[[UIAlertView alloc]
@@ -209,11 +228,13 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath
         autorelease]
        show];
     } else {
-      MFMailComposeViewController *c = [[[MFMailComposeViewController alloc] init] autorelease];
-      c.navigationBar.tintColor = self.navigationController.navigationBar.tintColor;
+      MFMailComposeViewController *c 
+        = [[[MFMailComposeViewController alloc] init] autorelease];
+      c.navigationBar.tintColor 
+        = self.navigationController.navigationBar.tintColor;
       c.mailComposeDelegate = self;
       [c setToRecipients:array_([[self.contact.emailAddresses 
-                                  objectAtIndex:indexPath.row] objectForKey:@"address"])];
+                      objectAtIndex:indexPath.row] objectForKey:@"address"])];
       [self.navigationController presentModalViewController:c animated:YES];
     }
   }

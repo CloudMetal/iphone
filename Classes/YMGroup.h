@@ -22,7 +22,7 @@
   NSNumber *networkID;
 }
 
-@property(copy) NSNumber *groupID, *members, *updates, *networkID;
-@property(copy) NSString *fullName, *name, *privacy, *url, *webURL, *mugshotURL;
+@property(nonatomic, readwrite, retain) NSNumber *groupID, *members, *updates, *networkID;
+@property(nonatomic, readwrite, retain) NSString *fullName, *name, *privacy, *url, *webURL, *mugshotURL;
 
 @end

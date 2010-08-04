@@ -108,6 +108,21 @@ static UIImage *smallPrivateImage = nil;
   }
 }
 
++ (void)updateFontSize
+{
+  [titleFont release];
+  [bodyFont release];
+  [dateFont release];
+  [groupFont release];
+  int fontSize = 13;
+  id p = PREF_KEY(@"fontsize");
+  if (p) fontSize = intv(p);
+  titleFont = [[UIFont boldSystemFontOfSize:fontSize] retain];
+  bodyFont = [[UIFont systemFontOfSize:fontSize] retain];
+  dateFont = [[UIFont systemFontOfSize:fontSize] retain];
+  groupFont = [[UIFont systemFontOfSize:fontSize - 1] retain];
+}
+
 - (id)initWithFrame:(CGRect)f reuseIdentifier:(NSString *)reuseIdent
 {
   if ((self = [super initWithFrame:f reuseIdentifier:reuseIdent])) {
@@ -264,7 +279,8 @@ static UIImage *smallPrivateImage = nil;
   }
   
   if (group) {
-    CGRect gr = CGRectMake(62, r.size.height - 22.0, r.size.width - 72.0, 17);
+    CGSize s = [group sizeWithFont:groupFont];
+    CGRect gr = CGRectMake(62, r.size.height - (s.height + 5.0), r.size.width - 72.0, 17);
     [groupColor set];
     [group drawInRect:gr withFont:groupFont];
   }

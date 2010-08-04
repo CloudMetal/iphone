@@ -14,6 +14,10 @@
 		00C08546104861CB00331BF5 /* dist.plist in Resources */ = {isa = PBXBuildFile; fileRef = 00C08545104861CB00331BF5 /* dist.plist */; };
 		00E6CDB61046F7AD0042BD9E /* yammer_sound.wav in Resources */ = {isa = PBXBuildFile; fileRef = 00E6CDB51046F7AD0042BD9E /* yammer_sound.wav */; };
 		00E6CDB81046F7E00042BD9E /* Icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 00E6CDB71046F7E00042BD9E /* Icon.png */; };
+		157B4ADA11ED8B5700886050 /* UIImage+Resize.m in Sources */ = {isa = PBXBuildFile; fileRef = 157B4AD911ED8B5700886050 /* UIImage+Resize.m */; };
+		157B4AE311ED8CC200886050 /* UIImage+Alpha.m in Sources */ = {isa = PBXBuildFile; fileRef = 157B4ADF11ED8CC200886050 /* UIImage+Alpha.m */; };
+		157B4AE411ED8CC200886050 /* UIImage+RoundedCorner.m in Sources */ = {isa = PBXBuildFile; fileRef = 157B4AE111ED8CC200886050 /* UIImage+RoundedCorner.m */; };
+		15C763D811F02CF800E660BE /* YMSettingsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 15C763D711F02CF800E660BE /* YMSettingsViewController.m */; };
 		1D3623260D0F684500981E51 /* YammerAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 1D3623250D0F684500981E51 /* YammerAppDelegate.m */; };
 		1D60589B0D05DD56006BFB54 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 29B97316FDCFA39411CA2CEA /* main.m */; };
 		1D60589F0D05DD5A006BFB54 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1D30AB110D05D00D00671497 /* Foundation.framework */; };
@@ -178,23 +182,6 @@
 		288765FD0DF74451002DB57D /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 288765FC0DF74451002DB57D /* CoreGraphics.framework */; };
 /* End PBXBuildFile section */
 
-/* Begin PBXContainerItemProxy section */
-		0044F10610E2A82C008C9AFE /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 00901E1A10445E72008E7C7D /* Three20.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = EB9E6C6210B6A8F800DE563C;
-			remoteInfo = UnitTests;
-		};
-		00901E1E10445E72008E7C7D /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 00901E1A10445E72008E7C7D /* Three20.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = BEF31F3A0F352DF5000DE5D2;
-			remoteInfo = Three20;
-		};
-/* End PBXContainerItemProxy section */
-
 /* Begin PBXFileReference section */
 		0004D3EE10449CB3005F49DF /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = /System/Library/Frameworks/CoreData.framework; sourceTree = "<absolute>"; };
 		002A9CF310F6630300BFD48C /* MessageUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MessageUI.framework; path = System/Library/Frameworks/MessageUI.framework; sourceTree = SDKROOT; };
@@ -202,11 +189,17 @@
 		003B45241045832700310B73 /* NSString+URLEncoding.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSString+URLEncoding.m"; path = "Classes/OAuth/NSString+URLEncoding.m"; sourceTree = "<group>"; };
 		003B458B1045878B00310B73 /* Default.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = Default.png; path = Resources/Default.png; sourceTree = "<group>"; };
 		00901E1610445C8A008E7C7D /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = /System/Library/Frameworks/QuartzCore.framework; sourceTree = "<absolute>"; };
-		00901E1A10445E72008E7C7D /* Three20.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Three20.xcodeproj; path = ../three20/src/Three20.xcodeproj; sourceTree = SOURCE_ROOT; };
-		00901E3810445EB9008E7C7D /* Three20.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; name = Three20.bundle; path = ../three20/src/Three20.bundle; sourceTree = SOURCE_ROOT; };
 		00C08545104861CB00331BF5 /* dist.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = dist.plist; sourceTree = "<group>"; };
 		00E6CDB51046F7AD0042BD9E /* yammer_sound.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = yammer_sound.wav; sourceTree = "<group>"; };
 		00E6CDB71046F7E00042BD9E /* Icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = Icon.png; path = Resources/Icon.png; sourceTree = "<group>"; };
+		157B4AD811ED8B5200886050 /* UIImage+Resize.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIImage+Resize.h"; sourceTree = "<group>"; };
+		157B4AD911ED8B5700886050 /* UIImage+Resize.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIImage+Resize.m"; sourceTree = "<group>"; };
+		157B4ADF11ED8CC200886050 /* UIImage+Alpha.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIImage+Alpha.m"; sourceTree = "<group>"; };
+		157B4AE011ED8CC200886050 /* UIImage+Alpha.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIImage+Alpha.h"; sourceTree = "<group>"; };
+		157B4AE111ED8CC200886050 /* UIImage+RoundedCorner.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIImage+RoundedCorner.m"; sourceTree = "<group>"; };
+		157B4AE211ED8CC200886050 /* UIImage+RoundedCorner.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIImage+RoundedCorner.h"; sourceTree = "<group>"; };
+		15C763D611F02CF800E660BE /* YMSettingsViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YMSettingsViewController.h; sourceTree = "<group>"; };
+		15C763D711F02CF800E660BE /* YMSettingsViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = YMSettingsViewController.m; sourceTree = "<group>"; };
 		1D30AB110D05D00D00671497 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		1D3623240D0F684500981E51 /* YammerAppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = YammerAppDelegate.h; path = Classes/YammerAppDelegate.h; sourceTree = "<group>"; };
 		1D3623250D0F684500981E51 /* YammerAppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = YammerAppDelegate.m; path = Classes/YammerAppDelegate.m; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objc; };
@@ -491,15 +484,6 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		00901E1B10445E72008E7C7D /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				00901E1F10445E72008E7C7D /* libThree20.a */,
-				0044F10710E2A82C008C9AFE /* UnitTests.octest */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
 		080E96DDFE201D6D7F000001 /* Classes */ = {
 			isa = PBXGroup;
 			children = (
@@ -567,6 +551,8 @@
 				2233D86F11C475C2002DCDFB /* YMSimpleWebView.xib */,
 				22751A0E11E428B200FDE984 /* YMTableViewController.h */,
 				22751A0F11E428B200FDE984 /* YMTableViewController.m */,
+				15C763D611F02CF800E660BE /* YMSettingsViewController.h */,
+				15C763D711F02CF800E660BE /* YMSettingsViewController.m */,
 			);
 			name = "View Controllers";
 			path = ..;
@@ -805,6 +791,12 @@
 		29B97315FDCFA39411CA2CEA /* Other Sources */ = {
 			isa = PBXGroup;
 			children = (
+				157B4ADF11ED8CC200886050 /* UIImage+Alpha.m */,
+				157B4AE011ED8CC200886050 /* UIImage+Alpha.h */,
+				157B4AE111ED8CC200886050 /* UIImage+RoundedCorner.m */,
+				157B4AE211ED8CC200886050 /* UIImage+RoundedCorner.h */,
+				157B4AD811ED8B5200886050 /* UIImage+Resize.h */,
+				157B4AD911ED8B5700886050 /* UIImage+Resize.m */,
 				2233D87311C47796002DCDFB /* NSData+Base64.h */,
 				2233D87411C47796002DCDFB /* NSData+Base64.m */,
 				225FAA26119AB511003579E0 /* NSDate+Helper.m */,
@@ -825,8 +817,6 @@
 				22FD1D1B118B9B59008170E0 /* CFPrettyView.m */,
 				22235CA71190E533007F2255 /* StatusBarNotifier.h */,
 				22235CA81190E533007F2255 /* StatusBarNotifier.m */,
-				00901E3810445EB9008E7C7D /* Three20.bundle */,
-				00901E1A10445E72008E7C7D /* Three20.xcodeproj */,
 				22A3B0571177CA27006337B5 /* DeferredKit */,
 				22A3B0681177CA27006337B5 /* FK */,
 				22A3B0941177CA27006337B5 /* JSON */,
@@ -958,35 +948,12 @@
 			hasScannedForEncodings = 1;
 			mainGroup = 29B97314FDCFA39411CA2CEA /* CustomTemplate */;
 			projectDirPath = "";
-			projectReferences = (
-				{
-					ProductGroup = 00901E1B10445E72008E7C7D /* Products */;
-					ProjectRef = 00901E1A10445E72008E7C7D /* Three20.xcodeproj */;
-				},
-			);
 			projectRoot = "";
 			targets = (
 				1D6058900D05DD3D006BFB54 /* Yammer */,
 			);
 		};
 /* End PBXProject section */
-
-/* Begin PBXReferenceProxy section */
-		0044F10710E2A82C008C9AFE /* UnitTests.octest */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.cfbundle;
-			path = UnitTests.octest;
-			remoteRef = 0044F10610E2A82C008C9AFE /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		00901E1F10445E72008E7C7D /* libThree20.a */ = {
-			isa = PBXReferenceProxy;
-			fileType = archive.ar;
-			path = libThree20.a;
-			remoteRef = 00901E1E10445E72008E7C7D /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-/* End PBXReferenceProxy section */
 
 /* Begin PBXResourcesBuildPhase section */
 		1D60588D0D05DD3D006BFB54 /* Resources */ = {
@@ -1163,6 +1130,10 @@
 				22751A0D11E4283B00FDE984 /* YMRefreshView.m in Sources */,
 				22751A1011E428B200FDE984 /* YMTableViewController.m in Sources */,
 				22751D1211E6B61900FDE984 /* NSString+XMLEntities.m in Sources */,
+				157B4ADA11ED8B5700886050 /* UIImage+Resize.m in Sources */,
+				157B4AE311ED8CC200886050 /* UIImage+Alpha.m in Sources */,
+				157B4AE411ED8CC200886050 /* UIImage+RoundedCorner.m in Sources */,
+				15C763D811F02CF800E660BE /* YMSettingsViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1203,7 +1174,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = Yammer_Prefix.pch;
 				INFOPLIST_FILE = "Yammer-Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 3.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 3.1.2;
 				OTHER_LDFLAGS = (
 					"-licucore",
 					"-all_load",
@@ -1211,7 +1182,7 @@
 				);
 				PRODUCT_NAME = Yammer;
 				PROVISIONING_PROFILE = "720DC109-4428-4C31-B4CB-9DD85CE70B32";
-				SDKROOT = iphoneos3.0;
+				SDKROOT = iphoneos4.0;
 			};
 			name = Store;
 		};
@@ -1257,8 +1228,8 @@
 					"-ObjC",
 				);
 				PRODUCT_NAME = Yammer;
-				PROVISIONING_PROFILE = "E013B084-F4CB-438C-87CA-7CD7BB78B74D";
-				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "E013B084-F4CB-438C-87CA-7CD7BB78B74D";
+				PROVISIONING_PROFILE = "2FD5354A-D37C-4F69-A1F7-3BFBA8589303";
+				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "2FD5354A-D37C-4F69-A1F7-3BFBA8589303";
 				SDKROOT = iphoneos4.0;
 			};
 			name = AdHoc;
@@ -1267,8 +1238,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				CODE_SIGN_IDENTITY = "iPhone Developer: Andrew Arrow (69L9J483YE)";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer: Andrew Arrow (69L9J483YE)";
+				CODE_SIGN_IDENTITY = "iPhone Developer: Samuel Sutch (27FP3L7KH9)";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer: Samuel Sutch (27FP3L7KH9)";
 				COPY_PHASE_STRIP = NO;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -1283,8 +1254,8 @@
 					"-ObjC",
 				);
 				PRODUCT_NAME = Yammer;
-				PROVISIONING_PROFILE = "26D5E390-2E6F-4DD0-9336-2B2B316ACA72";
-				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "26D5E390-2E6F-4DD0-9336-2B2B316ACA72";
+				PROVISIONING_PROFILE = "61C60CFE-97BC-4685-9758-8F09D9ABB3A6";
+				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "61C60CFE-97BC-4685-9758-8F09D9ABB3A6";
 				SDKROOT = iphoneos4.0;
 			};
 			name = Debug;

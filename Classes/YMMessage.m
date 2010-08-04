@@ -15,7 +15,9 @@
 
 @synthesize messageID, groupID, directToID, url, webURL, repliedToID, target, 
             threadID, bodyPlain, bodyParsed, messageType, targetID, liked, hasAttachments, 
-            clientType, senderID, senderType, createdAt, networkPK, read, repliedToSenderID;
+            clientType, senderID, senderType, createdAt, networkPK, read, repliedToSenderID,
+            /// these are cache attributes
+            repliedToSenderName, directToSenderName, senderName, senderMugshot, groupName;
 
 + (NSArray *) indices
 {
@@ -28,6 +30,36 @@
                 array_(@"messageID", @"repliedToID", @"senderID", @"repliedToSenderID"),
                 array_(@"messageID", @"targetID", @"repliedToID", @"repliedToSenderID"),
                 array_(@"messageID", @"targetID", @"repliedToID", @"repliedToSenderID", @"senderID"));
+}
+
+- (void)dealloc
+{
+  self.messageID = nil;
+  self.groupID = nil;
+  self.directToID = nil;
+  self.url = nil;
+  self.webURL = nil;
+  self.repliedToID = nil;
+  self.target = nil;
+  self.threadID = nil;
+  self.bodyPlain = nil;
+  self.url = nil;
+  self.webURL = nil;
+  self.repliedToID = nil;
+  self.liked = nil;
+  self.hasAttachments = nil;
+  self.clientType = nil;
+  self.senderID = nil;
+  self.createdAt = nil;
+  self.networkPK = nil;
+  self.read = nil;
+  self.repliedToSenderID = nil;
+  self.repliedToSenderName = nil;
+  self.directToSenderName = nil;
+  self.senderName = nil;
+  self.senderMugshot = nil;
+  self.groupName = nil;
+  [super dealloc];
 }
 
 @end

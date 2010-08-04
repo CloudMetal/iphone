@@ -30,6 +30,8 @@
 
 - (void)loadView
 {
+  self.actionTableViewHeaderClass = NULL;
+//  self.useSubtitleHeader = YES;
   self.tableView = [[UITableView alloc] initWithFrame:
                     CGRectMake(0, 0, 320, 460) style:UITableViewStylePlain];
   self.tableView.autoresizingMask = (UIViewAutoresizingFlexibleWidth |
@@ -65,6 +67,9 @@
   [super viewWillAppear:animated];
   [self refreshContactPKs];
   [self.tableView reloadData];
+  [self setHeaderTitle:self.title andSubtitle:
+   [(YMNetwork *)[YMNetwork findByPK:
+                  intv(self.userAccount.activeNetworkPK)] name]];
 //  if ([contactPKs count])
 //    [self.tableView scrollToRowAtIndexPath:
 //      [NSIndexPath indexPathForRow:0 inSection:0] 
@@ -84,7 +89,7 @@
 {
   YMNetwork *network = (YMNetwork *)[YMNetwork findByPK:
                        intv(self.userAccount.activeNetworkPK)];
-  id k = [NSString stringWithFormat:@"YMGotFullContactsFor%@", network.networkID];
+  id k = [NSString stringWithFormat:@"YMGotFullContactsFor%@%@", network.networkID, PREF_KEY(@"YMPreviousBundleVersion")];
   if (!PREF_KEY(k)) {
     [self doSync:nil];
     UIImageView *v = [[UIImageView alloc] initWithImage:
@@ -206,7 +211,7 @@
 
   YMNetwork *network = (YMNetwork *)[YMNetwork findByPK:
                                      intv(self.userAccount.activeNetworkPK)];
-  id k = [NSString stringWithFormat:@"YMGotFullContactsFor%@", network.networkID];
+  id k = [NSString stringWithFormat:@"YMGotFullContactsFor%@%@", network.networkID, PREF_KEY(@"YMPreviousBundleVersion")];
   PREF_SET(k, nsnb(YES));
   
   [self refreshContactPKs];

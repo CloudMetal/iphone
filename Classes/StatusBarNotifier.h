@@ -20,6 +20,7 @@
   NSString *errorString;
   CGFloat topOffset;
   UIDeviceOrientation orientation;
+  NSMutableArray *views;
 }
 
 @property (assign) CGFloat topOffset;

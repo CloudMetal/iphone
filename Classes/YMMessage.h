@@ -32,35 +32,39 @@
   
   NSNumber *hasAttachments;
   NSNumber *liked;
+  
+  NSString *repliedToSenderName, *directToSenderName, *senderName, *senderMugshot, *groupName;
 }
 
-@property(copy) NSNumber *messageID;
+@property(nonatomic, readwrite, retain) NSNumber *messageID;
 
-@property(copy) NSNumber *groupID;
-@property(copy) NSNumber *directToID;
-@property(copy) NSNumber *repliedToID;
-@property(copy) NSNumber *threadID;
+@property(nonatomic, readwrite, retain) NSNumber *groupID;
+@property(nonatomic, readwrite, retain) NSNumber *directToID;
+@property(nonatomic, readwrite, retain) NSNumber *repliedToID;
+@property(nonatomic, readwrite, retain) NSNumber *threadID;
 
-@property(copy) NSString *url;
-@property(copy) NSString *webURL;
-@property(copy) NSString *bodyParsed;
-@property(copy) NSString *bodyPlain;
+@property(nonatomic, readwrite, retain) NSString *url;
+@property(nonatomic, readwrite, retain) NSString *webURL;
+@property(nonatomic, readwrite, retain) NSString *bodyParsed;
+@property(nonatomic, readwrite, retain) NSString *bodyPlain;
 
-@property(copy) NSString *messageType;
-@property(copy) NSString *clientType;
+@property(nonatomic, readwrite, retain) NSString *messageType;
+@property(nonatomic, readwrite, retain) NSString *clientType;
 
-@property(copy) NSNumber *senderID;
-@property(copy) NSString *senderType;
+@property(nonatomic, readwrite, retain) NSNumber *senderID;
+@property(nonatomic, readwrite, retain) NSString *senderType;
 
-@property(copy) NSDate *createdAt;
+@property(nonatomic, readwrite, retain) NSDate *createdAt;
 
-@property(copy) NSNumber *networkPK;
-@property(copy) NSNumber *read;
-@property(copy) NSString *target;
-@property(copy) NSNumber *targetID;
+@property(nonatomic, readwrite, retain) NSNumber *networkPK;
+@property(nonatomic, readwrite, retain) NSNumber *read;
+@property(nonatomic, readwrite, retain) NSString *target;
+@property(nonatomic, readwrite, retain) NSNumber *targetID;
 
-@property(copy) NSNumber *repliedToSenderID;
+@property(nonatomic, readwrite, retain) NSNumber *repliedToSenderID;
 
-@property(copy) NSNumber *hasAttachments, *liked;
+@property(nonatomic, readwrite, retain) NSNumber *hasAttachments, *liked;
+
+@property(nonatomic, readwrite, retain) NSString *repliedToSenderName, *directToSenderName, *senderName, *senderMugshot, *groupName;
 
 @end

@@ -35,9 +35,7 @@
   NSArray *groups;
   
   // ui elements
-  UIButton *refreshButton;
   UIButton *moreButton;
-  UILabel *totalLoadedLabel;
   
   NSIndexPath *selectedIndexPath;
   
@@ -61,6 +59,7 @@
   
   // state specific stuffs
   BOOL wasInactive;
+  int previousFontSize;
 }
 
 @property(nonatomic, assign) int limit;
@@ -76,6 +75,8 @@
 @property(nonatomic, readwrite, copy) NSNumber *lastLoadedMessageID, *lastSeenMessageID;
 @property(nonatomic, assign) BOOL loadedAvatars, shouldUpdateBadge;
 
+- (void)refreshFeed:(id)sender;
 - (id)doReload:(id)arg;
+- (void)reloadTableViewDataSource;
 
 @end
