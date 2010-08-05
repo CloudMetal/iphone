@@ -18,6 +18,14 @@
 		157B4AE311ED8CC200886050 /* UIImage+Alpha.m in Sources */ = {isa = PBXBuildFile; fileRef = 157B4ADF11ED8CC200886050 /* UIImage+Alpha.m */; };
 		157B4AE411ED8CC200886050 /* UIImage+RoundedCorner.m in Sources */ = {isa = PBXBuildFile; fileRef = 157B4AE111ED8CC200886050 /* UIImage+RoundedCorner.m */; };
 		15C763D811F02CF800E660BE /* YMSettingsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 15C763D711F02CF800E660BE /* YMSettingsViewController.m */; };
+		15E909E7120A777F0046349A /* UIButtonBarArrowDown.png in Resources */ = {isa = PBXBuildFile; fileRef = 15E909E3120A777F0046349A /* UIButtonBarArrowDown.png */; };
+		15E909E8120A777F0046349A /* UIButtonBarArrowDown@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 15E909E4120A777F0046349A /* UIButtonBarArrowDown@2x.png */; };
+		15E909E9120A777F0046349A /* UIButtonBarArrowUp.png in Resources */ = {isa = PBXBuildFile; fileRef = 15E909E5120A777F0046349A /* UIButtonBarArrowUp.png */; };
+		15E909EA120A777F0046349A /* UIButtonBarArrowUp@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 15E909E6120A777F0046349A /* UIButtonBarArrowUp@2x.png */; };
+		15E909F9120A78990046349A /* UIButtonBarArrowDownSmall.png in Resources */ = {isa = PBXBuildFile; fileRef = 15E909F5120A78990046349A /* UIButtonBarArrowDownSmall.png */; };
+		15E909FA120A78990046349A /* UIButtonBarArrowDownSmall@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 15E909F6120A78990046349A /* UIButtonBarArrowDownSmall@2x.png */; };
+		15E909FB120A78990046349A /* UIButtonBarArrowUpSmall.png in Resources */ = {isa = PBXBuildFile; fileRef = 15E909F7120A78990046349A /* UIButtonBarArrowUpSmall.png */; };
+		15E909FC120A78990046349A /* UIButtonBarArrowUpSmall@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 15E909F8120A78990046349A /* UIButtonBarArrowUpSmall@2x.png */; };
 		1D3623260D0F684500981E51 /* YammerAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 1D3623250D0F684500981E51 /* YammerAppDelegate.m */; };
 		1D60589B0D05DD56006BFB54 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 29B97316FDCFA39411CA2CEA /* main.m */; };
 		1D60589F0D05DD5A006BFB54 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1D30AB110D05D00D00671497 /* Foundation.framework */; };
@@ -67,7 +75,6 @@
 		22659A0D11A68FB7009A8AD8 /* user-bg-small.png in Resources */ = {isa = PBXBuildFile; fileRef = 22659A0C11A68FB7009A8AD8 /* user-bg-small.png */; };
 		22751A0D11E4283B00FDE984 /* YMRefreshView.m in Sources */ = {isa = PBXBuildFile; fileRef = 22751A0C11E4283B00FDE984 /* YMRefreshView.m */; };
 		22751A1011E428B200FDE984 /* YMTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 22751A0F11E428B200FDE984 /* YMTableViewController.m */; };
-		22751A1911E42EAD00FDE984 /* blueArrow.png in Resources */ = {isa = PBXBuildFile; fileRef = 22751A1811E42EAD00FDE984 /* blueArrow.png */; };
 		22751D1211E6B61900FDE984 /* NSString+XMLEntities.m in Sources */ = {isa = PBXBuildFile; fileRef = 22751D1111E6B61900FDE984 /* NSString+XMLEntities.m */; };
 		22751DA411E8306900FDE984 /* backbutton.png in Resources */ = {isa = PBXBuildFile; fileRef = 22751DA211E8306900FDE984 /* backbutton.png */; };
 		22751DA511E8306900FDE984 /* backbutton@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 22751DA311E8306900FDE984 /* backbutton@2x.png */; };
@@ -192,14 +199,22 @@
 		00C08545104861CB00331BF5 /* dist.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = dist.plist; sourceTree = "<group>"; };
 		00E6CDB51046F7AD0042BD9E /* yammer_sound.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = yammer_sound.wav; sourceTree = "<group>"; };
 		00E6CDB71046F7E00042BD9E /* Icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = Icon.png; path = Resources/Icon.png; sourceTree = "<group>"; };
-		157B4AD811ED8B5200886050 /* UIImage+Resize.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIImage+Resize.h"; sourceTree = "<group>"; };
-		157B4AD911ED8B5700886050 /* UIImage+Resize.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIImage+Resize.m"; sourceTree = "<group>"; };
-		157B4ADF11ED8CC200886050 /* UIImage+Alpha.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIImage+Alpha.m"; sourceTree = "<group>"; };
-		157B4AE011ED8CC200886050 /* UIImage+Alpha.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIImage+Alpha.h"; sourceTree = "<group>"; };
-		157B4AE111ED8CC200886050 /* UIImage+RoundedCorner.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIImage+RoundedCorner.m"; sourceTree = "<group>"; };
-		157B4AE211ED8CC200886050 /* UIImage+RoundedCorner.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIImage+RoundedCorner.h"; sourceTree = "<group>"; };
-		15C763D611F02CF800E660BE /* YMSettingsViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YMSettingsViewController.h; sourceTree = "<group>"; };
-		15C763D711F02CF800E660BE /* YMSettingsViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = YMSettingsViewController.m; sourceTree = "<group>"; };
+		157B4AD811ED8B5200886050 /* UIImage+Resize.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "UIImage+Resize.h"; path = "Lib/UIImage+Resize.h"; sourceTree = "<group>"; };
+		157B4AD911ED8B5700886050 /* UIImage+Resize.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "UIImage+Resize.m"; path = "Lib/UIImage+Resize.m"; sourceTree = "<group>"; };
+		157B4ADF11ED8CC200886050 /* UIImage+Alpha.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "UIImage+Alpha.m"; path = "Lib/UIImage+Alpha.m"; sourceTree = "<group>"; };
+		157B4AE011ED8CC200886050 /* UIImage+Alpha.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "UIImage+Alpha.h"; path = "Lib/UIImage+Alpha.h"; sourceTree = "<group>"; };
+		157B4AE111ED8CC200886050 /* UIImage+RoundedCorner.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "UIImage+RoundedCorner.m"; path = "Lib/UIImage+RoundedCorner.m"; sourceTree = "<group>"; };
+		157B4AE211ED8CC200886050 /* UIImage+RoundedCorner.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "UIImage+RoundedCorner.h"; path = "Lib/UIImage+RoundedCorner.h"; sourceTree = "<group>"; };
+		15C763D611F02CF800E660BE /* YMSettingsViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = YMSettingsViewController.h; path = Classes/YMSettingsViewController.h; sourceTree = "<group>"; };
+		15C763D711F02CF800E660BE /* YMSettingsViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = YMSettingsViewController.m; path = Classes/YMSettingsViewController.m; sourceTree = "<group>"; };
+		15E909E3120A777F0046349A /* UIButtonBarArrowDown.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = UIButtonBarArrowDown.png; path = Resources/UIButtonBarArrowDown.png; sourceTree = "<group>"; };
+		15E909E4120A777F0046349A /* UIButtonBarArrowDown@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "UIButtonBarArrowDown@2x.png"; path = "Resources/UIButtonBarArrowDown@2x.png"; sourceTree = "<group>"; };
+		15E909E5120A777F0046349A /* UIButtonBarArrowUp.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = UIButtonBarArrowUp.png; path = Resources/UIButtonBarArrowUp.png; sourceTree = "<group>"; };
+		15E909E6120A777F0046349A /* UIButtonBarArrowUp@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "UIButtonBarArrowUp@2x.png"; path = "Resources/UIButtonBarArrowUp@2x.png"; sourceTree = "<group>"; };
+		15E909F5120A78990046349A /* UIButtonBarArrowDownSmall.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = UIButtonBarArrowDownSmall.png; path = Resources/UIButtonBarArrowDownSmall.png; sourceTree = "<group>"; };
+		15E909F6120A78990046349A /* UIButtonBarArrowDownSmall@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "UIButtonBarArrowDownSmall@2x.png"; path = "Resources/UIButtonBarArrowDownSmall@2x.png"; sourceTree = "<group>"; };
+		15E909F7120A78990046349A /* UIButtonBarArrowUpSmall.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = UIButtonBarArrowUpSmall.png; path = Resources/UIButtonBarArrowUpSmall.png; sourceTree = "<group>"; };
+		15E909F8120A78990046349A /* UIButtonBarArrowUpSmall@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "UIButtonBarArrowUpSmall@2x.png"; path = "Resources/UIButtonBarArrowUpSmall@2x.png"; sourceTree = "<group>"; };
 		1D30AB110D05D00D00671497 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		1D3623240D0F684500981E51 /* YammerAppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = YammerAppDelegate.h; path = Classes/YammerAppDelegate.h; sourceTree = "<group>"; };
 		1D3623250D0F684500981E51 /* YammerAppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = YammerAppDelegate.m; path = Classes/YammerAppDelegate.m; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objc; };
@@ -263,13 +278,12 @@
 		2265995E11A6681D009A8AD8 /* YMComposeViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = YMComposeViewController.h; path = Classes/YMComposeViewController.h; sourceTree = "<group>"; };
 		2265995F11A6681D009A8AD8 /* YMComposeViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = YMComposeViewController.m; path = Classes/YMComposeViewController.m; sourceTree = "<group>"; };
 		22659A0C11A68FB7009A8AD8 /* user-bg-small.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "user-bg-small.png"; path = "Resources/user-bg-small.png"; sourceTree = "<group>"; };
-		22751A0B11E4283B00FDE984 /* YMRefreshView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YMRefreshView.h; sourceTree = "<group>"; };
-		22751A0C11E4283B00FDE984 /* YMRefreshView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = YMRefreshView.m; sourceTree = "<group>"; };
-		22751A0E11E428B200FDE984 /* YMTableViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YMTableViewController.h; sourceTree = "<group>"; };
-		22751A0F11E428B200FDE984 /* YMTableViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = YMTableViewController.m; sourceTree = "<group>"; };
-		22751A1811E42EAD00FDE984 /* blueArrow.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = blueArrow.png; sourceTree = "<group>"; };
-		22751D1011E6B61900FDE984 /* NSString+XMLEntities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSString+XMLEntities.h"; sourceTree = "<group>"; };
-		22751D1111E6B61900FDE984 /* NSString+XMLEntities.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSString+XMLEntities.m"; sourceTree = "<group>"; };
+		22751A0B11E4283B00FDE984 /* YMRefreshView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = YMRefreshView.h; path = Classes/YMRefreshView.h; sourceTree = "<group>"; };
+		22751A0C11E4283B00FDE984 /* YMRefreshView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = YMRefreshView.m; path = Classes/YMRefreshView.m; sourceTree = "<group>"; };
+		22751A0E11E428B200FDE984 /* YMTableViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = YMTableViewController.h; path = Classes/YMTableViewController.h; sourceTree = "<group>"; };
+		22751A0F11E428B200FDE984 /* YMTableViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = YMTableViewController.m; path = Classes/YMTableViewController.m; sourceTree = "<group>"; };
+		22751D1011E6B61900FDE984 /* NSString+XMLEntities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSString+XMLEntities.h"; path = "Lib/NSString+XMLEntities.h"; sourceTree = "<group>"; };
+		22751D1111E6B61900FDE984 /* NSString+XMLEntities.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSString+XMLEntities.m"; path = "Lib/NSString+XMLEntities.m"; sourceTree = "<group>"; };
 		22751DA211E8306900FDE984 /* backbutton.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = backbutton.png; path = Resources/backbutton.png; sourceTree = "<group>"; };
 		22751DA311E8306900FDE984 /* backbutton@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "backbutton@2x.png"; path = "Resources/backbutton@2x.png"; sourceTree = "<group>"; };
 		22751DB011E8336B00FDE984 /* backbutton-h.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "backbutton-h.png"; path = "Resources/backbutton-h.png"; sourceTree = "<group>"; };
@@ -835,6 +849,14 @@
 		29B97317FDCFA39411CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				15E909F5120A78990046349A /* UIButtonBarArrowDownSmall.png */,
+				15E909F6120A78990046349A /* UIButtonBarArrowDownSmall@2x.png */,
+				15E909F7120A78990046349A /* UIButtonBarArrowUpSmall.png */,
+				15E909F8120A78990046349A /* UIButtonBarArrowUpSmall@2x.png */,
+				15E909E3120A777F0046349A /* UIButtonBarArrowDown.png */,
+				15E909E4120A777F0046349A /* UIButtonBarArrowDown@2x.png */,
+				15E909E5120A777F0046349A /* UIButtonBarArrowUp.png */,
+				15E909E6120A777F0046349A /* UIButtonBarArrowUp@2x.png */,
 				2275203411EBD17100FDE984 /* toolbarbutton@2x.png */,
 				2275203511EBD17100FDE984 /* toolbarbutton.png */,
 				2275203611EBD17100FDE984 /* toolbarbg@2x.png */,
@@ -844,7 +866,6 @@
 				22751DB111E8336B00FDE984 /* backbutton-h@2x.png */,
 				22751DA211E8306900FDE984 /* backbutton.png */,
 				22751DA311E8306900FDE984 /* backbutton@2x.png */,
-				22751A1811E42EAD00FDE984 /* blueArrow.png */,
 				2279786411C70CD000D1BE35 /* lock.png */,
 				2233D82A11C464C3002DCDFB /* leave_arrow.png */,
 				2233D7DE11C45CED002DCDFB /* 42-photos.png */,
@@ -1018,7 +1039,6 @@
 				2233D82B11C464C3002DCDFB /* leave_arrow.png in Resources */,
 				2233D87111C475C2002DCDFB /* YMSimpleWebView.xib in Resources */,
 				2279786511C70CD000D1BE35 /* lock.png in Resources */,
-				22751A1911E42EAD00FDE984 /* blueArrow.png in Resources */,
 				22751DA411E8306900FDE984 /* backbutton.png in Resources */,
 				22751DA511E8306900FDE984 /* backbutton@2x.png in Resources */,
 				22751DB211E8336B00FDE984 /* backbutton-h.png in Resources */,
@@ -1028,6 +1048,14 @@
 				2275203B11EBD17100FDE984 /* toolbarbg@2x.png in Resources */,
 				2275203C11EBD17100FDE984 /* toolbarbg.png in Resources */,
 				2275203D11EBD17100FDE984 /* toolbarbutton@2.png in Resources */,
+				15E909E7120A777F0046349A /* UIButtonBarArrowDown.png in Resources */,
+				15E909E8120A777F0046349A /* UIButtonBarArrowDown@2x.png in Resources */,
+				15E909E9120A777F0046349A /* UIButtonBarArrowUp.png in Resources */,
+				15E909EA120A777F0046349A /* UIButtonBarArrowUp@2x.png in Resources */,
+				15E909F9120A78990046349A /* UIButtonBarArrowDownSmall.png in Resources */,
+				15E909FA120A78990046349A /* UIButtonBarArrowDownSmall@2x.png in Resources */,
+				15E909FB120A78990046349A /* UIButtonBarArrowUpSmall.png in Resources */,
+				15E909FC120A78990046349A /* UIButtonBarArrowUpSmall@2x.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

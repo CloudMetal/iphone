@@ -633,8 +633,12 @@ cellForRowAtIndexPath:(NSIndexPath *)indexPath
   
   YMFastMessageTableViewCell *cell = (YMFastMessageTableViewCell *)
     [table dequeueReusableCellWithIdentifier:ident];
-  if (!cell) cell = [[[YMFastMessageTableViewCell alloc] initWithFrame:
-                CGRectMake(0, 0, 320, 72) reuseIdentifier:ident] autorelease];
+  if (!cell) {
+    cell = [[[YMFastMessageTableViewCell alloc] initWithFrame:
+             CGRectMake(0, 0, 320, 72) reuseIdentifier:ident] autorelease];
+    cell.swipeTarget = self;
+    cell.swipeSelector = @selector(cellDidSwipe:);
+  }
   
   id read = [reads objectAtIndex:idx];
   if ([read isKindOfClass:[NSObject class]] && !intv(read)) {
@@ -666,13 +670,13 @@ cellForRowAtIndexPath:(NSIndexPath *)indexPath
   cell.title = [titles objectAtIndex:idx];
   cell.liked = boolv([likeds objectAtIndex:idx]);
   cell.hasAttachments = boolv([hasattachments objectAtIndex:idx]);
-  cell.isPrivate = ![[privates objectAtIndex:indexPath.row] 
+  cell.isPrivate = ![[privates objectAtIndex:idx] 
                      isEqual:[NSNull null]];
   if ([[groups objectAtIndex:idx] isEqual:[NSNull null]])
     cell.group = nil;
   else
     cell.group = [@"posted in " stringByAppendingString:
-                  [groups objectAtIndex:indexPath.row]];
+                  [groups objectAtIndex:idx]];
   
   return cell;
 }
@@ -680,10 +684,24 @@ cellForRowAtIndexPath:(NSIndexPath *)indexPath
 - (void) tableView:(UITableView *)table
 didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
-  self.selectedIndexPath = [NSIndexPath indexPathForRow:
-                            [self rowForIndexPath:indexPath] inSection:0];
-//  [(id)self gotoMessageIndexPath:indexPath sender:nil];
-//  [table deselectRowAtIndexPath:indexPath animated:YES];
+  [self performSelector:@selector(delayedGotoMessage:) withObject:
+   [NSIndexPath indexPathForRow:[self rowForIndexPath:indexPath] inSection:0] 
+             afterDelay:.05];
+  self.selectedIndexPath = nil;
+}
+
+- (void)delayedGotoMessage:(NSIndexPath *)indexPath
+{
+  [self gotoMessageIndexPath:indexPath sender:nil];
+}
+
+- (void)cellDidSwipe:(UITableViewCell *)c
+{
+  NSIndexPath *p = nil;
+  if ((p = [self.tableView indexPathForCell:c])) {
+    p = [NSIndexPath indexPathForRow:[self rowForIndexPath:p] inSection:0];
+    self.selectedIndexPath = p;
+  }
 }
 
 - (NSIndexPath *)tableView:(UITableView *)table
@@ -716,6 +734,7 @@ willSelectRowAtIndexPath:(NSIndexPath *)indexPath
                         withRowAnimation:UITableViewRowAnimationTop];
     [self.tableView reloadRowsAtIndexPaths:array_(previousIndexPath)
                         withRowAnimation:UITableViewRowAnimationNone];
+    [self.tableView deselectRowAtIndexPath:selectedIndexPath animated:NO];
   }
   selectedIndexPath = [indexPath retain];
   if (selectedIndexPath) {
@@ -728,6 +747,8 @@ willSelectRowAtIndexPath:(NSIndexPath *)indexPath
       [self.tableView reloadRowsAtIndexPaths:array_(self.selectedIndexPath)
                           withRowAnimation:UITableViewRowAnimationNone];
     }
+    [self.tableView selectRowAtIndexPath:selectedIndexPath animated:YES 
+                          scrollPosition:UITableViewScrollPositionNone];
   }
   [self.tableView endUpdates];
   [previousIndexPath release];
@@ -774,6 +795,7 @@ willSelectRowAtIndexPath:(NSIndexPath *)indexPath
   YMMessageDetailViewController *c = [[[YMMessageDetailViewController alloc]
                                        initWithStyle:UITableViewStyleGrouped]
                                       autorelease];
+  c.feedItems = messagePKs;
   c.message = m;
   c.userAccount = self.userAccount;
   [self.navigationController pushViewController:c animated:YES];

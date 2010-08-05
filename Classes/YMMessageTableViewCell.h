@@ -35,13 +35,21 @@
   BOOL liked;
   BOOL following;
   BOOL isPrivate;
+  
+  BOOL trackingMovement;
+  CGPoint movementTrackFirstTouch;
+  SEL swipeSelector;
+  id swipeTarget;
 }
 
 @property(nonatomic, assign) BOOL unread, hasAttachments, liked, following, isPrivate;
+@property(nonatomic, assign) SEL swipeSelector;
+@property(nonatomic, assign) id swipeTarget;
 @property(nonatomic, copy) NSString *title, *body, *date, *group;
 @property(nonatomic, retain) UIImage *avatar;
 
 - (void)drawContentView:(CGRect)r;
+- (BOOL)detectSwipeWithTouch:(UITouch *)t;
 + (void)updateFontSize;
 
 @end

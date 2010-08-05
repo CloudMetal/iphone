@@ -78,5 +78,10 @@
 - (void)refreshFeed:(id)sender;
 - (id)doReload:(id)arg;
 - (void)reloadTableViewDataSource;
+- (id)gotoUserIndexPath:(NSIndexPath *)indexPath sender:(id)s;
+- (id)gotoMessageIndexPath:(NSIndexPath *)indexPath sender:(id)s;
+- (id)gotoThreadIndexPath:(NSIndexPath *)indexPath sender:(id)s;
+- (id)gotoReplyIndexPath:(NSIndexPath *)indexPath sender:(id)s;
+- (id)gotoLikeIndexPath:(NSIndexPath *)companionIndexPath sender:(id)s;
 
 @end

@@ -24,9 +24,13 @@
   NSMutableDictionary *attachmentCache;
   id<DKKeyedPool> loadingPool;
   BOOL fetchingAttachment;
+  NSArray *feedItems;
 }
 
+@property (nonatomic, readwrite, retain) NSArray *feedItems;
 @property (nonatomic, readwrite, retain) YMMessage *message;
 @property (nonatomic, readwrite, retain) YMUserAccount *userAccount;
+
+- (void)refreshMessageData;
 
 @end

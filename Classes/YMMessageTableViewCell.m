@@ -85,7 +85,8 @@ static UIImage *smallPrivateImage = nil;
 
 @implementation YMFastMessageTableViewCell
 
-@synthesize title, body, date, avatar, unread, hasAttachments, liked, following, isPrivate, group;
+@synthesize title, body, date, avatar, unread, hasAttachments, liked, following,
+isPrivate, group, swipeSelector, swipeTarget;
 
 + (void)initialize
 {
@@ -96,7 +97,8 @@ static UIImage *smallPrivateImage = nil;
     dateFont = [[UIFont systemFontOfSize:13] retain];
     groupFont = [[UIFont systemFontOfSize:12] retain];
     groupColor = [[UIColor colorWithWhite:.3 alpha:1] retain];
-    dateColor = [[UIColor colorWithRed:(65.0/255.0) green:(87.0/255.0) blue:(143.0/255.0) alpha:1] retain]; // 65 87 143
+    dateColor = [[UIColor colorWithRed:(65.0/255.0) green:(87.0/255.0)
+                                  blue:(143.0/255.0) alpha:1] retain];
     backgroundImage = [[UIImage imageNamed:@"msg-bg.png"] retain];
     borderColor = [[UIColor colorWithWhite:.5 alpha:1] retain];
     unreadBackgroundImage = [[UIImage imageNamed:@"unread-msg-bg.png"] retain];
@@ -126,12 +128,11 @@ static UIImage *smallPrivateImage = nil;
 - (id)initWithFrame:(CGRect)f reuseIdentifier:(NSString *)reuseIdent
 {
   if ((self = [super initWithFrame:f reuseIdentifier:reuseIdent])) {
-    contentView = [[YMFastTableViewCellView alloc] initWithFrame:CGRectZero];
+    contentView = [[[YMFastTableViewCellView alloc] initWithFrame:CGRectZero] autorelease];
     contentView.opaque = YES;
     [self addSubview:contentView];
-    [contentView release];
     
-    imageView = [[UIImageView alloc] initWithFrame:CGRectMake(10, 8, 44, 44)];
+    imageView = [[[UIImageView alloc] initWithFrame:CGRectMake(10, 8, 44, 44)] autorelease];
     imageView.layer.masksToBounds = YES;
     imageView.layer.borderColor = borderColor.CGColor;
     imageView.layer.cornerRadius = 3;
@@ -139,15 +140,63 @@ static UIImage *smallPrivateImage = nil;
     imageView.contentMode = UIViewContentModeScaleToFill;
     imageView.backgroundColor = [UIColor clearColor];
     [contentView addSubview:imageView];
-    [imageView release];
     
     unread = NO;
     liked = NO;
     hasAttachments = NO;
     following = NO;
     isPrivate = NO;
+    trackingMovement = NO;
+    movementTrackFirstTouch = CGPointZero;
+    swipeSelector = NULL;
+    swipeTarget = nil;
   }
   return self;
+}
+
+- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
+{
+  trackingMovement = YES;
+  UITouch *t = [touches anyObject];
+  movementTrackFirstTouch = [t locationInView:self];
+  [super touchesBegan:touches withEvent:event];
+}
+
+- (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
+{
+  if (trackingMovement)
+    [self detectSwipeWithTouch:[touches anyObject]];
+  else
+    [super touchesMoved:touches withEvent:event];
+}
+
+- (BOOL)detectSwipeWithTouch:(UITouch *)t
+{
+  if (([t locationInView:self].x-movementTrackFirstTouch.x)>=30.0f) {
+    if (swipeSelector && swipeTarget) {
+      [swipeTarget performSelector:swipeSelector withObject:self];
+      movementTrackFirstTouch = CGPointZero;
+      trackingMovement = NO;
+    }
+    return YES;
+  }
+  return NO;
+}
+
+- (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
+{
+  if (trackingMovement)
+    if (![self detectSwipeWithTouch:[touches anyObject]])
+      [super touchesEnded:touches withEvent:event];
+  trackingMovement = NO;
+  movementTrackFirstTouch = CGPointZero;
+}
+
+- (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event
+{
+  trackingMovement = NO;
+  movementTrackFirstTouch = CGPointZero;
+  [super touchesCancelled:touches withEvent:event];
 }
 
 - (void)setIsPrivate:(BOOL)p

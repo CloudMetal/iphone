@@ -174,9 +174,12 @@ shouldStartLoadWithRequest:(NSURLRequest *)request
 
 - (void)dealloc
 {
+//  [fromContact release];
+//  [toContact release];
+//  self.message = nil;
+  [message release];
   [fromContact release];
   [toContact release];
-  self.message = nil;
   [super dealloc];
 }
 

@@ -17,9 +17,11 @@
 #import "YMSimpleWebView.h"
 #import "StatusBarNotifier.h"
 
+#define strfi(__i) [NSString stringWithFormat:@"%i", __i]
+
 @implementation YMMessageDetailViewController
 
-@synthesize message, userAccount;
+@synthesize message, userAccount, feedItems;
 
 - (void)loadView
 {
@@ -30,16 +32,72 @@
   self.tableView.delegate = self;
   self.tableView.dataSource = self;
   self.tableView.backgroundColor = [UIColor whiteColor];
-  self.title = @"Message";
+  self.title = @"Message (1 of 1)";
   
+//  for (id v in [[NSBundle mainBundle] loadNibNamed:
+//                @"YMMessageDetailView" owner:nil options:nil]) {
+//    if (![v isKindOfClass:[YMMessageDetailView class]]) continue;
+//    detailView = [v retain];
+//    break;
+//  }
+  
+  if (!web) web = [YMWebService sharedWebService];
+}
+
+- (void)refreshMessageData
+{
+  if (detailView) [detailView release];
   for (id v in [[NSBundle mainBundle] loadNibNamed:
                 @"YMMessageDetailView" owner:nil options:nil]) {
     if (![v isKindOfClass:[YMMessageDetailView class]]) continue;
     detailView = [v retain];
     break;
   }
+  detailView.message = message;
+  detailView.parentViewController = self;
   
-  if (!web) web = [YMWebService sharedWebService];
+  detailView.footerView.onUser = callbackTS(self, showUser:);
+  detailView.footerView.onTag = callbackTS(self, showTag:);
+  detailView.footerView.onReply = callbackTS(self, showReply:);
+  detailView.footerView.onThread = callbackTS(self, showThread:);
+  detailView.footerView.onLike = callbackTS(self, doLike:);
+  detailView.onFinishLoad = callbackTS(self, finishedLoading:);
+  [detailView.footerView.likeButton setImage:[UIImage imageNamed:
+    (boolv(message.liked) ? @"liked-inline.png" : @"like-inline.png")] 
+                                    forState:UIControlStateNormal];
+  self.tableView.tableHeaderView = detailView.headerView;
+  self.tableView.tableFooterView = detailView.footerView;
+  if (attachments) [attachments release];
+  attachments = nil;
+  attachments = [[YMAttachment findByCriteria:@"WHERE message_p_k=%i",
+                  message.pk] retain];
+  if (attachmentCache) [attachmentCache release];
+  attachmentCache = [[NSMutableDictionary dictionary] retain];
+  if (!loadingPool) loadingPool = [[[DKDeferredPool alloc] init] retain];
+  
+  UIView *v = [[[UIView alloc] initWithFrame:CGRectMake(0, 0, 76, 44)] autorelease];
+  UISegmentedControl *sw = [[[UISegmentedControl alloc] initWithItems:
+                             array_([UIImage imageNamed:@"UIButtonBarArrowUpSmall.png"], 
+                                    [UIImage imageNamed:@"UIButtonBarArrowDownSmall.png"])] 
+                            autorelease];
+  sw.segmentedControlStyle = UISegmentedControlStyleBar;
+  sw.tintColor = self.navigationController.navigationBar.tintColor;
+  sw.frame = CGRectMake(0, 6, 76, 32);
+  sw.momentary = YES;
+  [sw addTarget:self action:@selector(changeFeedItem:) forControlEvents:UIControlEventValueChanged];
+  [v addSubview:sw];
+  
+  int idx = [feedItems indexOfObject:strfi(message.pk)]; // feed items are strings of pks
+  if (idx == 0) [sw setEnabled:NO forSegmentAtIndex:0];
+  if (idx == ([feedItems count] - 1)) [sw setEnabled:NO forSegmentAtIndex:1];
+  
+  self.navigationItem.rightBarButtonItem 
+  = [[[UIBarButtonItem alloc] initWithCustomView:v] autorelease];
+  
+  self.title = [NSString stringWithFormat:@"%i of %i", 
+                [feedItems indexOfObject:strfi(message.pk)]+1, [feedItems count]];
+  
+  [self.tableView reloadData];
 }
 
 - (void)setMessage:(YMMessage *)m
@@ -118,29 +176,21 @@
 
 - (void)viewWillAppear:(BOOL)animated
 {
+  [self refreshMessageData];
   [super viewWillAppear:animated];
-  detailView.message = message;
-  detailView.parentViewController = self;
+}
 
-  detailView.footerView.onUser = callbackTS(self, showUser:);
-  detailView.footerView.onTag = callbackTS(self, showTag:);
-  detailView.footerView.onReply = callbackTS(self, showReply:);
-  detailView.footerView.onThread = callbackTS(self, showThread:);
-  detailView.footerView.onLike = callbackTS(self, doLike:);
-  detailView.onFinishLoad = callbackTS(self, finishedLoading:);
-  [detailView.footerView.likeButton setImage:[UIImage imageNamed:
-   (boolv(message.liked) ? @"liked-inline.png" : @"like-inline.png")] 
-                                    forState:UIControlStateNormal];
-  self.tableView.tableHeaderView = detailView.headerView;
-  self.tableView.tableFooterView = detailView.footerView;
-  if (attachments) [attachments release];
-  attachments = nil;
-  attachments = [[YMAttachment findByCriteria:@"WHERE message_p_k=%i",
-                  message.pk] retain];
-  if (attachmentCache) [attachmentCache release];
-  attachmentCache = [[NSMutableDictionary dictionary] retain];
-  if (!loadingPool) loadingPool = [[[DKDeferredPool alloc] init] retain];
-  [self.tableView reloadData];
+- (void)changeFeedItem:(UISegmentedControl *)sender
+{
+  BOOL next = sender.selectedSegmentIndex != 0;
+  int idx = [feedItems indexOfObject:strfi(message.pk)];
+  if (next) idx += 1;
+  else idx -= 1;
+  YMMessage *newMessage = (YMMessage *)[YMMessage findByPK:intv([feedItems objectAtIndex:idx])];
+  if (newMessage) {
+    self.message = newMessage;
+    [self refreshMessageData];
+  }
 }
 
 - (id)doLike:(id)s
@@ -247,10 +297,10 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath
         YMSimpleWebView *w = [[[YMSimpleWebView alloc] initWithNibName:
                                @"YMSimpleWebView" bundle:nil] autorelease];
         w.title = a.name;
-        w.req = [[[NSURLRequest alloc] initWithURL:[NSURL URLWithString:a.webURL]] autorelease];
+        w.req = [[[NSURLRequest alloc] initWithURL:
+                  [NSURL URLWithString:a.webURL]] autorelease];
         NSMutableURLRequest *req = [[NSMutableURLRequest alloc] initWithURL:
                                      [NSURL URLWithString:a.webURL]];
-        NSLog(@"cookie:%@", self.userAccount.cookie);
         [req setValue:self.userAccount.cookie forHTTPHeaderField:@"Cookie"];
         w.req = req;
         [self.navigationController pushViewController:w animated:YES];
@@ -280,12 +330,6 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath
     }
   }
   [self.tableView deselectRowAtIndexPath:indexPath animated:YES];
-}
-
-- (id)_gotResponseBlah:(id)asdf
-{
-  NSLog(@"got response blah %@ %@", NSStringFromClass([asdf class]), asdf);
-  return asdf;
 }
 
 -_failShowFullsize:r
@@ -366,6 +410,8 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 
 - (void)dealloc
 {
+  self.feedItems = nil;
+  [detailView release];
   [message release];
   self.tableView = nil;
   [super dealloc];
