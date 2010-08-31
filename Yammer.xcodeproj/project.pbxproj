@@ -14,10 +14,37 @@
 		00C08546104861CB00331BF5 /* dist.plist in Resources */ = {isa = PBXBuildFile; fileRef = 00C08545104861CB00331BF5 /* dist.plist */; };
 		00E6CDB61046F7AD0042BD9E /* yammer_sound.wav in Resources */ = {isa = PBXBuildFile; fileRef = 00E6CDB51046F7AD0042BD9E /* yammer_sound.wav */; };
 		00E6CDB81046F7E00042BD9E /* Icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 00E6CDB71046F7E00042BD9E /* Icon.png */; };
+		150BF0FD1210C9E9002BC81E /* DKCallback.m in Sources */ = {isa = PBXBuildFile; fileRef = 150BF0E31210C9E9002BC81E /* DKCallback.m */; };
+		150BF0FE1210C9E9002BC81E /* DKDeferred+CoreLocation.m in Sources */ = {isa = PBXBuildFile; fileRef = 150BF0E51210C9E9002BC81E /* DKDeferred+CoreLocation.m */; };
+		150BF0FF1210C9E9002BC81E /* DKDeferred+JSON.m in Sources */ = {isa = PBXBuildFile; fileRef = 150BF0E71210C9E9002BC81E /* DKDeferred+JSON.m */; };
+		150BF1001210C9E9002BC81E /* DKDeferred+REST.m in Sources */ = {isa = PBXBuildFile; fileRef = 150BF0E91210C9E9002BC81E /* DKDeferred+REST.m */; };
+		150BF1011210C9E9002BC81E /* DKDeferred+UIKit.m in Sources */ = {isa = PBXBuildFile; fileRef = 150BF0EB1210C9E9002BC81E /* DKDeferred+UIKit.m */; };
+		150BF1021210C9E9002BC81E /* DKDeferred.m in Sources */ = {isa = PBXBuildFile; fileRef = 150BF0ED1210C9E9002BC81E /* DKDeferred.m */; };
+		150BF1031210C9E9002BC81E /* DKDeferredSqliteCache.m in Sources */ = {isa = PBXBuildFile; fileRef = 150BF0EF1210C9E9002BC81E /* DKDeferredSqliteCache.m */; };
+		150BF1041210C9E9002BC81E /* NSData+Base64.m in Sources */ = {isa = PBXBuildFile; fileRef = 150BF0F21210C9E9002BC81E /* NSData+Base64.m */; };
+		150BF1051210C9E9002BC81E /* NSDictionary+DKDeferred.m in Sources */ = {isa = PBXBuildFile; fileRef = 150BF0F41210C9E9002BC81E /* NSDictionary+DKDeferred.m */; };
+		150BF1061210C9E9002BC81E /* NSMutableURLRequest+DKDeferred.m in Sources */ = {isa = PBXBuildFile; fileRef = 150BF0F61210C9E9002BC81E /* NSMutableURLRequest+DKDeferred.m */; };
+		150BF1071210C9E9002BC81E /* NSString+DKDeferred.m in Sources */ = {isa = PBXBuildFile; fileRef = 150BF0F81210C9E9002BC81E /* NSString+DKDeferred.m */; };
+		150BF1081210C9E9002BC81E /* Reachability.m in Sources */ = {isa = PBXBuildFile; fileRef = 150BF0FA1210C9E9002BC81E /* Reachability.m */; };
+		150BF1091210C9E9002BC81E /* UIImage+DKDeferred.m in Sources */ = {isa = PBXBuildFile; fileRef = 150BF0FC1210C9E9002BC81E /* UIImage+DKDeferred.m */; };
+		150BF11B1210CD29002BC81E /* DKSimpleMemoryCache.m in Sources */ = {isa = PBXBuildFile; fileRef = 150BF11A1210CD29002BC81E /* DKSimpleMemoryCache.m */; };
+		15460B991213D3FB00350BB7 /* YMDraft.m in Sources */ = {isa = PBXBuildFile; fileRef = 15460B981213D3FB00350BB7 /* YMDraft.m */; };
+		154D1D1B122DCC2300D5B8F7 /* inline-button-bg-blue-pressed.png in Resources */ = {isa = PBXBuildFile; fileRef = 154D1D1A122DCC2300D5B8F7 /* inline-button-bg-blue-pressed.png */; };
 		157B4ADA11ED8B5700886050 /* UIImage+Resize.m in Sources */ = {isa = PBXBuildFile; fileRef = 157B4AD911ED8B5700886050 /* UIImage+Resize.m */; };
 		157B4AE311ED8CC200886050 /* UIImage+Alpha.m in Sources */ = {isa = PBXBuildFile; fileRef = 157B4ADF11ED8CC200886050 /* UIImage+Alpha.m */; };
 		157B4AE411ED8CC200886050 /* UIImage+RoundedCorner.m in Sources */ = {isa = PBXBuildFile; fileRef = 157B4AE111ED8CC200886050 /* UIImage+RoundedCorner.m */; };
+		15BFEE94121C8C4900F7B704 /* YMMenuController.m in Sources */ = {isa = PBXBuildFile; fileRef = 15BFEE93121C8C4900F7B704 /* YMMenuController.m */; };
+		15BFEE9D121CA0EE00F7B704 /* all-iPad.png in Resources */ = {isa = PBXBuildFile; fileRef = 15BFEE95121CA0EE00F7B704 /* all-iPad.png */; };
+		15BFEE9E121CA0EE00F7B704 /* bookmarked-iPad.png in Resources */ = {isa = PBXBuildFile; fileRef = 15BFEE96121CA0EE00F7B704 /* bookmarked-iPad.png */; };
+		15BFEE9F121CA0EE00F7B704 /* dm-iPad.png in Resources */ = {isa = PBXBuildFile; fileRef = 15BFEE97121CA0EE00F7B704 /* dm-iPad.png */; };
+		15BFEEA0121CA0EE00F7B704 /* feed-iPad.png in Resources */ = {isa = PBXBuildFile; fileRef = 15BFEE98121CA0EE00F7B704 /* feed-iPad.png */; };
+		15BFEEA1121CA0EE00F7B704 /* liked-iPad.png in Resources */ = {isa = PBXBuildFile; fileRef = 15BFEE99121CA0EE00F7B704 /* liked-iPad.png */; };
+		15BFEEA2121CA0EE00F7B704 /* received-iPad.png in Resources */ = {isa = PBXBuildFile; fileRef = 15BFEE9A121CA0EE00F7B704 /* received-iPad.png */; };
+		15BFEEA3121CA0EE00F7B704 /* rss-iPad.png in Resources */ = {isa = PBXBuildFile; fileRef = 15BFEE9B121CA0EE00F7B704 /* rss-iPad.png */; };
+		15BFEEA4121CA0EE00F7B704 /* sent-iPad.png in Resources */ = {isa = PBXBuildFile; fileRef = 15BFEE9C121CA0EE00F7B704 /* sent-iPad.png */; };
+		15BFEEBC121CA5EF00F7B704 /* contacts-iPad.png in Resources */ = {isa = PBXBuildFile; fileRef = 15BFEEBB121CA5EF00F7B704 /* contacts-iPad.png */; };
 		15C763D811F02CF800E660BE /* YMSettingsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 15C763D711F02CF800E660BE /* YMSettingsViewController.m */; };
+		15CAFE3E1219EA7700B51153 /* YMSplitViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 15CAFE3D1219EA7700B51153 /* YMSplitViewController.m */; };
 		15E909E7120A777F0046349A /* UIButtonBarArrowDown.png in Resources */ = {isa = PBXBuildFile; fileRef = 15E909E3120A777F0046349A /* UIButtonBarArrowDown.png */; };
 		15E909E8120A777F0046349A /* UIButtonBarArrowDown@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 15E909E4120A777F0046349A /* UIButtonBarArrowDown@2x.png */; };
 		15E909E9120A777F0046349A /* UIButtonBarArrowUp.png in Resources */ = {isa = PBXBuildFile; fileRef = 15E909E5120A777F0046349A /* UIButtonBarArrowUp.png */; };
@@ -103,13 +130,6 @@
 		22A03FCB11BDCD700078BE0B /* 53-house.png in Resources */ = {isa = PBXBuildFile; fileRef = 22A03FCA11BDCD700078BE0B /* 53-house.png */; };
 		22A03FDC11BDD09D0078BE0B /* 123-id-card.png in Resources */ = {isa = PBXBuildFile; fileRef = 22A03FDB11BDD09D0078BE0B /* 123-id-card.png */; };
 		22A03FE111BDD0FC0078BE0B /* 144-feed.png in Resources */ = {isa = PBXBuildFile; fileRef = 22A03FE011BDD0FC0078BE0B /* 144-feed.png */; };
-		22A3B0CD1177CA27006337B5 /* DKCallback.m in Sources */ = {isa = PBXBuildFile; fileRef = 22A3B05A1177CA27006337B5 /* DKCallback.m */; };
-		22A3B0CE1177CA27006337B5 /* DKDeferred+CoreLocation.m in Sources */ = {isa = PBXBuildFile; fileRef = 22A3B05C1177CA27006337B5 /* DKDeferred+CoreLocation.m */; };
-		22A3B0CF1177CA27006337B5 /* DKDeferred+JSON.m in Sources */ = {isa = PBXBuildFile; fileRef = 22A3B05E1177CA27006337B5 /* DKDeferred+JSON.m */; };
-		22A3B0D01177CA27006337B5 /* DKDeferred+UIKit.m in Sources */ = {isa = PBXBuildFile; fileRef = 22A3B0601177CA27006337B5 /* DKDeferred+UIKit.m */; };
-		22A3B0D11177CA27006337B5 /* DKDeferred.m in Sources */ = {isa = PBXBuildFile; fileRef = 22A3B0621177CA27006337B5 /* DKDeferred.m */; };
-		22A3B0D21177CA27006337B5 /* Reachability.m in Sources */ = {isa = PBXBuildFile; fileRef = 22A3B0651177CA27006337B5 /* Reachability.m */; };
-		22A3B0D31177CA27006337B5 /* UIImage+DKDeferred.m in Sources */ = {isa = PBXBuildFile; fileRef = 22A3B0671177CA27006337B5 /* UIImage+DKDeferred.m */; };
 		22A3B0D41177CA27006337B5 /* FKEffect.m in Sources */ = {isa = PBXBuildFile; fileRef = 22A3B06A1177CA27006337B5 /* FKEffect.m */; };
 		22A3B0D51177CA27006337B5 /* FKEither.m in Sources */ = {isa = PBXBuildFile; fileRef = 22A3B06C1177CA27006337B5 /* FKEither.m */; };
 		22A3B0D61177CA27006337B5 /* FKFunction+Common.m in Sources */ = {isa = PBXBuildFile; fileRef = 22A3B06E1177CA27006337B5 /* FKFunction+Common.m */; };
@@ -199,14 +219,60 @@
 		00C08545104861CB00331BF5 /* dist.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = dist.plist; sourceTree = "<group>"; };
 		00E6CDB51046F7AD0042BD9E /* yammer_sound.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = yammer_sound.wav; sourceTree = "<group>"; };
 		00E6CDB71046F7E00042BD9E /* Icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = Icon.png; path = Resources/Icon.png; sourceTree = "<group>"; };
+		150BF0E11210C9E9002BC81E /* DeferredKit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DeferredKit.h; sourceTree = "<group>"; };
+		150BF0E21210C9E9002BC81E /* DKCallback.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DKCallback.h; sourceTree = "<group>"; };
+		150BF0E31210C9E9002BC81E /* DKCallback.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DKCallback.m; sourceTree = "<group>"; };
+		150BF0E41210C9E9002BC81E /* DKDeferred+CoreLocation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "DKDeferred+CoreLocation.h"; sourceTree = "<group>"; };
+		150BF0E51210C9E9002BC81E /* DKDeferred+CoreLocation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "DKDeferred+CoreLocation.m"; sourceTree = "<group>"; };
+		150BF0E61210C9E9002BC81E /* DKDeferred+JSON.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "DKDeferred+JSON.h"; sourceTree = "<group>"; };
+		150BF0E71210C9E9002BC81E /* DKDeferred+JSON.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "DKDeferred+JSON.m"; sourceTree = "<group>"; };
+		150BF0E81210C9E9002BC81E /* DKDeferred+REST.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "DKDeferred+REST.h"; sourceTree = "<group>"; };
+		150BF0E91210C9E9002BC81E /* DKDeferred+REST.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "DKDeferred+REST.m"; sourceTree = "<group>"; };
+		150BF0EA1210C9E9002BC81E /* DKDeferred+UIKit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "DKDeferred+UIKit.h"; sourceTree = "<group>"; };
+		150BF0EB1210C9E9002BC81E /* DKDeferred+UIKit.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "DKDeferred+UIKit.m"; sourceTree = "<group>"; };
+		150BF0EC1210C9E9002BC81E /* DKDeferred.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DKDeferred.h; sourceTree = "<group>"; };
+		150BF0ED1210C9E9002BC81E /* DKDeferred.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DKDeferred.m; sourceTree = "<group>"; };
+		150BF0EE1210C9E9002BC81E /* DKDeferredSqliteCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DKDeferredSqliteCache.h; sourceTree = "<group>"; };
+		150BF0EF1210C9E9002BC81E /* DKDeferredSqliteCache.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DKDeferredSqliteCache.m; sourceTree = "<group>"; };
+		150BF0F01210C9E9002BC81E /* DKMacros.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DKMacros.h; sourceTree = "<group>"; };
+		150BF0F11210C9E9002BC81E /* NSData+Base64.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSData+Base64.h"; sourceTree = "<group>"; };
+		150BF0F21210C9E9002BC81E /* NSData+Base64.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSData+Base64.m"; sourceTree = "<group>"; };
+		150BF0F31210C9E9002BC81E /* NSDictionary+DKDeferred.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSDictionary+DKDeferred.h"; sourceTree = "<group>"; };
+		150BF0F41210C9E9002BC81E /* NSDictionary+DKDeferred.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSDictionary+DKDeferred.m"; sourceTree = "<group>"; };
+		150BF0F51210C9E9002BC81E /* NSMutableURLRequest+DKDeferred.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSMutableURLRequest+DKDeferred.h"; sourceTree = "<group>"; };
+		150BF0F61210C9E9002BC81E /* NSMutableURLRequest+DKDeferred.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSMutableURLRequest+DKDeferred.m"; sourceTree = "<group>"; };
+		150BF0F71210C9E9002BC81E /* NSString+DKDeferred.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSString+DKDeferred.h"; sourceTree = "<group>"; };
+		150BF0F81210C9E9002BC81E /* NSString+DKDeferred.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSString+DKDeferred.m"; sourceTree = "<group>"; };
+		150BF0F91210C9E9002BC81E /* Reachability.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Reachability.h; sourceTree = "<group>"; };
+		150BF0FA1210C9E9002BC81E /* Reachability.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Reachability.m; sourceTree = "<group>"; };
+		150BF0FB1210C9E9002BC81E /* UIImage+DKDeferred.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIImage+DKDeferred.h"; sourceTree = "<group>"; };
+		150BF0FC1210C9E9002BC81E /* UIImage+DKDeferred.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIImage+DKDeferred.m"; sourceTree = "<group>"; };
+		150BF1191210CD29002BC81E /* DKSimpleMemoryCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DKSimpleMemoryCache.h; sourceTree = "<group>"; };
+		150BF11A1210CD29002BC81E /* DKSimpleMemoryCache.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DKSimpleMemoryCache.m; sourceTree = "<group>"; };
+		15460B971213D3FB00350BB7 /* YMDraft.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YMDraft.h; sourceTree = "<group>"; };
+		15460B981213D3FB00350BB7 /* YMDraft.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = YMDraft.m; sourceTree = "<group>"; };
+		154D1D1A122DCC2300D5B8F7 /* inline-button-bg-blue-pressed.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "inline-button-bg-blue-pressed.png"; path = "Resources/inline-button-bg-blue-pressed.png"; sourceTree = "<group>"; };
 		157B4AD811ED8B5200886050 /* UIImage+Resize.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "UIImage+Resize.h"; path = "Lib/UIImage+Resize.h"; sourceTree = "<group>"; };
 		157B4AD911ED8B5700886050 /* UIImage+Resize.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "UIImage+Resize.m"; path = "Lib/UIImage+Resize.m"; sourceTree = "<group>"; };
 		157B4ADF11ED8CC200886050 /* UIImage+Alpha.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "UIImage+Alpha.m"; path = "Lib/UIImage+Alpha.m"; sourceTree = "<group>"; };
 		157B4AE011ED8CC200886050 /* UIImage+Alpha.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "UIImage+Alpha.h"; path = "Lib/UIImage+Alpha.h"; sourceTree = "<group>"; };
 		157B4AE111ED8CC200886050 /* UIImage+RoundedCorner.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "UIImage+RoundedCorner.m"; path = "Lib/UIImage+RoundedCorner.m"; sourceTree = "<group>"; };
 		157B4AE211ED8CC200886050 /* UIImage+RoundedCorner.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "UIImage+RoundedCorner.h"; path = "Lib/UIImage+RoundedCorner.h"; sourceTree = "<group>"; };
+		15BFEE92121C8C4900F7B704 /* YMMenuController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YMMenuController.h; sourceTree = "<group>"; };
+		15BFEE93121C8C4900F7B704 /* YMMenuController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = YMMenuController.m; sourceTree = "<group>"; };
+		15BFEE95121CA0EE00F7B704 /* all-iPad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "all-iPad.png"; path = "Resources-iPad/all-iPad.png"; sourceTree = "<group>"; };
+		15BFEE96121CA0EE00F7B704 /* bookmarked-iPad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "bookmarked-iPad.png"; path = "Resources-iPad/bookmarked-iPad.png"; sourceTree = "<group>"; };
+		15BFEE97121CA0EE00F7B704 /* dm-iPad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "dm-iPad.png"; path = "Resources-iPad/dm-iPad.png"; sourceTree = "<group>"; };
+		15BFEE98121CA0EE00F7B704 /* feed-iPad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "feed-iPad.png"; path = "Resources-iPad/feed-iPad.png"; sourceTree = "<group>"; };
+		15BFEE99121CA0EE00F7B704 /* liked-iPad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "liked-iPad.png"; path = "Resources-iPad/liked-iPad.png"; sourceTree = "<group>"; };
+		15BFEE9A121CA0EE00F7B704 /* received-iPad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "received-iPad.png"; path = "Resources-iPad/received-iPad.png"; sourceTree = "<group>"; };
+		15BFEE9B121CA0EE00F7B704 /* rss-iPad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "rss-iPad.png"; path = "Resources-iPad/rss-iPad.png"; sourceTree = "<group>"; };
+		15BFEE9C121CA0EE00F7B704 /* sent-iPad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "sent-iPad.png"; path = "Resources-iPad/sent-iPad.png"; sourceTree = "<group>"; };
+		15BFEEBB121CA5EF00F7B704 /* contacts-iPad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "contacts-iPad.png"; path = "Resources-iPad/contacts-iPad.png"; sourceTree = "<group>"; };
 		15C763D611F02CF800E660BE /* YMSettingsViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = YMSettingsViewController.h; path = Classes/YMSettingsViewController.h; sourceTree = "<group>"; };
 		15C763D711F02CF800E660BE /* YMSettingsViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = YMSettingsViewController.m; path = Classes/YMSettingsViewController.m; sourceTree = "<group>"; };
+		15CAFE3C1219EA7700B51153 /* YMSplitViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YMSplitViewController.h; sourceTree = "<group>"; };
+		15CAFE3D1219EA7700B51153 /* YMSplitViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = YMSplitViewController.m; sourceTree = "<group>"; };
 		15E909E3120A777F0046349A /* UIButtonBarArrowDown.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = UIButtonBarArrowDown.png; path = Resources/UIButtonBarArrowDown.png; sourceTree = "<group>"; };
 		15E909E4120A777F0046349A /* UIButtonBarArrowDown@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "UIButtonBarArrowDown@2x.png"; path = "Resources/UIButtonBarArrowDown@2x.png"; sourceTree = "<group>"; };
 		15E909E5120A777F0046349A /* UIButtonBarArrowUp.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = UIButtonBarArrowUp.png; path = Resources/UIButtonBarArrowUp.png; sourceTree = "<group>"; };
@@ -316,22 +382,6 @@
 		22A03FCA11BDCD700078BE0B /* 53-house.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "53-house.png"; path = "Resources/53-house.png"; sourceTree = "<group>"; };
 		22A03FDB11BDD09D0078BE0B /* 123-id-card.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "123-id-card.png"; path = "Resources/123-id-card.png"; sourceTree = "<group>"; };
 		22A03FE011BDD0FC0078BE0B /* 144-feed.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "144-feed.png"; path = "Resources/144-feed.png"; sourceTree = "<group>"; };
-		22A3B0581177CA27006337B5 /* DeferredKit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DeferredKit.h; sourceTree = "<group>"; };
-		22A3B0591177CA27006337B5 /* DKCallback.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DKCallback.h; sourceTree = "<group>"; };
-		22A3B05A1177CA27006337B5 /* DKCallback.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DKCallback.m; sourceTree = "<group>"; };
-		22A3B05B1177CA27006337B5 /* DKDeferred+CoreLocation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "DKDeferred+CoreLocation.h"; sourceTree = "<group>"; };
-		22A3B05C1177CA27006337B5 /* DKDeferred+CoreLocation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "DKDeferred+CoreLocation.m"; sourceTree = "<group>"; };
-		22A3B05D1177CA27006337B5 /* DKDeferred+JSON.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "DKDeferred+JSON.h"; sourceTree = "<group>"; };
-		22A3B05E1177CA27006337B5 /* DKDeferred+JSON.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "DKDeferred+JSON.m"; sourceTree = "<group>"; };
-		22A3B05F1177CA27006337B5 /* DKDeferred+UIKit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "DKDeferred+UIKit.h"; sourceTree = "<group>"; };
-		22A3B0601177CA27006337B5 /* DKDeferred+UIKit.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "DKDeferred+UIKit.m"; sourceTree = "<group>"; };
-		22A3B0611177CA27006337B5 /* DKDeferred.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DKDeferred.h; sourceTree = "<group>"; };
-		22A3B0621177CA27006337B5 /* DKDeferred.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DKDeferred.m; sourceTree = "<group>"; };
-		22A3B0631177CA27006337B5 /* DKMacros.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DKMacros.h; sourceTree = "<group>"; };
-		22A3B0641177CA27006337B5 /* Reachability.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Reachability.h; sourceTree = "<group>"; };
-		22A3B0651177CA27006337B5 /* Reachability.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Reachability.m; sourceTree = "<group>"; };
-		22A3B0661177CA27006337B5 /* UIImage+DKDeferred.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIImage+DKDeferred.h"; sourceTree = "<group>"; };
-		22A3B0671177CA27006337B5 /* UIImage+DKDeferred.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIImage+DKDeferred.m"; sourceTree = "<group>"; };
 		22A3B0691177CA27006337B5 /* FKEffect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FKEffect.h; sourceTree = "<group>"; };
 		22A3B06A1177CA27006337B5 /* FKEffect.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FKEffect.m; sourceTree = "<group>"; };
 		22A3B06B1177CA27006337B5 /* FKEither.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FKEither.h; sourceTree = "<group>"; };
@@ -510,6 +560,60 @@
 			path = Classes;
 			sourceTree = "<group>";
 		};
+		150BF0E01210C9E9002BC81E /* DeferredKit */ = {
+			isa = PBXGroup;
+			children = (
+				150BF0E11210C9E9002BC81E /* DeferredKit.h */,
+				150BF0E21210C9E9002BC81E /* DKCallback.h */,
+				150BF0E31210C9E9002BC81E /* DKCallback.m */,
+				150BF0E41210C9E9002BC81E /* DKDeferred+CoreLocation.h */,
+				150BF0E51210C9E9002BC81E /* DKDeferred+CoreLocation.m */,
+				150BF0E61210C9E9002BC81E /* DKDeferred+JSON.h */,
+				150BF0E71210C9E9002BC81E /* DKDeferred+JSON.m */,
+				150BF0E81210C9E9002BC81E /* DKDeferred+REST.h */,
+				150BF0E91210C9E9002BC81E /* DKDeferred+REST.m */,
+				150BF0EA1210C9E9002BC81E /* DKDeferred+UIKit.h */,
+				150BF0EB1210C9E9002BC81E /* DKDeferred+UIKit.m */,
+				150BF0EC1210C9E9002BC81E /* DKDeferred.h */,
+				150BF0ED1210C9E9002BC81E /* DKDeferred.m */,
+				150BF0EE1210C9E9002BC81E /* DKDeferredSqliteCache.h */,
+				150BF0EF1210C9E9002BC81E /* DKDeferredSqliteCache.m */,
+				150BF0F01210C9E9002BC81E /* DKMacros.h */,
+				150BF0F11210C9E9002BC81E /* NSData+Base64.h */,
+				150BF0F21210C9E9002BC81E /* NSData+Base64.m */,
+				150BF0F31210C9E9002BC81E /* NSDictionary+DKDeferred.h */,
+				150BF0F41210C9E9002BC81E /* NSDictionary+DKDeferred.m */,
+				150BF0F51210C9E9002BC81E /* NSMutableURLRequest+DKDeferred.h */,
+				150BF0F61210C9E9002BC81E /* NSMutableURLRequest+DKDeferred.m */,
+				150BF0F71210C9E9002BC81E /* NSString+DKDeferred.h */,
+				150BF0F81210C9E9002BC81E /* NSString+DKDeferred.m */,
+				150BF0F91210C9E9002BC81E /* Reachability.h */,
+				150BF0FA1210C9E9002BC81E /* Reachability.m */,
+				150BF0FB1210C9E9002BC81E /* UIImage+DKDeferred.h */,
+				150BF0FC1210C9E9002BC81E /* UIImage+DKDeferred.m */,
+				150BF1191210CD29002BC81E /* DKSimpleMemoryCache.h */,
+				150BF11A1210CD29002BC81E /* DKSimpleMemoryCache.m */,
+			);
+			name = DeferredKit;
+			path = Lib/DeferredKit;
+			sourceTree = "<group>";
+		};
+		15BFEC831219F58300F7B704 /* Resources-iPad */ = {
+			isa = PBXGroup;
+			children = (
+				15BFEEBB121CA5EF00F7B704 /* contacts-iPad.png */,
+				15BFEE95121CA0EE00F7B704 /* all-iPad.png */,
+				15BFEE96121CA0EE00F7B704 /* bookmarked-iPad.png */,
+				15BFEE97121CA0EE00F7B704 /* dm-iPad.png */,
+				15BFEE98121CA0EE00F7B704 /* feed-iPad.png */,
+				15BFEE99121CA0EE00F7B704 /* liked-iPad.png */,
+				15BFEE9A121CA0EE00F7B704 /* received-iPad.png */,
+				15BFEE9B121CA0EE00F7B704 /* rss-iPad.png */,
+				15BFEE9C121CA0EE00F7B704 /* sent-iPad.png */,
+			);
+			name = "Resources-iPad";
+			sourceTree = "<group>";
+		};
 		19C28FACFE9D520D11CA2CBB /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -567,33 +671,13 @@
 				22751A0F11E428B200FDE984 /* YMTableViewController.m */,
 				15C763D611F02CF800E660BE /* YMSettingsViewController.h */,
 				15C763D711F02CF800E660BE /* YMSettingsViewController.m */,
+				15CAFE3C1219EA7700B51153 /* YMSplitViewController.h */,
+				15CAFE3D1219EA7700B51153 /* YMSplitViewController.m */,
+				15BFEE92121C8C4900F7B704 /* YMMenuController.h */,
+				15BFEE93121C8C4900F7B704 /* YMMenuController.m */,
 			);
 			name = "View Controllers";
 			path = ..;
-			sourceTree = "<group>";
-		};
-		22A3B0571177CA27006337B5 /* DeferredKit */ = {
-			isa = PBXGroup;
-			children = (
-				22A3B0581177CA27006337B5 /* DeferredKit.h */,
-				22A3B0591177CA27006337B5 /* DKCallback.h */,
-				22A3B05A1177CA27006337B5 /* DKCallback.m */,
-				22A3B05B1177CA27006337B5 /* DKDeferred+CoreLocation.h */,
-				22A3B05C1177CA27006337B5 /* DKDeferred+CoreLocation.m */,
-				22A3B05D1177CA27006337B5 /* DKDeferred+JSON.h */,
-				22A3B05E1177CA27006337B5 /* DKDeferred+JSON.m */,
-				22A3B05F1177CA27006337B5 /* DKDeferred+UIKit.h */,
-				22A3B0601177CA27006337B5 /* DKDeferred+UIKit.m */,
-				22A3B0611177CA27006337B5 /* DKDeferred.h */,
-				22A3B0621177CA27006337B5 /* DKDeferred.m */,
-				22A3B0631177CA27006337B5 /* DKMacros.h */,
-				22A3B0641177CA27006337B5 /* Reachability.h */,
-				22A3B0651177CA27006337B5 /* Reachability.m */,
-				22A3B0661177CA27006337B5 /* UIImage+DKDeferred.h */,
-				22A3B0671177CA27006337B5 /* UIImage+DKDeferred.m */,
-			);
-			name = DeferredKit;
-			path = Lib/DeferredKit;
 			sourceTree = "<group>";
 		};
 		22A3B0681177CA27006337B5 /* FK */ = {
@@ -754,6 +838,8 @@
 				2240CB7411AB6FF300B92DC1 /* YMGroup.m */,
 				22848D0E11B70E550080472A /* YMAttachment.h */,
 				22848D0F11B70E550080472A /* YMAttachment.m */,
+				15460B971213D3FB00350BB7 /* YMDraft.h */,
+				15460B981213D3FB00350BB7 /* YMDraft.m */,
 			);
 			name = Data;
 			path = ..;
@@ -796,6 +882,7 @@
 				1D3623250D0F684500981E51 /* YammerAppDelegate.m */,
 				29B97315FDCFA39411CA2CEA /* Other Sources */,
 				29B97317FDCFA39411CA2CEA /* Resources */,
+				15BFEC831219F58300F7B704 /* Resources-iPad */,
 				29B97323FDCFA39411CA2CEA /* Frameworks */,
 				19C28FACFE9D520D11CA2CBB /* Products */,
 			);
@@ -831,7 +918,7 @@
 				22FD1D1B118B9B59008170E0 /* CFPrettyView.m */,
 				22235CA71190E533007F2255 /* StatusBarNotifier.h */,
 				22235CA81190E533007F2255 /* StatusBarNotifier.m */,
-				22A3B0571177CA27006337B5 /* DeferredKit */,
+				150BF0E01210C9E9002BC81E /* DeferredKit */,
 				22A3B0681177CA27006337B5 /* FK */,
 				22A3B0941177CA27006337B5 /* JSON */,
 				22A3B0A21177CA27006337B5 /* nsfilemanager */,
@@ -884,6 +971,7 @@
 				22848E6011B861EA0080472A /* directory.png */,
 				2257950D11B1CFDD00EEEDF2 /* refresh-tiny.png */,
 				225794F111B1CCA500EEEDF2 /* inline-button-bg-blue.png */,
+				154D1D1A122DCC2300D5B8F7 /* inline-button-bg-blue-pressed.png */,
 				225794F211B1CCA500EEEDF2 /* inline-button-bg.png */,
 				2257943611B1A3F400EEEDF2 /* selected-msg-bg.png */,
 				22A03FE011BDD0FC0078BE0B /* 144-feed.png */,
@@ -1056,6 +1144,16 @@
 				15E909FA120A78990046349A /* UIButtonBarArrowDownSmall@2x.png in Resources */,
 				15E909FB120A78990046349A /* UIButtonBarArrowUpSmall.png in Resources */,
 				15E909FC120A78990046349A /* UIButtonBarArrowUpSmall@2x.png in Resources */,
+				15BFEE9D121CA0EE00F7B704 /* all-iPad.png in Resources */,
+				15BFEE9E121CA0EE00F7B704 /* bookmarked-iPad.png in Resources */,
+				15BFEE9F121CA0EE00F7B704 /* dm-iPad.png in Resources */,
+				15BFEEA0121CA0EE00F7B704 /* feed-iPad.png in Resources */,
+				15BFEEA1121CA0EE00F7B704 /* liked-iPad.png in Resources */,
+				15BFEEA2121CA0EE00F7B704 /* received-iPad.png in Resources */,
+				15BFEEA3121CA0EE00F7B704 /* rss-iPad.png in Resources */,
+				15BFEEA4121CA0EE00F7B704 /* sent-iPad.png in Resources */,
+				15BFEEBC121CA5EF00F7B704 /* contacts-iPad.png in Resources */,
+				154D1D1B122DCC2300D5B8F7 /* inline-button-bg-blue-pressed.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1069,13 +1167,6 @@
 				1D60589B0D05DD56006BFB54 /* main.m in Sources */,
 				1D3623260D0F684500981E51 /* YammerAppDelegate.m in Sources */,
 				2293CE4A119A3BDF00AB0DD2 /* NSString+URLEncoding.m in Sources */,
-				22A3B0CD1177CA27006337B5 /* DKCallback.m in Sources */,
-				22A3B0CE1177CA27006337B5 /* DKDeferred+CoreLocation.m in Sources */,
-				22A3B0CF1177CA27006337B5 /* DKDeferred+JSON.m in Sources */,
-				22A3B0D01177CA27006337B5 /* DKDeferred+UIKit.m in Sources */,
-				22A3B0D11177CA27006337B5 /* DKDeferred.m in Sources */,
-				22A3B0D21177CA27006337B5 /* Reachability.m in Sources */,
-				22A3B0D31177CA27006337B5 /* UIImage+DKDeferred.m in Sources */,
 				22A3B0D41177CA27006337B5 /* FKEffect.m in Sources */,
 				22A3B0D51177CA27006337B5 /* FKEither.m in Sources */,
 				22A3B0D61177CA27006337B5 /* FKFunction+Common.m in Sources */,
@@ -1162,6 +1253,23 @@
 				157B4AE311ED8CC200886050 /* UIImage+Alpha.m in Sources */,
 				157B4AE411ED8CC200886050 /* UIImage+RoundedCorner.m in Sources */,
 				15C763D811F02CF800E660BE /* YMSettingsViewController.m in Sources */,
+				150BF0FD1210C9E9002BC81E /* DKCallback.m in Sources */,
+				150BF0FE1210C9E9002BC81E /* DKDeferred+CoreLocation.m in Sources */,
+				150BF0FF1210C9E9002BC81E /* DKDeferred+JSON.m in Sources */,
+				150BF1001210C9E9002BC81E /* DKDeferred+REST.m in Sources */,
+				150BF1011210C9E9002BC81E /* DKDeferred+UIKit.m in Sources */,
+				150BF1021210C9E9002BC81E /* DKDeferred.m in Sources */,
+				150BF1031210C9E9002BC81E /* DKDeferredSqliteCache.m in Sources */,
+				150BF1041210C9E9002BC81E /* NSData+Base64.m in Sources */,
+				150BF1051210C9E9002BC81E /* NSDictionary+DKDeferred.m in Sources */,
+				150BF1061210C9E9002BC81E /* NSMutableURLRequest+DKDeferred.m in Sources */,
+				150BF1071210C9E9002BC81E /* NSString+DKDeferred.m in Sources */,
+				150BF1081210C9E9002BC81E /* Reachability.m in Sources */,
+				150BF1091210C9E9002BC81E /* UIImage+DKDeferred.m in Sources */,
+				150BF11B1210CD29002BC81E /* DKSimpleMemoryCache.m in Sources */,
+				15460B991213D3FB00350BB7 /* YMDraft.m in Sources */,
+				15CAFE3E1219EA7700B51153 /* YMSplitViewController.m in Sources */,
+				15BFEE94121C8C4900F7B704 /* YMMenuController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1195,12 +1303,14 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				CODE_SIGN_IDENTITY = "iPhone Distribution: Geni, Inc.";
 				COPY_PHASE_STRIP = NO;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = Yammer_Prefix.pch;
+				GCC_VERSION = com.apple.compilers.llvmgcc42;
 				INFOPLIST_FILE = "Yammer-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 3.1.2;
 				OTHER_LDFLAGS = (
@@ -1211,6 +1321,7 @@
 				PRODUCT_NAME = Yammer;
 				PROVISIONING_PROFILE = "720DC109-4428-4C31-B4CB-9DD85CE70B32";
 				SDKROOT = iphoneos4.0;
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Store;
 		};
@@ -1241,13 +1352,15 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				CODE_SIGN_IDENTITY = "iPhone Distribution: Geni, Inc.";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution: Geni, Inc.";
 				COPY_PHASE_STRIP = NO;
 				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_OPTIMIZATION_LEVEL = s;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = Yammer_Prefix.pch;
+				GCC_VERSION = com.apple.compilers.llvmgcc42;
 				INFOPLIST_FILE = "Yammer-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 3.1.2;
 				OTHER_LDFLAGS = (
@@ -1256,9 +1369,10 @@
 					"-ObjC",
 				);
 				PRODUCT_NAME = Yammer;
-				PROVISIONING_PROFILE = "2FD5354A-D37C-4F69-A1F7-3BFBA8589303";
-				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "2FD5354A-D37C-4F69-A1F7-3BFBA8589303";
+				PROVISIONING_PROFILE = "43074AE4-A15D-4A72-98AF-3A803ECCEB54";
+				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "43074AE4-A15D-4A72-98AF-3A803ECCEB54";
 				SDKROOT = iphoneos4.0;
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = AdHoc;
 		};
@@ -1266,6 +1380,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				CODE_SIGN_IDENTITY = "iPhone Developer: Samuel Sutch (27FP3L7KH9)";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer: Samuel Sutch (27FP3L7KH9)";
 				COPY_PHASE_STRIP = NO;
@@ -1273,9 +1388,10 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = Yammer_Prefix.pch;
+				GCC_VERSION = com.apple.compilers.llvmgcc42;
 				HEADER_SEARCH_PATHS = "";
 				INFOPLIST_FILE = "Yammer-Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 3.1.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 3.2;
 				OTHER_LDFLAGS = (
 					"-fnested-functions",
 					"-licucore",
@@ -1285,6 +1401,7 @@
 				PROVISIONING_PROFILE = "61C60CFE-97BC-4685-9758-8F09D9ABB3A6";
 				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "61C60CFE-97BC-4685-9758-8F09D9ABB3A6";
 				SDKROOT = iphoneos4.0;
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};

@@ -25,7 +25,7 @@ static UIImagePickerController *__imagePicker = nil;
 
 @implementation YMComposeViewController
 
-@synthesize userAccount, network, inReplyTo, inGroup, directTo, onCompleteSend;
+@synthesize userAccount, network, inReplyTo, inGroup, directTo, onCompleteSend, draft;
 
 - (id)init
 {
@@ -63,6 +63,7 @@ static UIImagePickerController *__imagePicker = nil;
   composeView.onUserInputsHash = callbackTS(self, userInputHash:);
   composeView.onPartialWillClose = callbackTS(self, textViewPartialWillClose:);
   composeView.onUserPhoto = callbackTS(self, onPhoto:);
+  composeView.onUserDrafts = callbackTS(self, onDrafts:);
   
   if (!web) web = [YMWebService sharedWebService];
   
@@ -201,6 +202,15 @@ static UIImagePickerController *__imagePicker = nil;
 
 - (void)cancelSend:(id)sender
 {
+  if ([textView.text length]) {
+    UIActionSheet *a = [[[UIActionSheet alloc] initWithTitle:
+                         @"Would you like to save this message as a draft?" delegate:
+                         self cancelButtonTitle:@"No" destructiveButtonTitle:
+                         nil otherButtonTitles:@"Yes", nil] autorelease];
+    a.tag = 101;
+    [a showInView:self.view];
+    return;
+  }
   self.navigationItem.leftBarButtonItem = nil;
   [self.navigationController.parentViewController 
    dismissModalViewControllerAnimated:YES];
@@ -236,6 +246,7 @@ static UIImagePickerController *__imagePicker = nil;
   [textView resignFirstResponder];
   [[StatusBarNotifier sharedNotifier] setHidden:YES];
   onPhoto = YES;
+  onDrafts = NO;
   UIView *v = [[[UIView alloc] initWithFrame:
                 CGRectMake(0, 0, composeView.tableView.frame.size.width, 44)]
                autorelease];
@@ -269,11 +280,24 @@ static UIImagePickerController *__imagePicker = nil;
   return nil;
 }
 
+- (id)onDrafts:(id)s
+{
+  [textView resignFirstResponder];
+  onPhoto = NO;
+  onDrafts = YES;
+  composeView.tableView.delegate = self;
+  composeView.tableView.dataSource = self;
+  [composeView.tableView reloadData];
+  return nil;
+}
+
 - (void)addAttachment:(id)s
 {
   if (![UIImagePickerController isSourceTypeAvailable:
-        UIImagePickerControllerSourceTypeCamera]) 
+        UIImagePickerControllerSourceTypeCamera]) {
     [self actionSheet:nil didDismissWithButtonIndex:1];
+    return;
+  }
   
   UIActionSheet *a = 
   [[[UIActionSheet alloc] initWithTitle:@"Choose Source" delegate:self 
@@ -285,6 +309,23 @@ static UIImagePickerController *__imagePicker = nil;
 -(void) actionSheet:(UIActionSheet *)actionSheet 
 didDismissWithButtonIndex:(NSInteger)buttonIndex
 {
+  if (actionSheet.tag == 101) {
+    if (buttonIndex == 0) {
+      YMDraft *d = [[[YMDraft alloc] init] autorelease];
+      d.groupID = inGroup.groupID;
+      d.inReplyToID = inReplyTo.messageID;
+      d.directToID = directTo.userID;
+      d.attachments = attachments;
+      d.body = textView.text;
+      d.networkPK = nsni(network.pk);
+      d.userAccountPK = nsni(userAccount.pk);
+      [d save];
+    }
+    self.navigationItem.leftBarButtonItem = nil;
+    [self.navigationController.parentViewController 
+     dismissModalViewControllerAnimated:YES];
+    return;
+  }
   NSLog(@"button index %i %@", buttonIndex, self.imagePicker);
   self.imagePicker.delegate = self;
   if (buttonIndex == 0) {

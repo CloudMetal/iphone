@@ -7,6 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "YMDraft.h"
 
 @class YMWebService;
 @class YMUserAccount;
@@ -32,12 +33,14 @@ UIImagePickerControllerDelegate, UINavigationControllerDelegate, UISearchBarDele
   BOOL gotPartialWillCloseMessage;
   YMComposeView *composeView;
   NSMutableArray *attachments;
-  BOOL onPhoto;
+  BOOL onPhoto, onDrafts;
   NSIndexPath *hmm;
   id<DKCallback> onCompleteSend;
   BOOL searchBarWillClear;
+  YMDraft *draft;
 }
 
+@property (nonatomic, retain) YMDraft *draft;
 @property (nonatomic, retain) id<DKCallback> onCompleteSend;
 @property (nonatomic, readwrite, retain) YMUserAccount *userAccount;
 @property (nonatomic, readwrite, retain) YMGroup *inGroup;

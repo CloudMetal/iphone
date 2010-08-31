@@ -29,13 +29,14 @@
     [_manager setDelegate:self];
     [_manager startUpdatingLocation];
     // timeout
-    [DKDeferred callLater:10.0 func:callbackTS(self, _timeout:)];
+    //[DKDeferred callLater:10.0 func:callbackTS(self, _timeout:)];
+    [self performSelector:@selector(_timeout:) withObject:nil afterDelay:15];
   }
   return self; 
 }
 
 - (void)_timeout:(id)arg {
-  if (fired == -1) {
+  if (self.fired == -1) {
     [_manager stopUpdatingLocation];
     failed = YES;
     [self errback:
@@ -75,9 +76,18 @@
   [self errback:error];
 }
 
+- (void)cancel 
+{
+    [_manager stopUpdatingLocation];
+    [super cancel];
+}
+
 - (void)dealloc {
-//  [_manager release];
-//  [location release];
+    if (_manager) {
+        [_manager stopUpdatingLocation];
+        [_manager autorelease];
+    }
+    if (location) [location release];
   [super dealloc];
 }
 

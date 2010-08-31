@@ -36,6 +36,7 @@
   
   // ui elements
   UIButton *moreButton;
+  UIActivityIndicatorView *bottomLoadingView;
   
   NSIndexPath *selectedIndexPath;
   
@@ -60,6 +61,7 @@
   // state specific stuffs
   BOOL wasInactive;
   int previousFontSize;
+
 }
 
 @property(nonatomic, assign) int limit;
@@ -73,9 +75,10 @@
 @property(nonatomic, readwrite, copy) NSNumber *threaded;
 @property(nonatomic, readwrite, copy) NSNumber *remainingUnseenItems;
 @property(nonatomic, readwrite, copy) NSNumber *lastLoadedMessageID, *lastSeenMessageID;
-@property(nonatomic, assign) BOOL loadedAvatars, shouldUpdateBadge;
+@property(nonatomic, assign) BOOL loadedAvatars, shouldUpdateBadge, reloading;
 
 - (void)refreshFeed:(id)sender;
+- (void)refreshMessagePKs;
 - (id)doReload:(id)arg;
 - (void)reloadTableViewDataSource;
 - (id)gotoUserIndexPath:(NSIndexPath *)indexPath sender:(id)s;

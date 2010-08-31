@@ -14,6 +14,18 @@
 @synthesize groupID, fullName, name, privacy, url, webURL, 
             members, updates, networkID, mugshotURL;
 
+DECLARE_PROPERTIES(
+                   DECLARE_PROPERTY(@"groupID", @"@\"NSNumber\""),
+                   DECLARE_PROPERTY(@"fullName", @"@\"NSString\""),
+                   DECLARE_PROPERTY(@"name", @"@\"NSString\""),
+                   DECLARE_PROPERTY(@"privacy", @"@\"NSString\""),
+                   DECLARE_PROPERTY(@"url", @"@\"NSString\""),
+                   DECLARE_PROPERTY(@"webURL", @"@\"NSString\""),
+                   DECLARE_PROPERTY(@"members", @"@\"NSNumber\""),
+                   DECLARE_PROPERTY(@"networkID", @"@\"NSNumber\""),
+                   DECLARE_PROPERTY(@"mugshotURL", @"@\"NSString\"")
+                   )
+
 - (void)dealloc
 {
   self.groupID = nil;

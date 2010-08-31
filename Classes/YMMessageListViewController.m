@@ -61,6 +61,7 @@
     shouldScrollToTop = YES;
     limit = 50;
     shouldUpdateBadge = NO;
+    loadedAvatars = YES;
 
     [[NSNotificationCenter defaultCenter]
      addObserver:self selector:@selector(messagesDidUpdate:) 
@@ -107,28 +108,52 @@
   [moreButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
   [moreButton setTitle:@"Show More Messages" forState:UIControlStateNormal];
   moreButton.titleLabel.font = [UIFont systemFontOfSize:13];
-  [moreButton setBackgroundColor:[UIColor colorWithPatternImage:
-                            [UIImage imageNamed:@"inline-button-bg-blue.png"]]];
+//  [moreButton setBackgroundColor:[UIColor colorWithPatternImage:
+//                            [UIImage imageNamed:@"inline-button-bg-blue.png"]]];
+  [moreButton setBackgroundImage:
+   [[UIImage imageNamed:@"inline-button-bg-blue.png"] stretchableImageWithLeftCapWidth:
+    0 topCapHeight:0] forState:UIControlStateNormal];
+  [moreButton setBackgroundImage:
+   [[UIImage imageNamed:@"inline-button-bg-blue-pressed.png"] stretchableImageWithLeftCapWidth:
+    0 topCapHeight:0] forState:UIControlStateHighlighted];
   [moreButton addTarget:self action:@selector(loadMore:) 
        forControlEvents:UIControlEventTouchUpInside];
   [tf addSubview:moreButton];
   moreButton.hidden = YES;
+  bottomLoadingView = [[[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:
+                        UIActivityIndicatorViewStyleGray] autorelease];
+  bottomLoadingView.hidesWhenStopped = YES;
+  bottomLoadingView.frame = CGRectMake(149, 7, 22, 22);
+  [bottomLoadingView stopAnimating];
+  [tf insertSubview:bottomLoadingView atIndex:0];
+  
   
   self.tableView.tableFooterView = tf;
 }
 
+- (void)setNetwork:(YMNetwork *)n
+{
+  [network release];
+  network = [n retain];
+  [messagePKs release];
+  messagePKs = nil;
+  [self.tableView reloadData];
+  self.selectedIndexPath = nil;
+  [self setHeaderTitle:self.title andSubtitle:network.name];
+}
+
 - (void) viewWillAppear:(BOOL)animated
 {
+  self.navigationController.navigationBar.tintColor 
+  = [UIColor colorWithRed:0.27 green:0.34 blue:0.39 alpha:1.0];
+  self.navigationController.toolbar.tintColor 
+  = [UIColor colorWithHexString:@"353535"];
   self.selectedIndexPath = nil;
   viewHasAppeared = YES;
   if (!messagePKs || ![messagePKs count]) {
     [self refreshMessagePKs];
     [self.tableView reloadData];
-  }
-  loadedAvatars = [web didLoadContactImagesForUserAccount:self.userAccount];
-  if (!loadedAvatars)
-    [[web loadCachedContactImagesForUserAccount:self.userAccount]
-     addBoth:callbackTS(self, _imagesLoaded:)];    
+  }   
   [self setHeaderTitle:self.title andSubtitle:self.network.name];
   [super viewWillAppear:animated];
 }
@@ -160,10 +185,7 @@
 
 - (void)viewWillDisappear:(BOOL)animated
 {
-  [web writeCachedContactImages];
   viewHasAppeared = NO;
-//  [self markAllMessagesRead];
-//  [self updateNewlyReadMessages];
   if ([self.target isEqual:YMMessageTargetReceived] 
       || [self.target isEqual:YMMessageTargetFollowing]) {
     NSLog(@"setting read %@", self.target);
@@ -219,6 +241,9 @@
   if (!self.reloading)
     [[StatusBarNotifier sharedNotifier] flashLoading:
      @"Loading Messages" deferred:loadingDeferred];
+//  self.reloading = YES;
+  moreButton.hidden = YES;
+  [bottomLoadingView startAnimating];
   
   return arg;
 }
@@ -234,6 +259,7 @@
 
 - (void)loadMore:(id)sender
 {
+  if (self.reloading || moreButton.hidden) return;
   if ([messagePKs count]) {
     int currentCount = [messagePKs count];
     limit += 100;
@@ -299,6 +325,7 @@
   
   self.selectedIndexPath = nil;
   self.tableView.tableFooterView.hidden = NO;
+//  self.reloading = NO;
   shouldUpdateBadge = NO;
   
   if ([results objectForKey:@"unseenItemsLeftToFetch"]) {
@@ -344,6 +371,8 @@
   loadingDeferred = nil;
   
   [self dataSourceDidFinishLoadingNewData];
+  moreButton.hidden = NO;
+  [bottomLoadingView stopAnimating];
   
   return results;
 }
@@ -351,6 +380,9 @@
 - (id)_failedGetMessages:(NSError *)error
 {
   NSLog(@"_failedGetMessages: %@ %@", error, [error userInfo]);
+//  self.reloading = NO;
+  moreButton.hidden = NO;
+  [bottomLoadingView stopAnimating];
   [self dataSourceDidFinishLoadingNewData];
   return error;
 }
@@ -420,7 +452,7 @@
   NSMutableArray *_senderIds = [a objectAtIndex:9];
   NSMutableArray *_following = [NSMutableArray arrayWithCapacity:
                                 [messagePKs count]];
-  NSArray *subscribedUserIds = [self.network.userSubscriptionIds copy];
+  NSArray *subscribedUserIds = [[self.network.userSubscriptionIds copy] autorelease];
   
   [self updateBadge];
   
@@ -600,7 +632,7 @@ heightForRowAtIndexPath:(NSIndexPath *)indexPath
 cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {  
   if (selectedIndexPath && indexPath.row == selectedIndexPath.row + 1) {
-    YMMessageCompanionTableViewCell *cell;
+    YMMessageCompanionTableViewCell *cell = nil;
     for (id v in [[NSBundle mainBundle] loadNibNamed:
                   @"YMMessageCompanionTableViewCell" owner:nil options:nil]) {
       if (![v isKindOfClass:[YMMessageCompanionTableViewCell class]]) 
@@ -684,10 +716,7 @@ cellForRowAtIndexPath:(NSIndexPath *)indexPath
 - (void) tableView:(UITableView *)table
 didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
-  [self performSelector:@selector(delayedGotoMessage:) withObject:
-   [NSIndexPath indexPathForRow:[self rowForIndexPath:indexPath] inSection:0] 
-             afterDelay:.05];
-  self.selectedIndexPath = nil;
+  [self gotoMessageIndexPath:indexPath sender:nil];
 }
 
 - (void)delayedGotoMessage:(NSIndexPath *)indexPath
@@ -716,6 +745,13 @@ willSelectRowAtIndexPath:(NSIndexPath *)indexPath
       return nil;
     }
   }
+  NSArray *v = [self.tableView indexPathsForVisibleRows];
+  int idx = [v indexOfObject:indexPath];
+  if (idx != NSNotFound) {
+    YMFastMessageTableViewCell *c = [[self.tableView visibleCells] objectAtIndex:idx];
+    c.selected = YES;
+  }
+  [[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:1.0/30.0]];
   return indexPath;
 }
 
@@ -747,12 +783,12 @@ willSelectRowAtIndexPath:(NSIndexPath *)indexPath
       [self.tableView reloadRowsAtIndexPaths:array_(self.selectedIndexPath)
                           withRowAnimation:UITableViewRowAnimationNone];
     }
-    [self.tableView selectRowAtIndexPath:selectedIndexPath animated:YES 
-                          scrollPosition:UITableViewScrollPositionNone];
   }
   [self.tableView endUpdates];
   [previousIndexPath release];
   [previousCompanionIndexPath release];
+  [self.tableView selectRowAtIndexPath:selectedIndexPath animated:YES 
+                        scrollPosition:UITableViewScrollPositionNone];
 }
 
 - (id)_gotMugshot:(NSNumber *)messagePK :(id)result
@@ -764,9 +800,14 @@ willSelectRowAtIndexPath:(NSIndexPath *)indexPath
       [mugshots replaceObjectAtIndex:idx withObject:result];
       if (self.selectedIndexPath && self.selectedIndexPath.row < idx) idx++;
       NSIndexPath *path = [NSIndexPath indexPathForRow:idx inSection:0];
-      YMFastMessageTableViewCell *cell = (YMFastMessageTableViewCell *)      
-        [self.tableView cellForRowAtIndexPath:path];      
-      if (cell) cell.avatar = result;
+      int idx2 = [[self.tableView indexPathsForVisibleRows] indexOfObject:path];
+      if (idx2 != NSNotFound) {
+        YMFastMessageTableViewCell *cell = (YMFastMessageTableViewCell *)[[self.tableView visibleCells] objectAtIndex:idx2];
+        cell.avatar = result;
+//      YMFastMessageTableViewCell *cell = (YMFastMessageTableViewCell *)      
+//        [self.tableView cellForRowAtIndexPath:path];      
+//      if (cell) cell.avatar = result;
+      }
     }
   }
   return result;
@@ -789,6 +830,11 @@ willSelectRowAtIndexPath:(NSIndexPath *)indexPath
 
 - (id)gotoMessageIndexPath:(NSIndexPath *)indexPath sender:(id)s
 {
+//  [self.tableView selectRowAtIndexPath:indexPath animated:
+//   YES scrollPosition:UITableViewScrollPositionNone];
+  [[NSRunLoop currentRunLoop] runUntilDate:
+   [NSDate dateWithTimeIntervalSinceNow:0.05]];
+  
   int idx = [self rowForIndexPath:indexPath];
   YMMessage *m = (YMMessage *)[YMMessage findByPK:
                                intv([messagePKs objectAtIndex:idx])];

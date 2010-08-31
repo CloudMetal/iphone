@@ -12,7 +12,7 @@
 		</object>
 		<object class="NSMutableArray" key="IBDocument.EditedObjectIDs">
 			<bool key="EncodedWithXMLCoder">YES</bool>
-			<integer value="1"/>
+			<integer value="40"/>
 		</object>
 		<object class="NSArray" key="IBDocument.PluginDependencies">
 			<bool key="EncodedWithXMLCoder">YES</bool>
@@ -140,6 +140,11 @@
 								<float key="IBUIWidth">40</float>
 								<int key="IBUIStyle">1</int>
 								<reference key="IBUIToolbar" ref="1015198083"/>
+							</object>
+							<object class="IBUIBarButtonItem" id="498481572">
+								<string key="targetRuntimeIdentifier">IBCocoaTouchFramework</string>
+								<reference key="IBUIToolbar" ref="1015198083"/>
+								<int key="IBUISystemItemIdentifier">5</int>
 							</object>
 							<object class="IBUIBarButtonItem" id="26789191">
 								<string key="targetRuntimeIdentifier">IBCocoaTouchFramework</string>
@@ -475,6 +480,7 @@
 							<reference ref="637806471"/>
 							<reference ref="857200052"/>
 							<reference ref="26789191"/>
+							<reference ref="498481572"/>
 						</object>
 						<reference key="parent" ref="191373211"/>
 					</object>
@@ -548,6 +554,11 @@
 						<reference key="object" ref="116129280"/>
 						<reference key="parent" ref="191373211"/>
 					</object>
+					<object class="IBObjectRecord">
+						<int key="objectID">79</int>
+						<reference key="object" ref="498481572"/>
+						<reference key="parent" ref="1015198083"/>
+					</object>
 				</object>
 			</object>
 			<object class="NSMutableDictionary" key="flattenedProperties">
@@ -579,6 +590,7 @@
 					<string>65.IBPluginDependency</string>
 					<string>66.IBPluginDependency</string>
 					<string>67.IBPluginDependency</string>
+					<string>79.IBPluginDependency</string>
 				</object>
 				<object class="NSMutableArray" key="dict.values">
 					<bool key="EncodedWithXMLCoder">YES</bool>
@@ -591,6 +603,7 @@
 					<string>{{400, 552}, {320, 217}}</string>
 					<string>com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
 					<string>YMMessageTextView</string>
+					<string>com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
 					<string>com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
 					<string>com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
 					<string>com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
@@ -625,7 +638,7 @@
 				</object>
 			</object>
 			<nil key="sourceID"/>
-			<int key="maxID">77</int>
+			<int key="maxID">81</int>
 		</object>
 		<object class="IBClassDescriber" key="IBDocument.Classes">
 			<object class="NSMutableArray" key="referencedPartialClassDescriptions">
@@ -687,12 +700,14 @@
 						<object class="NSArray" key="dict.sortedKeys">
 							<bool key="EncodedWithXMLCoder">YES</bool>
 							<string>at:</string>
+							<string>drafts:</string>
 							<string>hash:</string>
 							<string>kb:</string>
 							<string>photo:</string>
 						</object>
 						<object class="NSMutableArray" key="dict.values">
 							<bool key="EncodedWithXMLCoder">YES</bool>
+							<string>id</string>
 							<string>id</string>
 							<string>id</string>
 							<string>id</string>
@@ -704,6 +719,7 @@
 						<object class="NSArray" key="dict.sortedKeys">
 							<bool key="EncodedWithXMLCoder">YES</bool>
 							<string>at:</string>
+							<string>drafts:</string>
 							<string>hash:</string>
 							<string>kb:</string>
 							<string>photo:</string>
@@ -712,6 +728,10 @@
 							<bool key="EncodedWithXMLCoder">YES</bool>
 							<object class="IBActionInfo">
 								<string key="name">at:</string>
+								<string key="candidateClassName">id</string>
+							</object>
+							<object class="IBActionInfo">
+								<string key="name">drafts:</string>
 								<string key="candidateClassName">id</string>
 							</object>
 							<object class="IBActionInfo">
@@ -735,11 +755,12 @@
 							<string>actionBar</string>
 							<string>activity</string>
 							<string>at</string>
+							<string>drafts</string>
 							<string>hash</string>
-							<string>imagePicker</string>
 							<string>kb</string>
 							<string>messageTextView</string>
 							<string>onPartialWillClose</string>
+							<string>onUserDrafts</string>
 							<string>onUserInputsAt</string>
 							<string>onUserInputsHash</string>
 							<string>onUserPhoto</string>
@@ -754,9 +775,10 @@
 							<string>UIActivityIndicatorView</string>
 							<string>UIBarButtonItem</string>
 							<string>UIBarButtonItem</string>
-							<string>UIImagePickerController</string>
+							<string>UIBarButtonItem</string>
 							<string>UIBarButtonItem</string>
 							<string>YMMessageTextView</string>
+							<string>id</string>
 							<string>id</string>
 							<string>id</string>
 							<string>id</string>
@@ -774,11 +796,12 @@
 							<string>actionBar</string>
 							<string>activity</string>
 							<string>at</string>
+							<string>drafts</string>
 							<string>hash</string>
-							<string>imagePicker</string>
 							<string>kb</string>
 							<string>messageTextView</string>
 							<string>onPartialWillClose</string>
+							<string>onUserDrafts</string>
 							<string>onUserInputsAt</string>
 							<string>onUserInputsHash</string>
 							<string>onUserPhoto</string>
@@ -802,12 +825,12 @@
 								<string key="candidateClassName">UIBarButtonItem</string>
 							</object>
 							<object class="IBToOneOutletInfo">
-								<string key="name">hash</string>
+								<string key="name">drafts</string>
 								<string key="candidateClassName">UIBarButtonItem</string>
 							</object>
 							<object class="IBToOneOutletInfo">
-								<string key="name">imagePicker</string>
-								<string key="candidateClassName">UIImagePickerController</string>
+								<string key="name">hash</string>
+								<string key="candidateClassName">UIBarButtonItem</string>
 							</object>
 							<object class="IBToOneOutletInfo">
 								<string key="name">kb</string>
@@ -819,6 +842,10 @@
 							</object>
 							<object class="IBToOneOutletInfo">
 								<string key="name">onPartialWillClose</string>
+								<string key="candidateClassName">id</string>
+							</object>
+							<object class="IBToOneOutletInfo">
+								<string key="name">onUserDrafts</string>
 								<string key="candidateClassName">id</string>
 							</object>
 							<object class="IBToOneOutletInfo">

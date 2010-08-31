@@ -9,7 +9,6 @@
 #import "JSON.h"
 #import "DKDeferred.h"
 
-
 @interface DKDeferred (JSONAdditions)
 
 + (id)loadJSONDoc:(NSString *)aUrl;

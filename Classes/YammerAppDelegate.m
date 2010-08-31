@@ -10,18 +10,15 @@
 #import "YMWebService.h"
 #import "YMNetworksViewController.h"
 #import "SQLiteInstanceManager.h"
+#import "YMSplitViewController.h"
+#import "YMAccountsViewController.h"
+#import "YMMenuController.h"
 
 
 @implementation YammerAppDelegate
 
 - (void)applicationDidFinishLaunching:(UIApplication*)application
 {
-  [[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
-  
-	UIWindow* window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
-	window.backgroundColor = [UIColor blackColor];
-	[window makeKeyAndVisible];
-  
   [YMUserAccount tableCheck];
   [YMGroup tableCheck];
   [YMAttachment tableCheck];
@@ -41,6 +38,7 @@
     [[SQLiteInstanceManager sharedManager] executeUpdateSQL:@"DELETE FROM y_m_group;"];
     [[SQLiteInstanceManager sharedManager] executeUpdateSQL:@"DELETE FROM y_m_contact;"];
     [[SQLiteInstanceManager sharedManager] executeUpdateSQL:@"DELETE FROM y_m_network;"];
+//    [[SQLiteInstanceManager sharedManager] executeUpdateSQL:@"DELETE FROM y_m_draft;"];
     [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"lastNetworkPK"];
     for (YMUserAccount *userAcct in [YMUserAccount allObjects]) {
       userAcct.activeNetworkPK = nil;
@@ -50,15 +48,36 @@
   [defs setObject:version forKey:@"YMPreviousBundleVersion"];
   [defs synchronize];
   
+  [DKDeferred setCache:[DKDeferredSqliteCache sharedCache]];
   [[YMWebService sharedWebService] setShouldUpdateBadgeIcon:YES];
   
-  UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:
-                                 [[[YMNetworksViewController alloc] initWithStyle:
-                                   UITableViewStylePlain] autorelease]];
-  [window addSubview:nav.view];
+  [[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
+  UIWindow *mainWindow = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
+  
+  NSLog(@"mainWindow %@", mainWindow);
+  [mainWindow makeKeyAndVisible];
+  
+  if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
+    YMSplitViewController *sc = [[YMSplitViewController alloc] init];
+    YMMenuController *menu = [[[YMMenuController alloc] initWithStyle:
+                               UITableViewStyleGrouped] autorelease];
+    sc.viewControllers = array_([[[UINavigationController alloc] 
+                                  initWithRootViewController:menu] autorelease], 
+                                [menu viewControllerForSecondPane]);
+    [mainWindow addSubview:sc.view];
+  } 
+  else {
+    UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:
+                                    [[YMNetworksViewController alloc] initWithStyle:
+                                      UITableViewStylePlain]];
+    [mainWindow addSubview:nav.view];
+  }
+}
+
+- (void)applicationDidBecomeActive:(UIApplication *)application
+{
   [[UIApplication sharedApplication] registerForRemoteNotificationTypes:
    (UIRemoteNotificationTypeBadge | UIRemoteNotificationTypeSound | UIRemoteNotificationTypeAlert)];
-
 }
 
 - (void)application:(UIApplication *)application
@@ -82,28 +101,44 @@ didFailToRegisterForRemoteNotificationsWithError:(NSError *)error
    show];
 }
 
+- (void) applicationWillEnterForeground:(UIApplication *)application
+{
+  [[UIApplication sharedApplication] registerForRemoteNotificationTypes:
+   (UIRemoteNotificationTypeBadge | UIRemoteNotificationTypeSound | UIRemoteNotificationTypeAlert)];
+}
+
+- (void)applicationDidEnterBackground:(UIApplication *)application
+{
+  if (PREF_KEY(@"lastNetworkPK")) {
+    YMNetwork *n = (YMNetwork *)[YMNetwork findByPK:
+                                 intv(PREF_KEY(@"lastNetworkPK"))];
+    if (n) {
+      n.unseenMessageCount = nsni(([YMMessage countByCriteria:
+       @"WHERE network_p_k=%i AND read=0 AND (target='following' OR target='received')", n.pk]));
+      [n save];
+      NSLog(@"unseenMessageCount %@", n.unseenMessageCount);
+    }
+  }
+  [[YMWebService sharedWebService] updateUIApplicationBadge];
+  [[DKDeferred cache] purgeMemoryCache];
+}
+  
+
 - (void)applicationWillTerminate:(UIApplication *)application
 {
   if (PREF_KEY(@"lastNetworkPK")) {
     YMNetwork *n = (YMNetwork *)[YMNetwork findByPK:
                                  intv(PREF_KEY(@"lastNetworkPK"))];
     if (n) {
-      n.unseenMessageCount = nsni(([YMMessage countByCriteria:@"WHERE network_p_k=%i AND read=0 AND (target='following' OR target='received')", n.pk]));
+      n.unseenMessageCount = nsni(([YMMessage countByCriteria:
+       @"WHERE network_p_k=%i AND read=0 AND (target='following' OR target='received')", n.pk]));
       [n save];
       NSLog(@"unseenMessageCount %@", n.unseenMessageCount);
     }
-//    if (n) {
-//      [[SQLiteInstanceManager sharedManager]
-//       executeUpdateSQL:
-//       [NSString stringWithFormat:
-//        @"UPDATE y_m_message SET read=1 WHERE network_p_k=%i AND target='following' OR target='received'", n.pk]];
-//      n.unseenMessageCount = nsni(0);
-//    }
-//    int c = [YMMessage countByCriteria:@"WHERE network_p_k=%i AND target='received'"];
-//    int c1 = [YMMessage countByCriteria:@"WHERE network_p_k=%i AND target='following'"];
-//    n.unseenMessageCount = intv(n.unseenMessageCount) - (c + c1);
   }
-  [[YMWebService sharedWebService] updateUIApplicationBadge];
+  [[YMWebService sharedWebService] updateUIAppliredcationBadge];
+  [DKDeferred cache].forceImmediateCaching = YES;
+  [[DKDeferred cache] purgeMemoryCache];
 }
 
 - (void)dealloc 

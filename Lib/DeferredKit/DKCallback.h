@@ -30,3 +30,16 @@ typedef id (*dkCallback)(id);
 - (DKCallback *)composeWith:(DKCallback *)other;
 
 @end
+
+@interface DKCallbackFromInvocation : DKCallback {
+    NSInvocation *invocation;
+    NSUInteger index;
+  SEL selector;
+  id target;
+}
+
+@property(assign) SEL selector;
+@property(retain) id target;
+
+- (DKCallback *)initWithInvocation:(NSInvocation *)inv parameterIndex:(NSUInteger)idx;
+@end

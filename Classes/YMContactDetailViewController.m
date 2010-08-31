@@ -183,8 +183,8 @@ numberOfRowsInSection:(NSInteger)section
 cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
   static NSString *ident = @"YMContactBitCell1";
-  UITableViewCell *cell = [[UITableViewCell alloc] initWithStyle:
-                           UITableViewCellStyleValue2 reuseIdentifier:ident];
+  UITableViewCell *cell = [[[UITableViewCell alloc] initWithStyle:
+                           UITableViewCellStyleValue2 reuseIdentifier:ident] autorelease];
   
   if (indexPath.section == 0) {
     cell.detailTextLabel.text = [[self.contact.phoneNumbers 

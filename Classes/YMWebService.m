@@ -32,7 +32,7 @@ static YMWebService *__sharedWebService;
 - (YMContact *)contactFromReference:(NSDictionary *)ref;
 - (YMContact *)contactFromFullRepresentation:(NSDictionary *)u;
 
-- (id)contactImageCache;
+//- (id)contactImageCache;
 - (id)deferredDiskCache;
 
 @property(readonly) DKDeferredPool *loadingPool;
@@ -81,7 +81,7 @@ id __decodeJSON(id results)
     NSString *objstr = [[NSString alloc] initWithData:results encoding:NSUTF8StringEncoding];
 //    NSLog(@"__decodeJson results %@", objstr);
     NSError *error = nil;
-    id ret = [[[SBJSON alloc] init]
+    id ret = [[[[SBJSON alloc] init] autorelease]
               objectWithString:objstr error:&error];
     if (!ret && error) {
       return error;
@@ -135,10 +135,10 @@ id _nil(id r)
     NSNumber *pk = [acct.activeNetworkPK copy];
     for (YMNetwork *n in [YMNetwork findByCriteria:@"WHERE user_account_p_k=%i", acct.pk]) {
       acct.activeNetworkPK = nsni(n.pk);
-      [[[DKDeferredURLConnection alloc] initWithRequest:
+      [[[[DKDeferredURLConnection alloc] initWithRequest:
         [self mutableMultipartRequestWithMethod:@"feed_clients/" 
         account:acct defaults:dict_(pushID, @"client_id", @"ApplePushDevice", @"type")]
-                                               pauseFor:0 decodeFunction:nil]
+                                               pauseFor:0 decodeFunction:nil] autorelease]
        addBoth:callbackTS(self, _registeredPush:)];
     }
     acct.activeNetworkPK = pk;
@@ -170,6 +170,7 @@ id _nil(id r)
     [NSMutableURLRequest requestWithURL:
      [NSURL URLWithString:[NSString stringWithFormat:@"%@%@", 
                            acct.serviceUrl, @"/oauth_wrap/access_token"]]];
+  [acct retain];
   const char* theData = 
     [[array_(nsstrf(@"wrap_username=%@", [acct.username encodedURLParameterString]),
              nsstrf(@"wrap_password=%@", [acct.password encodedURLParameterString]),
@@ -183,8 +184,8 @@ id _nil(id r)
     forHTTPHeaderField:@"Content-Type"];
   req.HTTPShouldHandleCookies = NO;
   // make request
-  DKDeferred *d = [[DKDeferredURLConnection alloc]
-                   initRequest:req decodeFunction:nil paused:NO];
+  DKDeferred *d = [[[DKDeferredURLConnection alloc]
+                   initRequest:req decodeFunction:nil paused:NO] autorelease];
   return [d addCallbacks:curryTS(self, @selector(_gotAccessToken::), acct) 
                         :callbackTS(self, _failedGetAccessToken:)];
 }
@@ -241,11 +242,11 @@ id _nil(id r)
   NSMutableURLRequest *req2 =
     [self mutableRequestWithMethod:@"oauth/tokens.json" 
                            account:acct defaults:EMPTY_DICT];
-  DKDeferred *d = [DKDeferred gatherResults:
-     array_([[DKDeferredURLConnection alloc]
-             initRequest:req decodeFunction:callbackP(__decodeJSON) paused:NO],
+  DKDeferred *d = [[DKDeferred gatherResults:
+     array_([[[DKDeferredURLConnection alloc]
+             initRequest:req decodeFunction:callbackP(__decodeJSON) paused:NO] autorelease],
             [[DKDeferredURLConnection alloc]
-             initRequest:req2 decodeFunction:callbackP(__decodeJSON) paused:NO])];
+             initRequest:req2 decodeFunction:callbackP(__decodeJSON) paused:NO])] autorelease];
   return [d addCallbacks:curryTS(self, @selector(_gotNetworksAndTokens::), acct) 
                         :callbackTS(self, _failedGetNetworksAndTokens:)];
 }
@@ -283,9 +284,9 @@ id _nil(id r)
                               acct.pk, [d objectForKey:@"id"]];
         
         if (![YMNetwork countByCriteria:criteria]) {
-          n = [YMNetwork new];
+          n = [[[YMNetwork alloc] init] autorelease];
         } else {
-          n = [[YMNetwork findFirstByCriteria:criteria] autorelease];
+          n = (YMNetwork *)[YMNetwork findFirstByCriteria:criteria];
         }
         n.userAccountPK = nsni(acct.pk);
         n.community = [d objectForKey:@"community"];
@@ -319,10 +320,10 @@ id _nil(id r)
 
 - (DKDeferred *)autocomplete:(YMUserAccount *)acct string:(NSString *)str
 {
-  DKDeferred *d = [[DKDeferredURLConnection alloc] initWithRequest:
+  DKDeferred *d = [[[DKDeferredURLConnection alloc] initWithRequest:
                     [self mutableRequestWithMethod:@"autocomplete.json" 
                      account:acct defaults:dict_(str, @"prefix")] 
-                   pauseFor:0 decodeFunction:callbackP(__decodeJSON)];
+                   pauseFor:0 decodeFunction:callbackP(__decodeJSON)] autorelease];
   return [d addCallback:curryTS(self, @selector(_gotAutocompleteResults:results:), acct)];
 }
 
@@ -353,16 +354,16 @@ withID:(NSNumber *)targetID params:(NSDictionary *)params fetchToID:(NSNumber *)
     params = r;
   }
   
-  return [[[[DKDeferredURLConnection alloc] initWithRequest:
+  return [[[[[DKDeferredURLConnection alloc] initWithRequest:
            [self mutableRequestWithMethod:method
             account:acct defaults:params]
-           pauseFor:0 decodeFunction:nil]
+           pauseFor:0 decodeFunction:nil] autorelease]
           addCallback:
            curryTS(self, @selector(_saveCookieToUserAccount:andDecodeResponse:), acct)]
           addCallback:
             curryTS(self, @selector(_gotMessages:target:targetID:page:fetchToID:networkID:unseenLeft:results:), 
                     acct, target, (targetID != nil ? targetID : (id)[NSNull null]),
-                    nsni(1), (toID != nil ? toID : (id)[NSNull null]), [acct.activeNetworkPK copy], 
+                    nsni(1), (toID != nil ? toID : (id)[NSNull null]), [[acct.activeNetworkPK copy] autorelease], 
                     (unseenLeftCount != nil ? unseenLeftCount : nsni(0)))];
 }
 
@@ -427,7 +428,7 @@ withID:(NSNumber *)targetID params:(NSDictionary *)params fetchToID:(NSNumber *)
         YMMessage *message = nil;
         if ([YMMessage countByCriteria:q])
           message = (id)[YMMessage findFirstByCriteria:q];
-        if (!message) message = [YMMessage new];
+        if (!message) message = [[[YMMessage alloc] init] autorelease];
         message = [self messageWith:message fromDictionary:m withReferences:
                    [results objectForKey:@"references"]];
         
@@ -452,7 +453,7 @@ withID:(NSNumber *)targetID params:(NSDictionary *)params fetchToID:(NSNumber *)
             YMAttachment *attachment;
             if (!(attachment = (id)[YMAttachment findFirstByCriteria:
                                 @"WHERE attachment_i_d=%i", intv([a objectForKey:@"id"])]))
-              attachment = (id)[YMAttachment new];
+              attachment = [[[YMAttachment alloc] init] autorelease];
             attachment.attachmentID = [a objectForKey:@"id"];
             attachment.messageID = message.messageID;
             attachment.type = [a objectForKey:@"type"];
@@ -565,7 +566,7 @@ withID:(NSNumber *)targetID params:(NSDictionary *)params fetchToID:(NSNumber *)
       YMGroup *group;
       if (!(group = (YMGroup *)[YMGroup findFirstByCriteria:
                                 @"WHERE group_i_d=%i", intv([g objectForKey:@"id"])]))
-        group = [YMGroup new];
+        group = [[[YMGroup alloc] init] autorelease];
       group.groupID = [g objectForKey:@"id"];
       group.fullName = [[g objectForKey:@"full_name"] stringByAppendingString:
                         ([[g objectForKey:@"privacy"] isEqual:@"private"] ? @" (private)" : @"")];
@@ -594,7 +595,7 @@ withID:(NSNumber *)targetID params:(NSDictionary *)params fetchToID:(NSNumber *)
 
 - (id)messageFromDictionary:(NSDictionary *)m withReferences:(NSDictionary *)refs
 {
-  YMMessage *message = [YMMessage new];
+  YMMessage *message = [[[YMMessage alloc] init] autorelease];
   return [self messageWith:message fromDictionary:m withReferences:refs];
 }
 
@@ -703,11 +704,11 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches
   [opts addEntriesFromDictionary:replyOpts];
   [opts addEntriesFromDictionary:attaches];
   
-  return [[[[DKDeferredURLConnection alloc] initWithRequest:
+  return [[[[[DKDeferredURLConnection alloc] initWithRequest:
            [self mutableMultipartRequestWithMethod:
              @"messages.json" account:acct defaults:opts]
-            pauseFor:0 decodeFunction:callbackP(__decodeJSON)]
-           addCallback:curryTS(self, @selector(_didPostMessage:::), acct, [acct.activeNetworkPK copy])]
+            pauseFor:0 decodeFunction:callbackP(__decodeJSON)] autorelease]
+           addCallback:curryTS(self, @selector(_didPostMessage:::), acct, [[acct.activeNetworkPK copy] autorelease])]
           addErrback:curryTS(self, @selector(_postMessageDidFail::), acct)];
 }
 
@@ -748,8 +749,8 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches
   
   [req setHTTPMethod:@"DELETE"];
   
-  return [[[DKDeferredURLConnection alloc] 
-           initWithRequest:req pauseFor:0 decodeFunction:nil]
+  return [[[[DKDeferredURLConnection alloc] 
+           initWithRequest:req pauseFor:0 decodeFunction:nil] autorelease]
           addCallback:curryTS(self, @selector(_didDeleteMessageID::), messageID)];
 }
 
@@ -761,12 +762,12 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches
 
 - (DKDeferred *)syncGroups:(YMUserAccount *)acct
 {
-  return [[[DKDeferredURLConnection alloc]
+  return [[[[DKDeferredURLConnection alloc]
            initWithRequest:[self mutableRequestWithMethod:
-                            @"groups.json" account:acct defaults:
+                            @"f" account:acct defaults:
                             dict_(@"1", @"page")] 
-           pauseFor:0 decodeFunction:callbackP(__decodeJSON)]
-          addCallback:curryTS(self, @selector(_gotGroups::::), acct, [acct.activeNetworkPK copy], nsni(1))];
+           pauseFor:0 decodeFunction:callbackP(__decodeJSON)] autorelease]
+          addCallback:curryTS(self, @selector(_gotGroups::::), acct, [[acct.activeNetworkPK copy] autorelease], nsni(1))];
 }
 
 - (id)_gotGroups:(YMUserAccount *)acct :(id)networkPK :(NSNumber *)page :(id)results
@@ -782,7 +783,7 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches
         YMGroup *group;
         if (!(group = (YMGroup *)[YMGroup findFirstByCriteria:
                @"WHERE group_i_d=%i", intv([g objectForKey:@"id"])])) {
-          group = [YMGroup new];
+          group = [[[YMGroup alloc] init] autorelease];
         }
         group.url = [g objectForKey:@"url"];
         group.webURL = [g objectForKey:@"web_url"];
@@ -800,11 +801,11 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches
   }
   if (fetchMore) {
     NSNumber *nextPage = nsni(intv(page)+1);
-    return [[[DKDeferredURLConnection alloc]
+    return [[[[DKDeferredURLConnection alloc]
              initWithRequest:[self mutableRequestWithMethod:
                               @"groups.json" account:acct defaults:
                               dict_([nextPage stringValue], @"page")] 
-             pauseFor:0 decodeFunction:callbackP(__decodeJSON)]
+             pauseFor:0 decodeFunction:callbackP(__decodeJSON)] autorelease]
             addCallback:curryTS(self, @selector(_gotGroups:::), acct, nextPage)];
   }
   return results;
@@ -812,10 +813,10 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches
 
 - (DKDeferred *)allTags:(YMUserAccount *)acct
 {
-  return [[DKDeferredURLConnection alloc]
+  return [[[DKDeferredURLConnection alloc]
           initWithRequest:[self mutableRequestWithMethod:
-                           @"tags.json" account:acct defaults:EMPTY_DICT] 
-          pauseFor:0 decodeFunction:callbackP(__decodeJSON)];
+                           @"tags.json" account:acct defaults:EMPTY_DICT]
+          pauseFor:0 decodeFunction:callbackP(__decodeJSON)] autorelease];
 }
 
 - (YMContact *)contactFromReference:(NSDictionary *)ref
@@ -825,7 +826,7 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches
     contact = (YMContact *)[YMContact findFirstByCriteria:
                             @"WHERE user_i_d=%@", [ref objectForKey:@"id"]];
   } else {
-    contact = [YMContact new];
+    contact = [[[YMContact alloc] init] autorelease];
     contact.gotFullRep = nsnb(NO);
   }
   contact.userID = [ref objectForKey:@"id"];
@@ -843,9 +844,9 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches
     return self.syncUsersDeferred;
   NSMutableURLRequest *req = [self mutableRequestWithMethod:@"users.json" 
                               account:acct defaults:dict_(@"1", @"page", @"foo", @"refs")];
-  id d = [[[[DKDeferredURLConnection alloc]
-            initWithRequest:req pauseFor:0 decodeFunction:callbackP(__decodeJSON)]
-           addCallback:curryTS(self, @selector(_gotUsers::::), acct, [acct.activeNetworkPK copy], nsni(1))]
+  id d = [[[[[DKDeferredURLConnection alloc]
+            initWithRequest:req pauseFor:0 decodeFunction:callbackP(__decodeJSON)] autorelease]
+           addCallback:curryTS(self, @selector(_gotUsers::::), acct, [[acct.activeNetworkPK copy] autorelease], nsni(1))]
           addErrback:callbackTS(self, _getUsersFailed:)];
   self.syncUsersDeferred = d;
   return d;
@@ -862,10 +863,10 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches
   NSString *nextPage;
   if ([r isKindOfClass:[NSDictionary class]] && 
       (nextPage = [r objectForKey:@"nextPage"]))
-    return [[[[DKDeferredURLConnection alloc] initWithRequest:
+    return [[[[[DKDeferredURLConnection alloc] initWithRequest:
               [self mutableRequestWithMethod:@"users.json"
                 account:a defaults:dict_([nextPage description], @"page", @"foo", @"refs")]
-               pauseFor:0 decodeFunction:callbackP(__decodeJSON)]
+               pauseFor:0 decodeFunction:callbackP(__decodeJSON)] autorelease]
              addCallback:curryTS(self, @selector(_gotUsers::::), a, n, nextPage)]
             addErrback:callbackTS(self, _getUsersFailed:)];
   self.syncUsersDeferred = nil;
@@ -876,7 +877,7 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches
 {
   id thr = [NSThread currentThread];
   if ([thr respondsToSelector:@selector(setThreadPriority:)]) [thr setThreadPriority:0.0]; 
-  [[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:1.0]];
+  //[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:1.0]];
   
   BOOL fetchMore = NO;
   YMNetwork *curNetwork = (YMNetwork *)[YMNetwork findByPK:intv(networkPK)];
@@ -886,6 +887,7 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches
     @synchronized(self) {
       [db executeUpdateSQL:@"BEGIN TRANSACTION;"];
       for (NSDictionary *u in results) {
+        [[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
         YMContact *c = [self contactFromReference:u];
         c.networkID = curNetwork.networkID;
         [c save];
@@ -911,7 +913,7 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches
     contact = (YMContact *)[YMContact findFirstByCriteria:
                             @"WHERE user_i_d=%@", [u objectForKey:@"id"]];
   } else {
-    contact = [YMContact new];
+    contact = [[[YMContact alloc] init] autorelease];
   }
   
   contact.userID = [u objectForKey:@"id"];
@@ -967,11 +969,11 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches
 
 - (DKDeferred *)updateUser:(YMUserAccount *)acct contact:(YMContact *)contact
 {
-  return [[[DKDeferredURLConnection alloc] 
+  return [[[[DKDeferredURLConnection alloc] 
            initWithRequest:[self mutableRequestWithMethod:
             [@"users/" stringByAppendingFormat:@"%i.json", 
              intv(contact.userID)] account:acct defaults:EMPTY_DICT]
-           pauseFor:0 decodeFunction:callbackP(__decodeJSON)]
+           pauseFor:0 decodeFunction:callbackP(__decodeJSON)] autorelease]
           addCallback:callbackTS(self, _gotUser:)];
 }
 
@@ -985,13 +987,13 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches
 
 - (DKDeferred *)syncSubscriptions:(YMUserAccount *)acct
 {
-  return [[[DKDeferredURLConnection alloc]
+  return [[[[DKDeferredURLConnection alloc]
            initWithRequest:[self mutableRequestWithMethod:
            @"users/current.json" account:acct defaults:
            dict_(@"1", @"include_followed_users", @"1", 
                  @"include_followed_tags", @"1", @"include_group_memberships")] 
-           pauseFor:0 decodeFunction:callbackP(__decodeJSON)]
-          addCallback:curryTS(self, @selector(_gotCurrentUser:::), acct, [acct.activeNetworkPK copy])];
+           pauseFor:0 decodeFunction:callbackP(__decodeJSON)] autorelease]
+          addCallback:curryTS(self, @selector(_gotCurrentUser:::), acct, [[acct.activeNetworkPK copy] autorelease])];
 }
 
 - (id)_gotCurrentUser:(YMUserAccount *)acct :(id)networkPK :(NSDictionary *)user
@@ -1018,7 +1020,7 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches
       YMGroup *group;
       if (!(group = (YMGroup *)[YMGroup findFirstByCriteria:
           @"WHERE group_i_d=%i", intv([g objectForKey:@"id"])]))
-        group = [YMGroup new];
+        group = [[[YMGroup alloc] init] autorelease];
       group.groupID = [g objectForKey:@"id"];
       group.fullName = [[g objectForKey:@"full_name"] stringByAppendingString:
                         ([[g objectForKey:@"privacy"] isEqual:@"private"] ? @" (private)" : @"")];
@@ -1053,11 +1055,11 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches
 
 - (DKDeferred *)like:(YMUserAccount *)acct message:(YMMessage *)message
 {
-  return [[[DKDeferredURLConnection alloc]
+  return [[[[DKDeferredURLConnection alloc]
            initWithRequest:
            [self mutableMultipartRequestWithMethod:@"messages/liked_by/current.json"
             account:acct defaults:dict_([message.messageID description], @"message_id")]
-           pauseFor:0 decodeFunction:nil]
+           pauseFor:0 decodeFunction:nil] autorelease]
           addCallback:curryTS(self, @selector(_finishedLike:::), acct, message)];
 }
 
@@ -1076,8 +1078,8 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches
           account:acct defaults:dict_([message.messageID description], 
                                       @"message_id", @"DELETE", @"_method")]; 
   [req setHTTPMethod:@"DELETE"];
-  return [[[DKDeferredURLConnection alloc]
-           initWithRequest:req pauseFor:0 decodeFunction:nil]
+  return [[[[DKDeferredURLConnection alloc]
+           initWithRequest:req pauseFor:0 decodeFunction:nil] autorelease]
           addCallback:curryTS(self, @selector(_finishedUnlike:::), acct, message)];
 }
 
@@ -1102,8 +1104,8 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches
    forHTTPHeaderField:@"Content-Length"];
   [req setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
 
-  return [[[DKDeferredURLConnection alloc]
-           initWithRequest:req pauseFor:0 decodeFunction:nil]
+  return [[[[DKDeferredURLConnection alloc]
+           initWithRequest:req pauseFor:0 decodeFunction:nil] autorelease]
           addCallback:callbackTS(self, _gotContactSuggestions:)];
 }
 
@@ -1115,12 +1117,12 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches
 
 - (DKDeferred *)subscribe:(YMUserAccount *)acct to:(NSString *)type withID:(int)theID
 {
-  return [[[DKDeferredURLConnection alloc]
+  return [[[[DKDeferredURLConnection alloc]
            initWithRequest:
            [self mutableMultipartRequestWithMethod:@"subscriptions/"
             account:acct defaults:dict_([NSString stringWithFormat:@"%i", theID],
                                         @"target_id", type, @"target_type")] 
-           pauseFor:0 decodeFunction:nil]
+           pauseFor:0 decodeFunction:nil] autorelease]
           addBoth:callbackTS(self, _didSubscribe:)];
 }
 
@@ -1130,10 +1132,10 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches
                                defaults:dict_([NSString stringWithFormat:@"%i", theID],
                                @"target_id", type, @"target_type", @"DELETE", @"_method")];
   [req setHTTPMethod:@"DELETE"];
-  return [[[DKDeferredURLConnection alloc]
+  return [[[[DKDeferredURLConnection alloc]
            initWithRequest:req
            pauseFor:0 decodeFunction:nil]
-          addBoth:callbackTS(self, _didUnsubscribe:)];
+          addBoth:callbackTS(self, _didUnsubscribe:)] autorelease];
 }
 
 - _didSubscribe:(id)r
@@ -1150,24 +1152,24 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches
 
 - (DKDeferred *)joinGroup:(YMUserAccount *)acct withId:(int)theId
 {
-  return [[[DKDeferredURLConnection alloc] 
+  return [[[[DKDeferredURLConnection alloc] 
            initWithRequest:
            [self mutableMultipartRequestWithMethod:
             @"group_memberships.json" account:acct 
             defaults:dict_([NSString stringWithFormat:@"%i", theId], @"group_id")] 
-           pauseFor:0 decodeFunction:nil]
+           pauseFor:0 decodeFunction:nil] autorelease]
           addBoth:callbackTS(self, _didJoinGroup:)];
 }
 
 - (DKDeferred *)leaveGroup:(YMUserAccount *)acct withId:(int)theId
 {
-  return [[[DKDeferredURLConnection alloc]
+  return [[[[DKDeferredURLConnection alloc]
            initWithRequest:
            [self mutableRequestWithMethod:
             [NSString stringWithFormat:@"group_memberships/%i.json", theId] 
            account:acct defaults:
             dict_([NSString stringWithFormat:@"%i", theId], @"groupID", @"DELETE", @"_method")] 
-           pauseFor:0 decodeFunction:nil]
+           pauseFor:0 decodeFunction:nil] autorelease]
           addBoth:callbackTS(self, _didLeaveGroup:)];                                                                                                   
 }
 
@@ -1216,16 +1218,16 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches
 
 - (id)_gotContactImages:(NSArray *)keys :(YMUserAccount *)acct :(NSArray *)values 
 {
-  int i = 0;
+//  int i = 0;
 //  NSLog(@"_gotContactImages %@ %@", keys, values);
-  DataCache *memCache = [self contactImageCache];
-  for (id k in keys) {
-    if (![k isEqual:[NSNull null]] && ![[values objectAtIndex:i] 
-                                        isEqual:[NSNull null]]) {
-      [memCache setObject:[UIImage imageWithData:[values objectAtIndex:i]] forKey:k];
-    }
-    i++;
-  }
+//  DataCache *memCache = [self contactImageCache];
+//  for (id k in keys) {
+//    if (![k isEqual:[NSNull null]] && ![[values objectAtIndex:i] 
+//                                        isEqual:[NSNull null]]) {
+//      [memCache setObject:[UIImage imageWithData:[values objectAtIndex:i]] forKey:k];
+//    }
+//    i++;
+//  }
   if (userAccountForCachedContactImages) [userAccountForCachedContactImages release];
   userAccountForCachedContactImages = [acct retain];
   return nil;
@@ -1238,78 +1240,67 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches
 
 - (void) purgeCachedContactImages
 {
-  [DKDeferred deferInThread:curryTS(self, @selector(_purgeCachedKeys::), nsnb(YES))
-                 withObject:[[self contactImageCache] allKeys]];
+//  [DKDeferred deferInThread:curryTS(self, @selector(_purgeCachedKeys::), nsnb(YES))
+//                 withObject:[[self contactImageCache] allKeys]];
 }
 
 - (void)writeCachedContactImages
 {
-  [DKDeferred deferInThread:curryTS(self, @selector(_purgeCachedKeys::), nsnb(NO))
-                 withObject:[[self contactImageCache] allKeys]];
+//  [DKDeferred deferInThread:curryTS(self, @selector(_purgeCachedKeys::), nsnb(NO))
+//                 withObject:[[self contactImageCache] allKeys]];
 }
 
-- (id)_purgeCachedKeys:(NSNumber *)memoryToo :(NSArray *)keys
-{
-  BOOL removeFromMem = boolv(memoryToo);
-  DKDeferredCache *c = [self deferredDiskCache];
-  DataCache *mem = [self contactImageCache];
-  for (NSString *k in keys) {
-    if (![c hasKey:k])
-      [c _setValue:UIImagePNGRepresentation([mem objectForKey:k])
-            forKey:k timeout:nsni(864000) arg:nil];
-    if (removeFromMem)
-      [mem invalidateKey:k];
-  }
-  if (removeFromMem) {
-    [userAccountForCachedContactImages release];
-    userAccountForCachedContactImages = nil;
-  }
-  return nil;
-}
+//- (id)_purgeCachedKeys:(NSNumber *)memoryToo :(NSArray *)keys
+//{
+//  BOOL removeFromMem = boolv(memoryToo);
+//  DKDeferredCache *c = [self deferredDiskCache];
+//  DataCache *mem = [self contactImageCache];
+//  for (NSString *k in keys) {
+//    if (![c hasKey:k])
+//      [c _setValue:UIImagePNGRepresentation([mem objectForKey:k])
+//            forKey:k timeout:nsni(864000) arg:nil];
+//    if (removeFromMem)
+//      [mem invalidateKey:k];
+//  }
+//  if (removeFromMem) {
+//    [userAccountForCachedContactImages release];
+//    userAccountForCachedContactImages = nil;
+//  }
+//  return nil;
+//}
 
 - (DKDeferred *)contactImageForURL:(NSString *)url
 {
   if ([url isEqual:[NSNull null]] || [url isMatchedByRegex:@"no_photo_small\\.gif$"])
     return [DKDeferred succeed:[UIImage imageNamed:@"user-70.png"]];
   
-  id ret = [[self contactImageCache] objectForKey:url];
+  id ret = [[self deferredDiskCache] objectForKeyInMemory:url];
   if (ret) return [DKDeferred succeed:ret];
   return [[self.loadingPool add:
-          [DKDeferred loadImage:url sizeTo:CGSizeMake(44, 44) cached:NO paused:YES] key:url] 
+          [DKDeferred loadImage:url sizeTo:CGSizeMake(44, 44) cached:YES paused:YES] key:url] 
            addCallback:curryTS(self, @selector(_placeLoadedImageInCache::), url)];
 }
 
 - (id)imageForURLInMemoryCache:(NSString *)url
 {
-  return [[self contactImageCache] objectForKey:url];
+  return [[self deferredDiskCache] objectForKeyInMemory:url];
 }
 
 - (id)_placeLoadedImageInCache:(NSString *)url :(UIImage *)img
 {
-  if ([img isEqual:[NSNull null]])
-    img = [UIImage imageNamed:@"user-70.png"];
-  [[self contactImageCache] setObject:img forKey:url];
+//  if ([img isEqual:[NSNull null]])
+//    img = [UIImage imageNamed:@"user-70.png"];
+//  [[self contactImageCache] setObject:img forKey:url];
   return img;
 }
 
 #pragma mark -
 #pragma mark Mostly Private Stuff
 
-- (id)contactImageCache
-{
-  if (!_contactImageCache)
-    _contactImageCache = [[[DataCache alloc] initWithCapacity:300] retain];
-  return _contactImageCache;
-}
-
-static DKDeferredCache *__diskCache;
 
 - (id)deferredDiskCache
 {
-  if (!__diskCache)
-    __diskCache = [[[DKDeferredCache alloc] initWithDirectory:
-                    @"cc" maxEntries:1000 cullFrequency:20] retain];
-  return __diskCache;
+  return [DKDeferred cache];
 }
 
 - (DKDeferredPool *)loadingPool

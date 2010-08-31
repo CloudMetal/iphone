@@ -40,6 +40,7 @@ woody@chaosinmotion.com. Chaos In Motion is at http://www.chaosinmotion.com
 
 @implementation DataCache
 
+@synthesize onInvalidate;
 
 /************************************************************************/
 /*																		*/
@@ -53,12 +54,14 @@ woody@chaosinmotion.com. Chaos In Motion is at http://www.chaosinmotion.com
 		fCapacity = cap;
 		fDictionary = [[NSMutableDictionary alloc] initWithCapacity:cap];
 		fAge = [[NSMutableArray alloc] initWithCapacity:cap];
+    onInvalidate = nil;
 	}
 	return self;
 }
 
 - (void)dealloc
 {
+  [onInvalidate release];
 	[fDictionary release];
 	[fAge release];
 	[super dealloc];
@@ -99,29 +102,31 @@ woody@chaosinmotion.com. Chaos In Motion is at http://www.chaosinmotion.com
 		[fAge insertObject:key atIndex:0];
 		
 		if ([fAge count] > fCapacity) {
-			id delKey = [fAge lastObject];
-			[fDictionary removeObjectForKey:delKey];
-			[fAge removeLastObject];
+      [self invalidateKey:[fAge lastObject]];
 		}
 	}
 
 	[fDictionary setObject:value forKey:key];
 }
 
-- (void)invalidateKey:(id)key {
+- (void)invalidateKey:(id)key
+{
   NSUInteger index = [fAge indexOfObject:key];
   if (index != NSNotFound) {
+    if (onInvalidate) {
+      id o = [fDictionary objectForKey:key];
+      if (!o) o = [NSNull null];
+      [onInvalidate :array_([[key copy] autorelease], o)];
+    }
     [fAge removeObjectAtIndex:index];
     [fDictionary removeObjectForKey:key];
   }
 }
 
-- (void)invalidateAllKeys {
-  for (int i = 0; i < [fAge count]; i++) {
-    id k = [[[fAge objectAtIndex:i] retain] autorelease];
-    [fAge removeObjectAtIndex:i];
-    [fDictionary removeObjectForKey:k];
-  }
+- (void)invalidateAllKeys
+{
+  NSArray *keys = [NSArray arrayWithArray:fAge];
+  for (id k in keys) [self invalidateKey:k];
 }
 
 @end

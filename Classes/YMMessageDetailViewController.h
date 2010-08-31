@@ -25,6 +25,7 @@
   id<DKKeyedPool> loadingPool;
   BOOL fetchingAttachment;
   NSArray *feedItems;
+  BOOL refreshing;
 }
 
 @property (nonatomic, readwrite, retain) NSArray *feedItems;

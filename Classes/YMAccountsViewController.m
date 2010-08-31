@@ -24,10 +24,14 @@
 
 - (void)loadView
 {
-  self.tableView = [[UITableView alloc] initWithFrame:
-                    CGRectMake(0, 0, 320, 460) style:UITableViewStyleGrouped];
-  self.tableView.autoresizingMask = (UIViewAutoresizingFlexibleWidth |
-                                     UIViewAutoresizingFlexibleHeight);
+  CGRect f = CGRectMake(0, 0, 320, 460);
+  if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad)
+    f = CGRectMake(0, 0, 600, 400);
+  self.tableView = [[UITableView alloc] initWithFrame:f 
+                                                style:UITableViewStyleGrouped];
+  if (UI_USER_INTERFACE_IDIOM() != UIUserInterfaceIdiomPad)
+    self.tableView.autoresizingMask = (UIViewAutoresizingFlexibleWidth |
+                                       UIViewAutoresizingFlexibleHeight);
   self.tableView.backgroundColor = [UIColor colorWithHexString:@"cae5fd"];
   self.tableView.delegate = self;
   self.tableView.dataSource = self;
@@ -35,7 +39,12 @@
   self.navigationItem.rightBarButtonItem = 
   [[UIBarButtonItem alloc] initWithBarButtonSystemItem:
    UIBarButtonSystemItemAdd target:self action:@selector(addAccount:)];
-  
+  if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
+    self.navigationItem.leftBarButtonItem 
+      = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:
+          UIBarButtonSystemItemDone target:self.splitViewController action:
+          @selector(dismissModalViewControllerAnimated:)] autorelease];
+  }
   if (!web) web = [YMWebService sharedWebService];
 }
 

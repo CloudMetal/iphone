@@ -92,7 +92,7 @@
   
   NSDate *midnight = [calendar dateFromComponents:offsetComponents];
   
-  NSDateFormatter *displayFormatter = [[NSDateFormatter alloc] init];
+  NSDateFormatter *displayFormatter = [[[NSDateFormatter alloc] init] autorelease];
   
   // comparing against midnight
   if ([date compare:midnight] == NSOrderedDescending) {

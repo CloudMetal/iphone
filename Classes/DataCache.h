@@ -36,6 +36,7 @@ woody@chaosinmotion.com. Chaos In Motion is at http://www.chaosinmotion.com
 ***/
 
 #import <Foundation/Foundation.h>
+#import "DKCallback.h"
 
 
 @interface DataCache : NSObject 
@@ -43,7 +44,10 @@ woody@chaosinmotion.com. Chaos In Motion is at http://www.chaosinmotion.com
 	int fCapacity;
 	NSMutableDictionary *fDictionary;
 	NSMutableArray *fAge;
+  DKCallback *onInvalidate;
 }
+
+@property(retain) DKCallback *onInvalidate;
 
 - (id)initWithCapacity:(int)cap;
 

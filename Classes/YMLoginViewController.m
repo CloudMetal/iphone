@@ -112,18 +112,6 @@
 	}
 }
 
-
-//- (BOOL) textFieldShouldEndEditing:(UITextField *)textField
-//{
-//  [textField resignFirstResponder];
-//  return YES;
-//}
-
-//- (void) textFieldDidEndEditing:(UITextField *)textField
-//{
-//  [textField resignFirstResponder];
-//}
-
 @end
 
 
@@ -143,8 +131,14 @@
 
 - (void)loadView
 {
-  self.tableView = [[UITableView alloc] initWithFrame:
-                    CGRectMake(0, 0, 320, 460) style:UITableViewStyleGrouped];
+  CGRect f = CGRectMake(0, 0, 320, 460);
+  if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad)
+    f = CGRectMake(0, 0, 600, 400);
+  self.tableView = [[UITableView alloc] initWithFrame:f 
+                                                style:UITableViewStyleGrouped];
+  if (UI_USER_INTERFACE_IDIOM() != UIUserInterfaceIdiomPad)
+    self.tableView.autoresizingMask = (UIViewAutoresizingFlexibleWidth |
+                                       UIViewAutoresizingFlexibleHeight);
   self.tableView.backgroundColor = [UIColor colorWithHexString:@"cae5fd"];
   self.tableView.delegate = self;
   self.tableView.dataSource = self;
@@ -155,21 +149,12 @@
   
   if (!web) web = [YMWebService sharedWebService];
   
-//  NSString *upgradeText = @"";
-//  if (![[web loggedInUsers] count])
-//    upgradeText = @"     Yammer now supports multiple accounts.\n           "
-//                  @"Please login to your first account.\n\n";
-//  
-//  TTStyledText* theText = [TTStyledText textFromXHTML:[NSString stringWithFormat:
-//                           @"%@       No account? Sign up on <a href=\"https:"
-//                           @"//www.yammer.com/\">yammer.com</a>", upgradeText]
-//                                           lineBreaks:YES URLs:YES];
-//  TTStyledTextLabel *l = [[TTStyledTextLabel alloc] 
-//                          initWithFrame:CGRectMake(10,115,300,100)];
-//	[l setText:theText];
-//  [l setTextAlignment:UITextAlignmentCenter];
-//	l.backgroundColor = [UIColor clearColor];
-//	[self.tableView addSubview:l];
+  if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad && [[web loggedInUsers] count]) {
+    self.navigationItem.leftBarButtonItem 
+    = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:
+        UIBarButtonSystemItemDone target:self.splitViewController action:
+        @selector(dismissModalViewControllerAnimated:)] autorelease];
+  }
 }
 
 - (void)viewWillAppear:(BOOL)animated
@@ -183,10 +168,6 @@
 {
   self.navigationController.navigationBar.tintColor 
     = [UIColor colorWithRed:0.27 green:0.34 blue:0.39 alpha:1.0];
-  
-//  [[(UIControl *)[[self.tableView visibleCells] 
-//  objectAtIndex:0] viewWithTag:LOGIN_USERNAME_TAG] performSelector:
-//   @selector(becomeFirstResponder) withObject:nil afterDelay:.2];
 }
 
 - (NSInteger) numberOfSectionsInTableView:(UITableView *)table
@@ -203,8 +184,8 @@
 - (UITableViewCell *) tableView:(UITableView *)table
           cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-  UITableViewCell *cell = [[UITableViewCell alloc] initWithStyle:
-                           UITableViewCellStyleDefault reuseIdentifier:@"asdfasdf"];
+  UITableViewCell *cell = [[[UITableViewCell alloc] initWithStyle:
+                           UITableViewCellStyleDefault reuseIdentifier:@"asdfasdf"] autorelease];
   if (indexPath.row == 0) {
     cell.textLabel.text = @"Email";
     UITextField *f = [[[UITextField alloc] initWithFrame:
@@ -218,8 +199,9 @@
     f.adjustsFontSizeToFitWidth = NO;
     f.autocorrectionType = UITextAutocorrectionTypeNo;
     f.autocapitalizationType = UITextAutocapitalizationTypeNone;
+    f.autoresizingMask = UIViewAutoresizingFlexibleWidth;
     f.tag = LOGIN_USERNAME_TAG;
-    [cell addSubview:f];
+    [cell.contentView addSubview:f];
     if (!emailAlreadyBecameFirstResponder)
       [f becomeFirstResponder];
     emailAlreadyBecameFirstResponder = YES;
@@ -234,11 +216,12 @@
     f.delegate = self;
     f.autocorrectionType = UITextAutocorrectionTypeNo;
     f.autocapitalizationType = UITextAutocapitalizationTypeNone;
+    f.autoresizingMask = UIViewAutoresizingFlexibleWidth;
     f.tag = LOGIN_PASSWORD_TAG;
     f.returnKeyType = UIReturnKeyGo;
     f.font = [UIFont boldSystemFontOfSize:17];
     f.adjustsFontSizeToFitWidth = NO;
-    [cell addSubview:f];
+    [cell.contentView addSubview:f];
   }
   return cell;
 }
@@ -278,7 +261,7 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 
 - (void)performLoginWithUsername:(id)username password:(id)password
 {  
-  YMUserAccount *acct = [YMUserAccount new];
+  YMUserAccount *acct = [[[YMUserAccount alloc] init] autorelease];
   acct.username = username;
   acct.password = password;
   id url = [[(id)self.refreshHeaderView theTextField] text];
@@ -302,7 +285,7 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath
                    addCallbacks:callbackTS(self, _cbLoginSucceeded:) 
                    :callbackTS(self, _cbLoginFailed:)];
   
-  CFPrettyView *v = [[CFPrettyView alloc] initWithFrame:CGRectZero];
+  CFPrettyView *v = [[[CFPrettyView alloc] initWithFrame:CGRectZero] autorelease];
   [v showAsLoadingHUDWithDeferred:d inView:
    [[UIApplication sharedApplication] keyWindow]];
 }
@@ -335,20 +318,6 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath
   if (isDeferred(result))
     return [result addCallbacks:callbackTS(self, _cbGetNetworksSucceeded:) 
                                :callbackTS(self, _cbGetNetworksFailed:)];
-//  if ([LocalStorage getSetting:@"current_network_id"]) {
-//    [self.navigationController popViewControllerAnimated:YES];
-//  } else {
-//    if ([result isKindOfClass:[NSArray class]] && [result count]) {
-//      DKDeferred *d = [DKDeferred deferInThread:
-//                       callbackTS([YMLegacyShim sharedShim], 
-//                                   _legacyEnterAppWithNetwork:) withObject:[result objectAtIndex:0]];
-//      [d addCallback:callbackTS(self, _legacyBootstrapDone:)];
-//      
-//      CFPrettyView *hud = [[[CFPrettyView alloc] initWithFrame:CGRectZero] autorelease];
-//      [hud showAsLoadingHUDWithDeferred:d inView:
-//       [[UIApplication sharedApplication] keyWindow]];
-//    }
-//  }
   [self.navigationController popToRootViewControllerAnimated:YES];
   
   return result;
@@ -364,13 +333,6 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath
   NSLog(@"_cbGetNetworksFailed: %@ %@", error, [error userInfo]);
   return error;
 }
-
-//- (id)_legacyBootstrapDone:(id)r
-//{
-//  [self.navigationController popToRootViewControllerAnimated:NO];
-//  [(id)[[UIApplication sharedApplication] delegate] enterAppWithAccess];
-//  return r;
-//}
 
 - (void)didReceiveMemoryWarning
 {

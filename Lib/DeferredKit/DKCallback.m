@@ -67,6 +67,11 @@
   return [target performSelector:selector withObject:arg];
 }
 
+- (NSString *) description
+{
+  return [NSString stringWithFormat:@"<DKCallbackFromSelectorWithTarget sel=%@ target=%@>", NSStringFromSelector(selector), target];
+}  
+
 - (void)dealloc {
   [target release];
   [super dealloc];
@@ -121,18 +126,21 @@
 }
 @end
 
-
-@interface DKCallbackFromInvocation : DKCallback {
-  NSInvocation *invocation;
-  NSUInteger index;
-}
-- (DKCallback *)initWithInvocation:(NSInvocation *)inv parameterIndex:(NSUInteger)idx;
-@end
+//@interface DKCallbackFromInvocation : DKCallback {
+//  NSInvocation *invocation;
+//  NSUInteger index;
+//}
+//- (DKCallback *)initWithInvocation:(NSInvocation *)inv parameterIndex:(NSUInteger)idx;
+//@end
 
 @implementation DKCallbackFromInvocation
+@synthesize selector, target;
+
 - (DKCallback *)initWithInvocation:(NSInvocation *)inv parameterIndex:(NSUInteger)idx {
   if ((self = [super init])) {
     //    NSLog(@"inv: %@", inv);
+    target = nil;
+    selector = nil;
     invocation = [inv retain];
     index = idx;
   }
@@ -146,9 +154,15 @@
   return anObject;
 }
 - (void)dealloc {
+  self.target = nil;
   [invocation release];
   [super dealloc];
 }
+
+- (NSString *) description
+{
+  return [NSString stringWithFormat:@"<DKCallbackFromInvocation invocation=%@ selector=%@ target=%@>", invocation, NSStringFromSelector(selector), target];
+}  
 
 @end
 
@@ -179,6 +193,6 @@
 }
 
 - (DKCallback *)composeWith:(DKCallback *)other {
-  return [[DKCallbackComposition alloc] initWithF:self andG:other];
+  return [[[DKCallbackComposition alloc] initWithF:self andG:other] autorelease];
 }
 @end

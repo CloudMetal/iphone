@@ -163,11 +163,17 @@ shouldStartLoadWithRequest:(NSURLRequest *)request
                                   :[comp objectAtIndex:3]];
     }
   } else {
-    [self.parentViewController.navigationController pushViewController:
-     [[DrillDownWebController alloc] initWithWebRoot:[request.URL description]
-      andTitle:@"Loading Page" andSplashImage:
-      [UIImage imageNamed:@"web-loading-splash.png"]]
-     animated:YES];
+    id o = PREF_KEY(@"linkaction");
+    if (!o) o = @"YMOpenLinksInternally";
+    if ([o isEqual:@"YMOpenLinksInternally"]) {
+      [self.parentViewController.navigationController pushViewController:
+       [[[DrillDownWebController alloc] initWithWebRoot:[request.URL description]
+        andTitle:@"Loading Page" andSplashImage:
+        [UIImage imageNamed:@"web-loading-splash.png"]] autorelease]
+       animated:YES];
+    } else {
+      [[UIApplication sharedApplication] openURL:request.URL];
+    }
   }
   return NO;
 }

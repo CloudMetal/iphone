@@ -39,7 +39,16 @@
     return [NSArray arrayWithObjects: \
     __VA_ARGS__ \
     , nil]; \
+  } \
+  + (NSDictionary *)propertiesWithEncodedTypes { \
+    static NSDictionary *propertiesWithEncodedTypesDict = nil; \
+    if(!propertiesWithEncodedTypesDict) { \
+      propertiesWithEncodedTypesDict = [super propertiesWithEncodedTypes]; \
+      [propertiesWithEncodedTypesDict retain]; \
+    } \
+    return propertiesWithEncodedTypesDict; \
   }
+
 #define DECLARE_PROPERTY(n,t) [NSArray arrayWithObjects:n, t, nil]
 
 /*! 

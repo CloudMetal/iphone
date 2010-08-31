@@ -15,22 +15,22 @@
   IBOutlet UILabel *toLabel;
   IBOutlet UILabel *toTargetLabel;
   IBOutlet UIToolbar *actionBar;
-  IBOutlet UIBarButtonItem *kb, *photo, *at, *hash;
-  BOOL onHash, onUser, onPartial;
+  IBOutlet UIBarButtonItem *kb, *photo, *at, *hash, *drafts;
+  BOOL onHash, onUser, onPartial, onDrafts;
   IBOutlet UITableView *tableView;
   IBOutlet UIActivityIndicatorView *activity;
-  id<DKCallback> onUserInputsHash, onUserInputsAt, onPartialWillClose, onUserPhoto;
+  id<DKCallback> onUserInputsHash, onUserInputsAt, onPartialWillClose, onUserPhoto, onUserDrafts;
 //  IBOutlet UIImagePickerController *imagePicker;
   UIInterfaceOrientation interfaceOrientation;
 }
 
 @property(nonatomic, assign) UIInterfaceOrientation interfaceOrientation;
-@property(nonatomic, readwrite, retain) id<DKCallback> onUserInputsHash, onUserInputsAt, onPartialWillClose, onUserPhoto;
+@property(nonatomic, readwrite, retain) id<DKCallback> onUserInputsHash, onUserInputsAt, onPartialWillClose, onUserPhoto, onUserDrafts;
 @property(nonatomic, readwrite, retain) YMMessageTextView *messageTextView;
 @property(nonatomic, readwrite, retain) UILabel *toLabel, *toTargetLabel;
 @property(nonatomic, retain) UIToolbar *actionBar;
 @property(nonatomic, retain) UITableView *tableView;
-@property(nonatomic, assign) BOOL onHash, onUser, onPhoto, onPartial;
+@property(nonatomic, assign) BOOL onHash, onUser, onPhoto, onPartial, onDrafts;
 @property(nonatomic, retain) UIActivityIndicatorView *activity;
 //@property(nonatomic, retain) UIImagePickerController *imagePicker;
 
@@ -40,6 +40,7 @@
 - (IBAction)kb:(id)s;
 - (IBAction)at:(id)s;
 - (IBAction)hash:(id)s;
+- (IBAction)drafts:(id)s;
 - (void)revealPartial;
 - (void)hidePartial;
 

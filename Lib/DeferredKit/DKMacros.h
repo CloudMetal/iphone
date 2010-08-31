@@ -6,7 +6,6 @@
  */
 
 #ifdef __OBJC__
-//#import "FKFunction.h"
 #import "DKCallback.h"
 
 /** Curries a target->selector into an DKCallback 
@@ -43,11 +42,16 @@ static inline id<DKCallback> _curryTS(id target, SEL selector, ...) {
   }
   va_end(argumentList);
   [invocation retainArguments];
-  return [DKCallback fromInvocation:invocation parameterIndex:i];
+  
+  DKCallbackFromInvocation *r = (DKCallbackFromInvocation *)
+    [DKCallback fromInvocation:invocation parameterIndex:i];
+  r.selector = selector;
+  r.target = target;
+  return r;
 }
 
 #define curryTS(__target, __selector, args...) _curryTS(__target, __selector, args, nil)
-#define isDeferred(__obj) [__obj isKindOfClass:[DKDeferred class]]
+#define isDeferred(__obj) (![__obj isEqual:[NSNull null]] && [__obj isKindOfClass:[DKDeferred class]])
 #define waitForDeferred(__d) [[[[[[DKWaitForDeferred alloc] initWithDeferred:__d] autorelease] result] retain] autorelease]
 #define pauseDeferred(__d) [[[DKDeferredWrapper alloc] initWithDeferred:__d] autorelease]
 #define nsni(__i) [NSNumber numberWithInt:__i]

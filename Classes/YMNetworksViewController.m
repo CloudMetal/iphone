@@ -24,18 +24,25 @@
 @interface YMNetworksViewController (PrivateParts)
 
 - (NSArray *)_allAddressBookContacts;
+- (YMAccountsViewController *)accountsController;
 
 @end
 
 
 @implementation YMNetworksViewController
 
-@synthesize web;
+@synthesize web, onChooseNetwork;
 
 - (IBAction)gotoAccounts:(UIControl *)sender
 {
   [self.navigationController pushViewController:
-   [[[YMAccountsViewController alloc] init] autorelease] animated:YES];
+   [self accountsController] animated:YES];
+}
+
+- (YMAccountsViewController *)accountsController 
+{
+  if (!accountsController) accountsController = [[YMAccountsViewController alloc] init];
+  return accountsController;
 }
 
 - (void)refreshNetworks
@@ -51,6 +58,13 @@
     flashLoading:@"Updating Networks..."
     deferred:[DKDeferred gatherResults:ops]]
    addCallback:callbackTS(self, doneUpdatingAccounts:)];
+  [[NSNotificationCenter defaultCenter] addObserver:self selector:
+   @selector(didBecomeActive:) name:UIApplicationDidBecomeActiveNotification object:nil];
+}
+
+- (void)didBecomeActive:(id)n
+{
+  [self refreshNetworks];
 }
 
 - (id)doneUpdatingAccounts:(id)r
@@ -65,29 +79,45 @@
     self.title = @"Networks";
     animateNetworkTransition = YES;
     networkPKs = nil;
+    style = UITableViewStylePlain;
+    onChooseNetwork = nil;
+  }
+  return self;
+}
+
+- (id)initWithStyle:(UITableViewStyle)_style
+{
+  if ((self = [super initWithStyle:_style])) {
+    self.title = @"Networks";
+    animateNetworkTransition = YES;
+    networkPKs = nil;
+    style = _style;
+    onChooseNetwork = nil;
   }
   return self;
 }
 
 - (void)loadView
 {
-  self.tableView = [[UITableView alloc] initWithFrame:
-                    CGRectMake(0, 0, 320, 460) style:UITableViewStylePlain];
+  self.tableView = [[[UITableView alloc] initWithFrame:
+                     CGRectMake(0, 0, 320, 480) style:style] autorelease];
   self.tableView.autoresizingMask = (UIViewAutoresizingFlexibleWidth |
                                      UIViewAutoresizingFlexibleHeight);
   self.tableView.delegate = self;
   self.tableView.dataSource = self;
   self.tableView.backgroundColor = [UIColor whiteColor];
   self.title = @"Networks";
-  self.navigationItem.rightBarButtonItem = 
+  if (UIUserInterfaceIdiomPad != UI_USER_INTERFACE_IDIOM()) {
+    self.navigationItem.rightBarButtonItem = 
+      [[[UIBarButtonItem alloc]
+        initWithTitle:@"Accounts" style:UIBarButtonItemStylePlain 
+        target:self action:@selector(gotoAccounts:)] autorelease];
+    self.navigationItem.leftBarButtonItem =
     [[[UIBarButtonItem alloc]
-      initWithTitle:@"Accounts" style:UIBarButtonItemStylePlain 
-      target:self action:@selector(gotoAccounts:)] autorelease];
-  self.navigationItem.leftBarButtonItem =
-  [[[UIBarButtonItem alloc]
-    initWithTitle:@"Settings" style:
-    UIBarButtonItemStyleBordered target:self action:
-    @selector(showSettings:)] autorelease];
+      initWithTitle:@"Settings" style:
+      UIBarButtonItemStyleBordered target:self action:
+      @selector(showSettings:)] autorelease];
+  }
   
   if (!web) web = [YMWebService sharedWebService];
 }
@@ -122,12 +152,11 @@
   feedsController.tabBarItem = 
   [[[UITabBarItem alloc] initWithTitle:@"Feeds" image:
     [UIImage imageNamed:@"feeds.png"] tag:3] autorelease];
-    
-  YMNetwork *last = (YMNetwork *)[YMNetwork findByPK:intv(PREF_KEY(@"lastNetworkPK"))];
   
   NSMutableArray *a = [NSMutableArray array];
   for (UIViewController *c in array_(myMessagesController, receivedMessagesController,
                                      feedsController, directoryController)) {
+    [(id)c setUseSubtitleHeader:YES];
     UINavigationController *nav = [[[UINavigationController alloc] 
                                     initWithRootViewController:c] autorelease];
     nav.navigationBar.tintColor = self.navigationController.navigationBar.tintColor;
@@ -155,7 +184,7 @@
 //    if (r.size.width < 76.0) r.size.width = 76.0;
 //    back.frame = r;
     [back setTitle:@"Networks" forState:UIControlStateNormal];
-    [back addTarget:self action:@selector(fuckOffYouDirtyHonkyNetwork:) 
+    [back addTarget:self action:@selector(dismissNetwork:) 
      forControlEvents:UIControlEventTouchUpInside];
     
     UIBarButtonItem *it = [[[UIBarButtonItem alloc] initWithCustomView:back] autorelease];
@@ -167,7 +196,7 @@
   return tabs;
 }
 
-- (void)fuckOffYouDirtyHonkyNetwork:(id)s
+- (void)dismissNetwork:(id)s
 {
   if (PREF_KEY(@"lastNetworkPK")) {
     YMNetwork *n = (YMNetwork *)[YMNetwork findByPK:
@@ -181,17 +210,8 @@
   }
   NSUserDefaults *defs = [NSUserDefaults standardUserDefaults];
   [defs removeObjectForKey:@"lastNetworkPK"];
-  if (tabs) [tabs release];
-  tabs = nil;
-  if (myMessagesController) [myMessagesController release];
-  myMessagesController = nil;
-  if (receivedMessagesController) [receivedMessagesController release];
-  receivedMessagesController = nil;
-  if (directoryController) [directoryController release];
-  directoryController = nil;
-  if (feedsController) [feedsController release];
-  feedsController = nil;
-  [self.navigationController dismissModalViewControllerAnimated:YES];
+  [self.navigationController dismissModalViewControllerWithAnimatedTransition:
+   UIViewControllerAnimationTransitionMoveInFromLeft];
 }
 
 - (void) viewWillAppear:(BOOL)animated
@@ -204,11 +224,12 @@
   self.navigationController.toolbar.tintColor 
   = [UIColor colorWithHexString:@"353535"];
   
-  if (PREF_KEY(@"lastNetworkPK")) {
+  if (PREF_KEY(@"lastNetworkPK") 
+      && UI_USER_INTERFACE_IDIOM() != UIUserInterfaceIdiomPad) {
     YMNetwork *n = (YMNetwork *)[YMNetwork findByPK:
                                  intv(PREF_KEY(@"lastNetworkPK"))];
     YMUserAccount *u = (YMUserAccount *)[YMUserAccount findByPK:intv(n.userAccountPK)];
-    if (!u || !n) { // oh shit, something went very bad
+    if (!u || !n) { // oh shit, something went very bad, force a reset
       SQLiteInstanceManager *db = [SQLiteInstanceManager sharedManager];
       [db executeUpdateSQL:@"DELETE FROM y_m_user_account"];
       [db executeUpdateSQL:@"DELETE FROM y_m_network"];
@@ -216,24 +237,27 @@
       [self.tableView reloadData];
       return;
     }
-    waitForDeferred([[YMWebService sharedWebService] 
-                     loadCachedContactImagesForUserAccount:u]);
+    
     animateNetworkTransition = NO;
     [self gotoNetwork:n];
     animateNetworkTransition = YES;
     return;
   }
   
-  if (![[self.web loggedInUsers] count])
-    [self.navigationController pushViewController:
-     [[[YMAccountsViewController alloc] init] autorelease] animated:NO];
-  [web purgeCachedContactImages];
+  if (![[self.web loggedInUsers] count]) {
+    if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) return;
+    else {
+      [self.navigationController pushViewController:
+       [self accountsController] animated:NO];
+    }
+  }
 }
 
 - (void) viewDidAppear:(BOOL)animated
 {
   NSLog(@"networks appeared");
-  [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"lastNetworkPK"];
+  if (UI_USER_INTERFACE_IDIOM() != UIUserInterfaceIdiomPad)
+    [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"lastNetworkPK"];
   [[StatusBarNotifier sharedNotifier] setTopOffset:460];
   [self.tableView reloadData];
   [self refreshNetworks];
@@ -288,6 +312,8 @@ cellForRowAtIndexPath:(NSIndexPath *)indexPath
 - (void) tableView:(UITableView *)table
 didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
+  [table deselectRowAtIndexPath:indexPath animated:YES];
+  
   YMNetwork *network = (YMNetwork *)[YMNetwork findByPK:
                        intv([networkPKs objectAtIndex:indexPath.row])];
   PREF_SET(@"lastNetworkPK", nsni(network.pk));
@@ -295,9 +321,10 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath
   
   [web updateUIApplicationBadge];
   
-  [table deselectRowAtIndexPath:indexPath animated:YES];
-  
-  [self gotoNetwork:network];
+  if (onChooseNetwork)
+    [onChooseNetwork :network];
+  else
+    [self gotoNetwork:network];
 }
 
 - (void)gotoNetwork:(YMNetwork *)network
@@ -305,37 +332,40 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath
   YMUserAccount *acct = (YMUserAccount *)[YMUserAccount findByPK:
                                           intv(network.userAccountPK)];
   acct.activeNetworkPK = nsni(network.pk);
-  [acct save];
-  [web performSelector:@selector(syncSubscriptions:) withObject:acct afterDelay:5.0];
+  [acct performSelector:@selector(save) withObject:nil afterDelay:5.0];
+  [web performSelector:@selector(syncSubscriptions:) withObject:acct afterDelay:10.0];
   
-  [self doContactScrape:acct network:network];
+  //[self doContactScrape:acct network:network];
+  scrape_acct = acct;
+  scrape_network = network;
+  [self performSelector:@selector(doContactScrape) withObject:nil afterDelay:5.0];
   
   network.unseenMessageCount = nsni(0);
-  [network save];
-  [web updateUIApplicationBadge];
+  [network performSelector:@selector(save) withObject:nil afterDelay:5.0];
   
   [web loadCachedContactImagesForUserAccount:acct];
   
-  UITabBarController *c = [self tabs];
+  UITabBarController *c = !tabs ? [self tabs] : tabs;
+  [c setSelectedIndex:0];
   
   myMessagesController.userAccount = acct;
-  myMessagesController.network = network;
   myMessagesController.target = YMMessageTargetFollowing;
   myMessagesController.title = @"My Feed";
-  myMessagesController.useSubtitleHeader = YES;
+  myMessagesController.network = network;
   receivedMessagesController.userAccount = acct;
   receivedMessagesController.target = YMMessageTargetReceived;
-  receivedMessagesController.network = network;
   receivedMessagesController.title = @"Received";
-  receivedMessagesController.useSubtitleHeader = YES;
+  receivedMessagesController.network = network;
   directoryController.userAccount = acct;
-  directoryController.useSubtitleHeader = YES;
   feedsController.userAccount = acct;
   feedsController.network = network;
-  feedsController.useSubtitleHeader = YES;
   
-  c.modalTransitionStyle = UIModalTransitionStyleCrossDissolve;
-  [self.navigationController presentModalViewController:c animated:animateNetworkTransition];
+  if (animateNetworkTransition) {
+    [self.navigationController presentModalViewController:c withAnimatedTransition:
+     UIViewControllerAnimationTransitionPushFromRight];
+  } else {
+    [self.navigationController presentModalViewController:c animated:NO];
+  }
   
   myMessagesController.navigationItem.rightBarButtonItem = 
   [[UIBarButtonItem alloc]
@@ -348,16 +378,19 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath
   [[StatusBarNotifier sharedNotifier] setTopOffset:411];
 }
 
-- (void)doContactScrape:(YMUserAccount *)_acct network:(YMNetwork *)_network
+//- (void)doContactScrape:(YMUserAccount *)_acct network:(YMNetwork *)_network
+//{
+//  scrape_network = _network;
+//  scrape_acct = _acct;
+- (void)doContactScrape
 {
-  scrape_network = _network;
-  scrape_acct = _acct;
   if (scrape_network.lastScrapedLocalContacts == nil && 
-      !PREF_KEY(([NSString stringWithFormat:@"dontlookatmycontacts:%@", _network.networkID])) && 
-      !intv(_network.community)) {
+      !PREF_KEY(([NSString stringWithFormat:@"dontlookatmycontacts:%@", scrape_network.networkID])) && 
+      !intv(scrape_network.community)) {
     [[[[UIAlertView alloc] initWithTitle:@"Yammer" message:
-     @"Yammer would like permission to look in your address book to suggest coworkers to follow. Is this okay?" 
-                                delegate:self cancelButtonTitle:@"No" otherButtonTitles:@"Yes", nil] autorelease] show];
+       @"Yammer would like to use your contacts to give you following suggestions." 
+       delegate:self cancelButtonTitle:@"Don't Allow" otherButtonTitles:@"OK", nil] 
+      autorelease] show];
   }
 }
 
@@ -436,6 +469,7 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 
 - (void)dealloc
 {
+  [accountsController release];
   [super dealloc];
 }
 

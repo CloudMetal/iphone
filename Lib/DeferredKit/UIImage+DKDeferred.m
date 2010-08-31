@@ -6,31 +6,34 @@
 //
 
 #import "UIImage+DKDeferred.h"
-#import <CoreGraphics/CoreGraphics.h>
-#import <QuartzCore/QuartzCore.h>
 
 
 @implementation UIImage (DKDeferredAdditions)
 
 + (UIImage*)imageWithImage:(UIImage *)image scaledToSize:(CGSize)newSize {
+  if (UIGraphicsBeginImageContextWithOptions != NULL)
+    UIGraphicsBeginImageContextWithOptions(newSize, YES, 0.0);
+  else
+    UIGraphicsBeginImageContext(newSize);
+  [image drawInRect:CGRectMake(0, 0, newSize.width, newSize.height)];
+  UIImage *newImage = UIGraphicsGetImageFromCurrentImageContext();
+  UIGraphicsEndImageContext();
   
-  UIGraphicsBeginImageContext(newSize);
-	
-	CGContextRef context = UIGraphicsGetCurrentContext();
-	CGContextTranslateCTM(context, 0.0, newSize.height);
-	CGContextScaleCTM(context, 1.0, -1.0);
-	
-	CGContextDrawImage(context, CGRectMake(0.0f, 0.0f, newSize.width, newSize.height), image.CGImage);
-	
-	UIImage* scaledImage = UIGraphicsGetImageFromCurrentImageContext();
-	
-	UIGraphicsEndImageContext();
-	
-	return scaledImage;
+  return newImage;
 }
 
 - (UIImage *)scaleImageToSize:(CGSize)newSize {
   return [UIImage imageWithImage:self scaledToSize:newSize];
+}
+
++ (NSData *)dataForCache
+{
+  return UIImagePNGRepresentation(self);
+}
+
++ (id)fromCacheData:(NSData *)data
+{
+  return [UIImage imageWithData:data];
 }
 
 @end

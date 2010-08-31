@@ -46,7 +46,12 @@
 
 - (void)refreshMessageData
 {
+  refreshing = YES;
+  [self.tableView reloadData];
+  [[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
+  refreshing = NO;
   if (detailView) [detailView release];
+  detailView = nil;
   for (id v in [[NSBundle mainBundle] loadNibNamed:
                 @"YMMessageDetailView" owner:nil options:nil]) {
     if (![v isKindOfClass:[YMMessageDetailView class]]) continue;
@@ -221,6 +226,7 @@
 - (CGFloat) tableView:(UITableView *)table
 heightForRowAtIndexPath:(NSIndexPath *)indexPath
 {
+  if (refreshing) return 0;
   return indexPath.section == 0 ? detailView.frame.size.height : 
     detailView.headerView.frame.size.height;
 }
@@ -248,6 +254,10 @@ numberOfRowsInSection:(NSInteger)section
 - (UITableViewCell *) tableView:(UITableView *)table
 cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
+  // refreshing return NOTHING
+  if (refreshing) return [[[UITableViewCell alloc] initWithStyle:
+                           UITableViewCellStyleDefault reuseIdentifier:@"asdfasdf"] 
+                          autorelease];
   if (indexPath.section == 0) return detailView;
   static NSString *ident = @"YMAttachmentCell1";
   UITableViewCell *cell = [table dequeueReusableCellWithIdentifier:ident];

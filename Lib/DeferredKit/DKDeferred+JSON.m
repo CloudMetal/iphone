@@ -14,7 +14,7 @@ id _decodeJSON(id results) {
   if (results && ! (results == [NSNull null])) {
     NSString *objstr = [[NSString alloc] initWithData:results encoding:NSUTF8StringEncoding];
     NSError *error = nil;
-    id ret = [[[SBJSON alloc] init]
+    id ret = [[[[SBJSON alloc] init] autorelease]
               objectWithString:objstr error:&error];
     if (!ret && error) {
       return error;

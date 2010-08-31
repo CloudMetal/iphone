@@ -18,6 +18,18 @@
 @synthesize activeNetworkPK, username, password, 
             wrapToken, wrapSecret, loggedIn, serviceUrl, cookie;
 
+
+DECLARE_PROPERTIES(
+                   DECLARE_PROPERTY(@"activeNetworkPK", @"@\"NSNumber\""),
+                   DECLARE_PROPERTY(@"username", @"@\"NSString\""),
+                   DECLARE_PROPERTY(@"password", @"@\"NSString\""),
+                   DECLARE_PROPERTY(@"wrapToken", @"@\"NSString\""),
+                   DECLARE_PROPERTY(@"wrapSecret", @"@\"NSString\""),
+                   DECLARE_PROPERTY(@"loggedIn", @"@\"NSNumber\""),
+                   DECLARE_PROPERTY(@"serviceUrl", @"@\"NSString\""),
+                   DECLARE_PROPERTY(@"cookie", @"@\"NSString\"")
+                   )
+
 - (id) init
 {
   if ((self = [super init])) {

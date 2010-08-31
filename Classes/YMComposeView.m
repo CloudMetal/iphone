@@ -12,7 +12,7 @@
 @implementation YMComposeView
 
 @synthesize messageTextView, toLabel, toTargetLabel, activity, onPhoto, onUserPhoto,
-onUserInputsHash, onUserInputsAt, onPartialWillClose, actionBar, tableView, onHash, onUser, onPartial, interfaceOrientation;
+onUserInputsHash, onUserInputsAt, onPartialWillClose, actionBar, tableView, onHash, onUser, onPartial, interfaceOrientation, onDrafts, onUserDrafts;
 
 //- (id)initWithCoder:(NSCoder *)aDecoder
 //{
@@ -34,31 +34,54 @@ onUserInputsHash, onUserInputsAt, onPartialWillClose, actionBar, tableView, onHa
 //{
 //}
 
+- (void)drafts:(id)s
+{
+  if (onDrafts) {
+    [self kb:nil];
+    return;
+  }
+  onUser = onPartial = onHash = onPhoto = NO;
+  onDrafts = YES;
+  if (self.onUserDrafts) [self.onUserDrafts :nil];
+}
+
 -(void) kb:(id)s
 {
-  onUser = onPhoto = onHash = NO;
+  onUser = onPhoto = onHash = onDrafts = NO;
   [self.messageTextView becomeFirstResponder];
 }
 
 -(void) photo:(id)s
 {
+  if (onPhoto) {
+    [self kb:nil];
+    return;
+  }
   onPhoto = YES;
-  onUser = onHash = onPartial = NO;
+  onUser = onHash = onPartial = onDrafts = NO;
   if (self.onUserPhoto) [self.onUserPhoto :nil];
 }
 
 -(void) at:(id)s
 {
+  if (onUser) {
+    [self kb:nil];
+    return;
+  }
   onUser = YES;
-  onHash = onPhoto = onPartial = NO;
+  onHash = onPhoto = onPartial = onDrafts = NO;
   [self.messageTextView resignFirstResponder];
   [self.onUserInputsAt :@"@"];
 }
 
 -(void) hash:(id)s
 {
+  if (onHash) {
+    [self kb:nil];
+    return;
+  }
   onHash = YES;
-  onUser = onPhoto = onPartial = NO;
+  onUser = onPhoto = onPartial = onDrafts = NO;
   [self.messageTextView resignFirstResponder];
   [self.onUserInputsHash :@"#"];
 }
@@ -83,12 +106,12 @@ onUserInputsHash, onUserInputsAt, onPartialWillClose, actionBar, tableView, onHa
   if ([s hasPrefix:@"#"] && self.onUserInputsHash 
       && messageTextView.autocompleteEnabled) {
     onHash = onPartial = YES;
-    onUser = onPhoto = NO;
+    onUser = onPhoto = onDrafts = NO;
     [self.onUserInputsHash :s];
   } else if ([s hasPrefix:@"@"] && self.onUserInputsAt 
              && messageTextView.autocompleteEnabled) {
     onUser = onPartial = YES;
-    onHash = onPhoto = NO;
+    onHash = onPhoto = onDrafts = NO;
     [self.onUserInputsAt :s];
   }
 }
@@ -146,6 +169,7 @@ onUserInputsHash, onUserInputsAt, onPartialWillClose, actionBar, tableView, onHa
 - (void)dealloc
 {
   self.onUserInputsAt = nil;
+  self.onUserDrafts = nil;
   self.onUserInputsHash = nil;
   [super dealloc];
 }

@@ -90,7 +90,7 @@ isPrivate, group, swipeSelector, swipeTarget;
 
 + (void)initialize
 {
-  if (self = [YMFastMessageTableViewCell class]) {
+  if (self == [YMFastMessageTableViewCell class]) {
     titleFont = [[UIFont boldSystemFontOfSize:13] retain];
     bodyFont = [[UIFont systemFontOfSize:13] retain];
     bodyColor = [[UIColor colorWithWhite:.15 alpha:1] retain];

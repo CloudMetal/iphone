@@ -7,6 +7,7 @@
 
 #import "DKDeferred.h"
 #import <CommonCrypto/CommonDigest.h>
+#import "DKCallback.h"
 
 
 NSString* md5(NSString *str) {
@@ -47,6 +48,7 @@ id _gatherResultsCallback(id results) {
 
 - (void)dealloc
 {
+  [data release];
   self.URLResponse = nil;
   [super dealloc];
 }
@@ -61,7 +63,7 @@ id _gatherResultsCallback(id results) {
 @end
 
 
-@interface DKDeferred() // private methods
+@interface DKDeferred (PrivateParts)
 - (void)_resback:(id)result;
 - (void)_check;
 - (id)_continueChain:(id)result;
@@ -134,10 +136,32 @@ id _gatherResultsCallback(id results) {
   return [[DKThreadedDeferred alloc] initWithFunction:func withObject:arg];
 }
 
++ (id)deferInThread:(id<DKCallback>)func withObject:(id)arg 
+canceller:(id<DKCallback>)cancelf paused:(BOOL)startPaused
+{
+    return [[DKThreadedDeferred alloc] initWithFunction:func withObject:arg
+            canceller:cancelf paused:startPaused];
+}
+
 + (id)defer:(id<DKCallback>)func withObject:(id)arg inQueue:(NSOperationQueue *)queue {
   id ret = [DKDeferredOperation operation:func withObject:arg];
   [queue addOperation:[ret operation]];
   return ret;
+}
+
++ (id)defer:(id<DKCallback>)func withObject:(id)arg inQueue:(NSOperationQueue *)queue paused:(BOOL)_paused
+{
+  id ret = [DKDeferredOperation pausedOperation:func withObject:arg];
+  if (_paused) return [[DKDeferred deferred] addCallback:
+                       curryTS(self, @selector(_cbStartPausedOperation:::), queue, ret)];
+  [queue addOperation:[ret operation]];
+  return ret;
+}
+
++ (id)_cbStartPausedOperation:(id)q :(id)op :(id)r
+{
+  [q addOperation:[op operation]];
+  return op;
 }
 
 + (id)loadURL:(NSString *)aUrl cached:(BOOL)cached {
@@ -147,9 +171,9 @@ id _gatherResultsCallback(id results) {
 + (id)loadURL:(NSString *)aUrl cached:(BOOL)cached paused:(BOOL)_paused {
   id ret;
   if (cached) {
-    ret = [[DKDeferredCache sharedCache] valueForKey:aUrl];
-    if (_paused)
-      ret = pauseDeferred(ret);
+    ret = [[DKDeferred cache] valueForKey:aUrl paused:_paused];
+//    if (_paused)
+//      ret = pauseDeferred(ret);
     [ret addBoth:curryTS((id)self, @selector(_cachedLoadURLCallback:results:), aUrl)];
   } else {
     ret = [self loadURL:aUrl paused:_paused];
@@ -177,10 +201,29 @@ id _gatherResultsCallback(id results) {
     return [[DKDeferredURLConnection loadURL:url] 
             addBoth:curryTS((id)self, @selector(_cachedLoadURLCallback:results:), url)];
   } else {
-    [[DKDeferredCache sharedCache] setValue:_results forKey:url timeout:7200.0f];
+    [[DKDeferred cache] setValue:_results forKey:url timeout:-1];//7200.0f];
     return _results;
   }
   return nil;
+}
+
++ (id)_cachedLoadURLCallback:(NSString *)url cacheTimeout:(NSNumber *)timeout 
+results:(id)_results 
+{
+    if (isDeferred(_results))
+        return [_results addBoth:curryTS((id)self, 
+                @selector(_cachedLoadURLCallback:cacheTimeout:results:), url, 
+                timeout)];
+    
+    if (_results == [NSNull null])
+        return [[DKDeferredURLConnection loadURL:url] addBoth:curryTS((id)self, 
+                @selector(_cachedLoadURLCallback:cacheTimeout:results:), url, 
+                timeout)];
+
+    [[DKDeferred cache] setValue:_results forKey:url 
+     timeout:[timeout intValue]];
+
+    return _results;
 }
 
 + (id)_cbStartConnection:(id)aUrl {
@@ -188,17 +231,6 @@ id _gatherResultsCallback(id results) {
 }
 
 + (id)loadURL:(NSString *)aUrl paused:(BOOL)_paused { 
-//  id ret;
-//  if (_paused) {
-//    ret = [DKDeferred deferred];
-//    [ret addBoth:callbackTS((id)self, _cbStartConnection:)];
-//    [ret pause];
-//    [ret callback:aUrl];
-//  } else {
-//  id ret = [DKDeferredURLConnection deferredURLConnection:aUrl];
-//  if (_paused)
-//    [ret pause];
-//  }
   return [[[DKDeferredURLConnection alloc] initWithURL:aUrl paused:_paused] autorelease];
 }
 
@@ -217,6 +249,18 @@ id _gatherResultsCallback(id results) {
   [d addCallback:callbackP(_gatherResultsCallback)];
   return d;
 } 
+
+static id<DKCache> __cache;
+
++ (void)setCache:(id<DKCache>)cache
+{
+    __cache = cache;
+}
+
++ (id<DKCache>)cache
+{
+    return __cache ? __cache : [DKDeferredCache sharedCache];
+}
 
 - (id)initWithCanceller:(id<DKCallback>)cancellerFunc {
   if ((self = [super init])) {
@@ -295,6 +339,12 @@ id _gatherResultsCallback(id results) {
   }
 }
 
+- (void)_resetStarted
+{
+    [started release];
+    started = [[NSDate date] retain];
+}
+
 - (void)_check {
   if (fired != -1) {
     if (!silentlyCancelled) {
@@ -365,26 +415,38 @@ id _gatherResultsCallback(id results) {
 - (id)_continueChain:(id)result {
   paused -= 1;
   [self _resback:result];
-  return nil;
+  return result;
 }
 
 - (void)_fire {
+  NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
   id<DKCallback> cb = nil;
   int _fired = fired;
-  id result = [[[results objectAtIndex:_fired] retain] autorelease];
+  id result = [results objectAtIndex:_fired];
   while ([chain count] > 0 && paused == 0) {
-    NSArray *pair = [[[chain objectAtIndex:0] retain] autorelease];
+    NSArray *pair = [[chain objectAtIndex:0] retain];
     [chain removeObjectAtIndex:0];
-    id f = [[[pair objectAtIndex:_fired] retain] autorelease];
+    id f = [[pair objectAtIndex:_fired] retain];
     if (f == [NSNull null])
       continue;
-    id newResult = [(id<DKCallback>)f :result];
+    id newResult = [[(id<DKCallback>)f :result] retain];
+
+      //TODO: remove this XXX DDD
+      //if (newResult == [NSNull null] && 
+      //    [f isKindOfClass:[DKCallbackFromInvocation class]]) {
+      //    NSLog(@"callback from invocation result is NULL");
+      //}
+
     result = (newResult == nil) ? [NSNull null] : newResult;
     _fired = [result isKindOfClass:[NSError class]] ? 1 : 0;
     if ([result isKindOfClass:[self class]]) {
       cb = callbackTS(self, _continueChain:);
       paused += 1;
     }
+    
+    [newResult release];
+    [pair release];
+    [f release];
   }
   fired = _fired;
   [results replaceObjectAtIndex:fired withObject:result];
@@ -396,6 +458,7 @@ id _gatherResultsCallback(id results) {
     [result addBoth:cb];
     [result setChained:YES];
   }
+  [pool drain];
 }
 
 - (NSComparisonResult)compare:(DKDeferred *)otherDeferred {
@@ -624,15 +687,7 @@ id _gatherResultsCallback(id results) {
   [pool drain];
 }
 
-- (id)_cbReturnDeferredFromThread:(id)r
-{
-  id ret = [[__result retain] autorelease];
-  [__result release];
-  __result = nil;
-  return ret;
-}
-
-- (void)_cbReturnFromThread:(id)result {  
+- (void)_cbReturnFromThread:(id)result {
   if ([result isKindOfClass:[NSError class]])
     [self errback:result];
   else if ([result isKindOfClass:[DKDeferred class]])
@@ -730,21 +785,60 @@ static NSInteger __urlConnectionCount;
 }
 
 - (id)initWithURL:(NSString *)aUrl paused:(BOOL)_paused {
-  return [self initRequest:
-            [NSURLRequest requestWithURL:[NSURL URLWithString:aUrl]
-                             cachePolicy:NSURLRequestReloadIgnoringCacheData
-                         timeoutInterval:15.0f]
+    NSString *agent = [[NSUserDefaults standardUserDefaults] 
+                       stringForKey:@"User-Agent"];
+    NSMutableURLRequest *req = 
+        [[NSMutableURLRequest alloc] initWithURL:[NSURL URLWithString:aUrl] 
+         cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:15.0f];
+    
+    if (! agent || ! agent.length)
+        agent = @"Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_3; en-us) "
+                 "AppleWebKit/531.22.7 (KHTML, like Gecko) Version/4.0.5 "
+                 "Safari/531.22.7";
+    
+  [req setValue:agent forHTTPHeaderField:@"User-Agent"];
+  return [self initRequest:req
             decodeFunction:nil paused:_paused];
 }
 
 - (id)initWithURL:(NSString *)aUrl pauseFor:(NSTimeInterval)pause {
-  return [self initWithRequest:
-          [NSURLRequest requestWithURL:[NSURL URLWithString:aUrl]
-                           cachePolicy:NSURLRequestReloadIgnoringCacheData 
-                       timeoutInterval:15.0f]
+  /*
+   [NSURLRequest requestWithURL:[NSURL URLWithString:aUrl]
+   cachePolicy:NSURLRequestReloadIgnoringCacheData 
+   timeoutInterval:15.0f]
+   */
+    NSString *agent = [[NSUserDefaults standardUserDefaults] 
+                       stringForKey:@"User-Agent"];
+    NSMutableURLRequest *req = 
+        [[NSMutableURLRequest alloc] initWithURL:[NSURL URLWithString:aUrl] 
+         cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:15.0f];
+
+    if (! agent || ! agent.length)
+        agent = @"Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_3; en-us) "
+        "AppleWebKit/531.22.7 (KHTML, like Gecko) Version/4.0.5 "
+        "Safari/531.22.7";    
+
+  [req setValue:agent forHTTPHeaderField:@"User-Agent"];
+  return [self initWithRequest:req
                       pauseFor:0.0f
                 decodeFunction:nil];
 }
+
+- (id)privateInit
+{
+  if (!__urlConnectionCount) {
+    __urlConnectionCount = 0;
+  }
+  refreshFrequency = 1.0f;
+  expectedContentLength = 0L;
+  percentComplete = 0.0f;
+  progressCallback = nil;
+  response = nil;
+  _data = [[NSMutableData data] retain];
+  [_data setLength:0];
+  return self;
+}
+  
 
 - (id)initRequest:(NSURLRequest *)req 
    decodeFunction:(id<DKCallback>)decodeF
@@ -772,7 +866,7 @@ static NSInteger __urlConnectionCount;
   if ((self = [super initWithCanceller:nil])) {
     [self privateInit];
     url = [[req URL] retain];
-    
+
     request = [req retain];
     decodeFunction = [decodeF retain];
     if (pause > 0) {
@@ -794,21 +888,6 @@ static NSInteger __urlConnectionCount;
       }
     }
   }
-  return self;
-}
-
-- (id)privateInit
-{
-  if (!__urlConnectionCount) {
-    __urlConnectionCount = 0;
-  }
-  refreshFrequency = 1.0f;
-  expectedContentLength = 0L;
-  percentComplete = 0.0f;
-  progressCallback = nil;
-  response = nil;
-  _data = [[NSMutableData data] retain];
-  [_data setLength:0];
   return self;
 }
 
@@ -836,8 +915,8 @@ didReceiveResponse:(NSURLResponse *)resp {
   if (response) [response release];
   response = nil;
   response = [resp retain];
-  //  NSLog(@" - didreceiveresponse - %@", 
-  //        [(NSHTTPURLResponse *)response allHeaderFields]);
+//  NSLog(@" - didreceiveresponse - %@", 
+//        [(NSHTTPURLResponse *)response allHeaderFields]);
   
   percentComplete = 0.0f;
   [_data setLength:0];
@@ -891,11 +970,17 @@ didReceiveResponse:(NSURLResponse *)resp {
   return __urlConnectionCount;
 }
 
+- (void)cancel
+{
+    if (connection) [connection cancel];
+    [super cancel];
+}
+
 - (void)dealloc {
   if (connection) [connection release];
+  [response release];
   [request release];
   [progressCallback release];
-  [response release];
   [url release];
   [_data release];
   [super dealloc];
@@ -906,8 +991,9 @@ didReceiveResponse:(NSURLResponse *)resp {
 }
 
 - (id)_cbStartLoading:(id)result {
-  NSLog(@"connection: %@ : %@", self.started, url);
+//  NSLog(@"connection: %@ : %@", self.started, url);
   connection = [[NSURLConnection connectionWithRequest:request delegate:self] retain];
+  NSLog(@"loading %@ : %@", self.started, url);
   if (connection) {
     __urlConnectionCount += 1;
   } else {
@@ -929,10 +1015,12 @@ static DKDeferredCache *__sharedCache;
 
 @implementation DKDeferredCache
 
-@synthesize dir;
+@synthesize maxEntries, defaultTimeout;
 
 /// DKCache Protocol
 - (id)setValue:(NSObject *)value forKey:(NSString *)key timeout:(NSTimeInterval)timeout {
+  if (!value || !key) return [DKDeferred fail:[NSError errorWithDomain:DKDeferredErrorDomain code:
+                                             500 userInfo:dict_(@"cant insert nil value or key", @"message")]];
   return [DKDeferred defer:
           curryTS(self,
                   @selector(_setValue:forKey:timeout:arg:),
@@ -941,27 +1029,66 @@ static DKDeferredCache *__sharedCache;
                    inQueue:operationQueue];
 }
 
-- (id)valueForKey:(NSString *)key {
+- (id)setValue:(NSObject *)_value forKey:(NSString *)_key timeout:(NSTimeInterval)_seconds paused:(BOOL)_paused
+{
+  if (!_value || !_key) return [DKDeferred fail:[NSError errorWithDomain:DKDeferredErrorDomain code:
+                                             500 userInfo:dict_(@"cant insert nil value or key", @"message")]];
+  return [DKDeferred defer:
+          curryTS(self,
+                  @selector(_setValue:forKey:timeout:arg:),
+                  _value, _key, nsni((int)_seconds))
+                withObject:[NSNull null] 
+                   inQueue:operationQueue paused:_paused];
+}
+
+- (id)valueForKey:(NSString *)key
+{
+  if (!key) return [DKDeferred fail:[NSError errorWithDomain:DKDeferredErrorDomain code:
+                                     500 userInfo:dict_(@"failed to get nil key", @"message")]];
   return [DKDeferred defer:callbackTS(self, _getValue:) 
                 withObject:key
                    inQueue:operationQueue];
 }
 
-- (void)deleteValueForKey:(NSString *)key { // TODO: Make asynchronous
+- (id)valueForKey:(NSString *)_key paused:(BOOL)_paused
+{
+  if (!_key) return [DKDeferred fail:[NSError errorWithDomain:DKDeferredErrorDomain code:
+                                     500 userInfo:dict_(@"failed to get nil key", @"message")]];
+  return [DKDeferred defer:callbackTS(self, _getValue:) 
+                withObject:_key
+                   inQueue:operationQueue paused:_paused];
+}
+
+- (void)deleteValueForKey:(NSString *)key
+{ // TODO: Make asynchronous
+  if (!key) return;
   [[NSFileManager defaultManager] 
    removeItemAtPath:[dir stringByAppendingPathComponent:md5(key)] 
    error:nil];
+    [existingKeys removeObject:md5(key)];
 }
 
 - (id)getManyValues:(NSArray *)keys {
+  if (!keys) return [DKDeferred fail:[NSError errorWithDomain:DKDeferredErrorDomain code:
+                                     500 userInfo:dict_(@"failed to get nil keys", @"message")]];
   return [DKDeferred defer:callbackTS(self, _getManyValues:) 
                 withObject:keys
                    inQueue:operationQueue];
 }
 
+- (id)getManyValues:(NSArray *)_keys paused:(BOOL)_paused
+{
+  if (!_keys) return [DKDeferred fail:[NSError errorWithDomain:DKDeferredErrorDomain code:
+                                      500 userInfo:dict_(@"failed to get nil keys", @"message")]];
+  return [DKDeferred defer:callbackTS(self, _getManyValues:) 
+                withObject:_keys
+                   inQueue:operationQueue paused:_paused];
+}
+
 - (BOOL)hasKey:(NSString *)key {
-  return [[NSFileManager defaultManager] 
-          fileExistsAtPath:[dir stringByAppendingPathComponent:md5(key)]];
+    return [existingKeys containsObject:md5(key)];
+//  return [[NSFileManager defaultManager] 
+//          fileExistsAtPath:[dir stringByAppendingPathComponent:md5(key)]];
 }
 
 // TODO: convert to use NSUserDefaults....
@@ -988,28 +1115,30 @@ static DKDeferredCache *__sharedCache;
   for (NSString *key in keys) {
     val = [self _getValue:key];
     [ret addObject:((val == nil) ? [NSNull null] : val)];
-    val = nil;
   }
   return ret; //[NSDictionary dictionaryWithObjects:ret forKeys:keys];
 }
 
 // should always be executed in a thread
-- (id)_getValue:(NSString *)key { 
-  if (key == (id)[NSNull null])
-    return nil;
-  NSString *fname = [dir stringByAppendingPathComponent:md5(key)];
-  NSFileManager *fm = [NSFileManager defaultManager];
-  if ([fm fileExistsAtPath:fname]) {
-    NSArray *content = [NSKeyedUnarchiver unarchiveObjectWithFile:fname];
-    NSDate *expires = (NSDate *)[content objectAtIndex:0];
-    if (([expires compare:[NSDate date]] == NSOrderedAscending)) {
-      [fm removeItemAtPath:fname error:nil];
-      return nil;
-    } else {
-      return [content objectAtIndex:1];
+- (id)_getValue:(NSString *)key 
+{ 
+    if (key == (id)[NSNull null]) return key;
+    //NSString *fname = [dir stringByAppendingPathComponent:md5(key)];
+    //NSFileManager *fm = [NSFileManager defaultManager];
+    //if ([fm fileExistsAtPath:fname]) {
+    if ([self hasKey:key]) {
+        NSString *fname = [dir stringByAppendingPathComponent:md5(key)];
+        NSArray *content = [NSKeyedUnarchiver unarchiveObjectWithFile:fname];
+        NSDate *expires = (NSDate *)[content objectAtIndex:0];
+        if (([expires compare:[NSDate date]] == NSOrderedAscending)) {
+            //[[NSFileManager defaultManager] removeItemAtPath:fname error:nil];
+            //[existingKeys removeObject:md5(key)];
+            [self deleteValueForKey:key];
+            return nil;
+        }
+        else return [content objectAtIndex:1];
     }
-  }
-  return nil;
+    return nil;
 }
 
 // should always be executed in a thread
@@ -1020,8 +1149,12 @@ static DKDeferredCache *__sharedCache;
   }
   NSString *fname = [dir stringByAppendingPathComponent:md5(key)];
   [self _cull];
-  NSArray *content = array_([NSDate dateWithTimeIntervalSinceNow:[timeout intValue]], value);
+  NSTimeInterval t = [timeout doubleValue];
+  NSArray *content = array_([NSDate dateWithTimeIntervalSinceNow:t > 0 ? t : defaultTimeout], value);
   [NSKeyedArchiver archiveRootObject:content toFile:fname];
+
+  [existingKeys addObject:md5(key)];
+
   return nil;
 }
 
@@ -1029,7 +1162,7 @@ static DKDeferredCache *__sharedCache;
   if (!__sharedCache) {
     __sharedCache = [[DKDeferredCache alloc] 
                      initWithDirectory:@"_dksc"
-                     maxEntries:300
+                     maxEntries:3000
                      cullFrequency:3];
   }
   return __sharedCache;
@@ -1039,7 +1172,8 @@ static DKDeferredCache *__sharedCache;
              maxEntries:(int)_maxEntries
           cullFrequency:(int)_cullFrequency {
   if ((self = [super init])) {
-    maxEntries = (_maxEntries < 1) ? 300 : _maxEntries;
+    maxEntries = (_maxEntries < 1) ? 3000 : _maxEntries;
+    defaultTimeout = 7200;
     cullFrequency = (_cullFrequency < 1) ? 3 : _cullFrequency;
     operationQueue = [[NSOperationQueue alloc] init];
     // init cache directory
@@ -1051,8 +1185,12 @@ static DKDeferredCache *__sharedCache;
       [fm createDirectoryAtPath:cachesPath attributes:nil];
     }
     if (![fm fileExistsAtPath:dir]) {
-      [fm createDirectoryAtPath:dir attributes:nil];
+      //[fm createDirectoryAtPath:dir attributes:nil];
+      [fm createDirectoryAtPath:dir withIntermediateDirectories:YES 
+                     attributes:nil error:nil];
     }
+    existingKeys = [[NSMutableSet setWithArray:[fm contentsOfDirectoryAtPath:dir 
+                                                error:nil]] retain];
   }
   return self;
 }
@@ -1060,14 +1198,16 @@ static DKDeferredCache *__sharedCache;
 - (void)dealloc {
   [operationQueue release];
   [dir release];
+  [existingKeys release];
   [super dealloc];
 }
 
 - (void)_cull {
+    @synchronized(self) {
   if ([self _getNumEntries] > maxEntries) {
     NSFileManager *fm = [NSFileManager defaultManager];
     NSArray *fileList = [fm directoryContentsAtPath:dir];
-    NSMutableArray *doomed = [NSMutableArray array];
+    NSMutableSet *doomed = [NSMutableSet set];
     int count = 0;
     for (NSString *path in fileList) {
       if ((count % cullFrequency) == 0) {
@@ -1079,15 +1219,18 @@ static DKDeferredCache *__sharedCache;
       [fm removeItemAtPath:[dir stringByAppendingPathComponent:dead] error:nil];
 //      NSLog(@"##DKCache removeItem: %@", dead);
     }
+      [existingKeys minusSet:doomed];
   }
+    }
 }
 
 - (int)_getNumEntries {
-  NSArray *fileNames = [[NSFileManager defaultManager]
-                        directoryContentsAtPath:dir];
-  if (!fileNames)
-    return 0;
-  return [fileNames count];
+//  NSArray *fileNames = [[NSFileManager defaultManager]
+//                        contentsOfDirectoryAtPath:dir error:nil];
+//  if (!fileNames)
+//    return 0;
+//  return [fileNames count];
+    return [existingKeys count];
 }
 
 @end
@@ -1138,6 +1281,10 @@ static DKDeferredCache *__sharedCache;
   }
   NSArray *existing = [_queueKeys objectForKey:key];
   if (existing && [existing count]) {
+      [[[_queueKeys objectForKey:key] objectAtIndex:1] _resetStarted];
+      [_queue removeObject:key];
+      [_queue addObject:key];
+      [self _siftDown:0 :[_queue count] - 1];
     return nil;
   }
   [_queue addObject:key];
@@ -1172,7 +1319,7 @@ static DKDeferredCache *__sharedCache;
 
 - (id)peek {
   if (![_queue count]) {
-    return nil;
+    return nil; 
   }
   return [_queue objectAtIndex:0];
 }
@@ -1248,7 +1395,7 @@ static DKDeferredCache *__sharedCache;
   if ((self = [super init])) {
     _queue = [[[DKMappedPriorityQueue alloc] init] retain];
     _runningDeferreds = [[[NSMutableDictionary alloc] init] retain];
-    concurrency = 4;
+    concurrency = 3;//4;
     timeout = 10.0;
     wLock = [[[NSLock alloc] init] retain];
     comparisonSelector = @selector(compareDates:);
@@ -1288,8 +1435,8 @@ static DKDeferredCache *__sharedCache;
   if (ret) {
     [d addBoth:curryTS(self, @selector(_cbRemoveDeferred::), k)];
   } else {
-    ret = [(id)_queue objForKey:k];
-    [d cancel];
+    ret = d;
+    //[ret cancel];
   }
   [self _resumeWaiting];
   return ret;
@@ -1324,7 +1471,7 @@ static DKDeferredCache *__sharedCache;
     if (!item || ![item count]) {
       break;
     }
-//    NSLog(@"resumeWaiting: %@ %@", [item objectAtIndex:0], [item objectAtIndex:1]);
+    //NSLog(@"resumeWaiting: %@ %@", [item objectAtIndex:0], [item objectAtIndex:1]);
     [[item retain] autorelease];
     [resumables addObject:item];
     [_runningDeferreds setObject:[item objectAtIndex:0]
@@ -1333,7 +1480,7 @@ static DKDeferredCache *__sharedCache;
   [self _checkFinalization];
   [wLock unlock]; // a callback can return in the same thread and invoke _resumeWaiting here
   for (item in resumables) {
-    [[item objectAtIndex:0] callback:nil];
+    [[item objectAtIndex:0] callback:[NSNull null]];
   }
 }
 
@@ -1373,6 +1520,11 @@ static DKDeferredCache *__sharedCache;
     t = timeout;
   }
   return t;
+}
+
+- (int)count
+{
+    return [_queue count];
 }
 
 - (void)dealloc {

@@ -23,6 +23,18 @@
 
 @end
 
+@interface LinksDataSource : NSObject <UITableViewDelegate, UITableViewDataSource>
+{
+  id<DKCallback> chooseOption;
+  NSArray *options;
+  int chosenIndex;
+}
+
+@property(retain) id<DKCallback> chooseOption;
+@property(assign) int chosenIndex;
+@property(retain) NSArray *options;
+
+@end
 
 @implementation YMSettingsViewController
 
@@ -52,7 +64,7 @@
   numberOfRowsInSection:(NSInteger)section
 {
   if (section == 1) return 2;
-  return 1;
+  return 2;
 }
 
 - (UITableViewCell *) tableView:(UITableView *)tableView 
@@ -62,11 +74,20 @@
                          initWithStyle:UITableViewCellStyleValue1
                          reuseIdentifier:nil] autorelease];
   if (indexPath.section == 0) {
-    c.textLabel.text = @"Font Size";
-    id x = PREF_KEY(@"fontsize");
-    if (!x) x = nsni(13);
-    c.detailTextLabel.text = [NSString stringWithFormat:@"%ipt", intv(x)];
-    c.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
+    if (indexPath.row == 0) {
+      c.textLabel.text = @"Font Size";
+      id x = PREF_KEY(@"fontsize");
+      if (!x) x = nsni(13);
+      c.detailTextLabel.text = [NSString stringWithFormat:@"%ipt", intv(x)];
+      c.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
+    } else if (indexPath.row == 1) {
+      id x = PREF_KEY(@"linkaction");
+      if (!x) x = @"YMOpenLinksInternally";
+      int y = [x isEqual:@"YMOpenLinksInternally"];
+      c.textLabel.text = @"Open Links";
+      c.detailTextLabel.text = y ? @"in Yammer" : @"in Safari";
+      c.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
+    }
   }
 //  if (indexPath.section == 1) {
 //    c.textLabel.text = @"Push Notifications";
@@ -93,21 +114,38 @@
 didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
   if (indexPath.section == 0) {
-    NSArray *fontSizes = array_(nsni(11), nsni(12), nsni(13), nsni(14), 
-                                nsni(15), nsni(16), nsni(17), nsni(18));
-    UITableViewController *t = [[[UITableViewController alloc] initWithStyle:
-                                 UITableViewStyleGrouped] autorelease];
-    FontSizeDatasource *d = [[FontSizeDatasource alloc] init];
-    d.fontSizes = fontSizes;
-    d.chooseSize = callbackTS(self, chooseFontSize:);
-    id x = PREF_KEY(@"fontsize");
-    if (!x) x = nsni(13);
-    d.chosenIndex = [fontSizes indexOfObject:x];
-    t.title = @"Font Size";
-    [self.navigationController pushViewController:t animated:YES];
-    t.tableView.dataSource = d;
-    t.tableView.delegate = d;
-    [t.tableView reloadData];
+    if (indexPath.row == 0) {
+      NSArray *fontSizes = array_(nsni(11), nsni(12), nsni(13), nsni(14), 
+                                  nsni(15), nsni(16), nsni(17), nsni(18));
+      UITableViewController *t = [[[UITableViewController alloc] initWithStyle:
+                                   UITableViewStyleGrouped] autorelease];
+      FontSizeDatasource *d = [[FontSizeDatasource alloc] init];
+      d.fontSizes = fontSizes;
+      d.chooseSize = callbackTS(self, chooseFontSize:);
+      id x = PREF_KEY(@"fontsize");
+      if (!x) x = nsni(13);
+      d.chosenIndex = [fontSizes indexOfObject:x];
+      t.title = @"Font Size";
+      [self.navigationController pushViewController:t animated:YES];
+      t.tableView.dataSource = d;
+      t.tableView.delegate = d;
+      [t.tableView reloadData];
+    } else if (indexPath.row == 1) {
+      NSArray *opts = array_(@"YMOpenLinksInBrowser", @"YMOpenLinksInternally");
+      UITableViewController *t = [[[UITableViewController alloc] initWithStyle:
+                                   UITableViewStyleGrouped] autorelease];
+      LinksDataSource *d = [[LinksDataSource alloc] init];
+      d.options = opts;
+      d.chooseOption = callbackTS(self, chooseOption:);
+      id x = PREF_KEY(@"linkaction");
+      if (!x) x = @"YMOpenLinksInternally";
+      d.chosenIndex = [opts indexOfObject:x];
+      t.title = @"Link Action";
+      [self.navigationController pushViewController:t animated:YES];
+      t.tableView.dataSource = d;
+      t.tableView.delegate = d;
+      [t.tableView reloadData];
+    }
   }
 //  if (indexPath.section == 1) {
 //    id x = PREF_KEY(@"pushnotifications");
@@ -139,6 +177,14 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 - (id)chooseFontSize:(NSNumber *)size
 {
   PREF_SET(@"fontsize", size);
+  PREF_SYNCHRONIZE;
+  [self.navigationController popViewControllerAnimated:YES];
+  return nil;
+}
+
+- (id)chooseOption:(NSString *)key
+{
+  PREF_SET(@"linkaction", key);
   PREF_SYNCHRONIZE;
   [self.navigationController popViewControllerAnimated:YES];
   return nil;
@@ -185,6 +231,43 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
   [self.chooseSize :[fontSizes objectAtIndex:indexPath.row]];
+  [tableView deselectRowAtIndexPath:indexPath animated:YES];
+}
+
+@end
+
+@implementation LinksDataSource
+
+@synthesize options, chosenIndex, chooseOption;
+
+- (NSInteger) numberOfSectionsInTableView:(UITableView *)tableView
+{
+  return 1;
+}
+
+- (NSInteger) tableView:(UITableView *)tableView
+  numberOfRowsInSection:(NSInteger)section
+{
+  return [options count];
+}
+
+- (UITableViewCell *) tableView:(UITableView *)tableView 
+          cellForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+  UITableViewCell *c = [[[UITableViewCell alloc]
+                         initWithStyle:UITableViewCellStyleDefault
+                         reuseIdentifier:nil] autorelease];
+  BOOL l = [[options objectAtIndex:indexPath.row] isEqual:@"YMOpenLinksInternally"];
+  c.textLabel.text = l ? @"Open Links in Yammer" : @"Open Links in Safari";
+  if (indexPath.row == chosenIndex)
+    c.accessoryType = UITableViewCellAccessoryCheckmark;
+  return c;
+}
+
+- (void) tableView:(UITableView *)tableView 
+didSelectRowAtIndexPath:(NSIndexPath *)indexPath
+{
+  [self.chooseOption :[options objectAtIndex:indexPath.row]];
   [tableView deselectRowAtIndexPath:indexPath animated:YES];
 }
 

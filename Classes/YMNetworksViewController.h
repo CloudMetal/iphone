@@ -7,13 +7,14 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "YMTableViewController.h"
 
 @class YMWebService;
 @class YMNetwork, YMUserAccount;
 @class YMMessageListViewController;
 @class YMContactsListViewController;
 @class YMFeedListViewController;
-@class YMSettingsViewController;
+@class YMSettingsViewController, YMAccountsViewController;
 
 
 @interface YMNetworksViewController : UITableViewController <UIAlertViewDelegate>
@@ -25,17 +26,21 @@
   YMMessageListViewController *receivedMessagesController;
   YMFeedListViewController *feedsController;
   YMSettingsViewController *settingsController;
+  YMAccountsViewController *accountsController;
   BOOL animateNetworkTransition;
   NSArray *networkPKs;
   
   YMNetwork *scrape_network;
   YMUserAccount *scrape_acct;
+  UITableViewStyle style;
+  id<DKCallback> onChooseNetwork;
 }
 
+@property (nonatomic, retain) id<DKCallback> onChooseNetwork;
 @property (nonatomic, readonly) YMWebService *web;
 
 - (void)refreshNetworks;
 - (void)gotoNetwork:(YMNetwork *)network;
-- (void)doContactScrape:(YMUserAccount *)_acct network:(YMNetwork *)_network;
+- (void)doContactScrape;
 
 @end

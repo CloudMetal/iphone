@@ -6,9 +6,8 @@
 //  Copyright 2010 __MyCompanyName__. All rights reserved.
 //
 
-@interface YammerAppDelegate : NSObject <UIApplicationDelegate> {
-
-}
-
+@interface YammerAppDelegate : NSObject 
+<UIApplicationDelegate, UISplitViewControllerDelegate> 
+{ }
 @end
 

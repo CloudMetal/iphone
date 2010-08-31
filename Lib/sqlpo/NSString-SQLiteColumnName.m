@@ -23,7 +23,9 @@
 @implementation NSString(SQLiteColumnName)
 - (NSString *)stringAsSQLColumnName
 {
-  
+  if ([self isEqualToString:[self lowercaseString]]) {
+    return self;
+  }
   NSMutableString *ret = [NSMutableString string];
   for (int i=0; i < [self length]; i++)
   {
@@ -38,6 +40,9 @@
 }
 - (NSString *)stringAsPropertyString
 {
+  if ([self rangeOfString:@"_"].location == NSNotFound) {
+    return self;
+  }
   BOOL lastWasUnderscore = NO;
   NSMutableString *ret = [NSMutableString string];
   for (int i=0; i < [self length]; i++)

@@ -9,7 +9,6 @@
 #import "DKCallback.h"
 #import "DKMacros.h"
 
-
 #define DKDeferredErrorDomain @"DKDeferred"
 #define DKDeferredURLErrorDomain @"DKDeferredURLConnection"
 #define DKDeferredCanceledError 419
@@ -33,6 +32,8 @@
   reason:@"Deferred instances can only be chained " \
          @"if they are the result of a callback" \
   userInfo:dict_(self, DKDeferredDeferredKey)]
+
+@protocol DKCache;
 
 /**
   * DKDeferred
@@ -73,7 +74,8 @@
   *  </pre>   
   */
 
-@interface DKDeferred : NSObject {
+@interface DKDeferred : NSObject
+{
   NSMutableArray *chain;
   NSString *deferredID;
   int fired;
@@ -108,11 +110,16 @@
 + (id)wait:(NSTimeInterval)seconds value:(id)value;
 + (id)callLater:(NSTimeInterval)seconds func:(id<DKCallback>)func;
 + (id)deferInThread:(id<DKCallback>)func withObject:(id)arg;
++ (id)deferInThread:(id<DKCallback>)func withObject:(id)arg 
+  canceller:(id<DKCallback>)cancelf paused:(BOOL)startPaused;
 + (id)defer:(id<DKCallback>)func withObject:(id)arg inQueue:(NSOperationQueue *)queue;
++ (id)defer:(id<DKCallback>)func withObject:(id)arg inQueue:(NSOperationQueue *)queue paused:(BOOL)_paused;
 + (id)loadURL:(NSString *)aUrl;
 + (id)loadURL:(NSString *)aUrl paused:(BOOL)_paused;
 + (id)loadURL:(NSString *)aUrl cached:(BOOL)cached;
 + (id)loadURL:(NSString *)aUrl cached:(BOOL)cached paused:(BOOL)_paused;
++ (void)setCache:(id<DKCache>)cache;
++ (id<DKCache>)cache;
 // callback methods
 - (id)addBoth:(id<DKCallback>)fn;
 - (id)addCallback:(id<DKCallback>)fn;
@@ -138,7 +145,8 @@
   * Wraps a series of deferreds into one deferred. Can be made
   * to callback on first result (the fireOnOneCallback/fireOnOneErrback) args
   */
-@interface DKDeferredList : DKDeferred {
+@interface DKDeferredList : DKDeferred
+{
   NSArray *list;
   NSMutableArray *resultList;
   int finishedCount;
@@ -172,7 +180,8 @@
  * Used internally to pause plain deferreds upon initialization. Resume
  * the contained deferred with [obj callback:nil];
  */
-@interface DKDeferredWrapper : DKDeferred {
+@interface DKDeferredWrapper : DKDeferred
+{
   DKDeferred *d;
 }
 
@@ -221,7 +230,6 @@
   NSThread *thread;
   NSThread *parentThread;
   id<DKCallback> action;
-  id __result;
 }
 
 @property(readonly) NSThread *thread;
@@ -290,12 +298,12 @@
   NSMutableData *_data;
   NSURLConnection *connection;
   NSURLRequest *request;
+  NSURLResponse *response;
   long expectedContentLength;
   double percentComplete;
   id<DKCallback> progressCallback;
   id<DKCallback> decodeFunction;
   NSTimeInterval refreshFrequency;
-  NSURLResponse *response;
 }
 
 @property(nonatomic, readonly) NSString *url;
@@ -339,12 +347,27 @@
 @required
 - (id)setValue:(NSObject *)_value forKey:(NSString *)_key 
        timeout:(NSTimeInterval)_seconds; // deferred -> NSNumber
+- (id)setValue:(NSObject *)_value forKey:(NSString *)_key 
+       timeout:(NSTimeInterval)_seconds paused:(BOOL)_paused;
+
 - (id)valueForKey:(NSString *)_key; // deferred -> NSObject
+- (id)valueForKey:(NSString *)_key paused:(BOOL)_paused;
+
 - (void)deleteValueForKey:(NSString *)_key; // deferred -> NSNumber
+
 - (id)getManyValues:(NSArray *)_keys; // deferred -> NSDictionary
+- (id)getManyValues:(NSArray *)_keys paused:(BOOL)_paused;
+
 - (BOOL)hasKey:(NSString *)_key;
 - (id)incr:(NSString *)_key delta:(int)delta; // nsnumber
 - (id)decr:(NSString *)_key delta:(int)delta; // nsnumber
+
+- (void)purgeMemoryCache;
+
+- (id)objectForKeyInMemory:(id)k;
+
+@property(assign) BOOL useMemoryCache;
+@property(assign) BOOL forceImmediateCaching;
 
 @end
 
@@ -361,11 +384,10 @@
   int maxEntries;
   int cullFrequency;
   NSString *dir;
-  NSTimeInterval *defaultTimeout;
+  NSTimeInterval defaultTimeout;
   NSOperationQueue *operationQueue;
+  NSMutableSet *existingKeys;
 }
-
-@property(nonatomic, readonly) NSString *dir;
 
 + (id)sharedCache;
 - (id)initWithDirectory:(NSString *)_dir 
@@ -379,6 +401,9 @@
 - (id)_getManyValues:(NSArray *)keys;
 - (void)_cull;
 - (int)_getNumEntries;
+
+@property (assign) int maxEntries;
+@property (assign) NSTimeInterval defaultTimeout;
 
 @end
 
@@ -420,6 +445,7 @@
 - (double)timeout;
 - (SEL)comparisonSelector;
 - (void)setComparisonSelector:(SEL)selecter;
+- (int)count;
 
 @end
 
@@ -502,6 +528,6 @@
 - (const void *)bytes;
 
 @property (nonatomic, readwrite, retain) id URLResponse;
-@property (nonatomic, readwrite, retain) NSData *data;
+@property (nonatomic, readonly) NSData *data;
 
 @end

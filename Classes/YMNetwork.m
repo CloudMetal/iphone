@@ -15,6 +15,23 @@
             permalink, url, unseenMessageCount, name, userID,
             groupSubscriptionIds, tagSubscriptionIds, userSubscriptionIds, community;
 
+DECLARE_PROPERTIES(
+                   DECLARE_PROPERTY(@"token", @"@\"NSString\""),
+                   DECLARE_PROPERTY(@"secret", @"@\"NSString\""),
+                   DECLARE_PROPERTY(@"userAccountPK", @"@\"NSNumber\""),
+                   DECLARE_PROPERTY(@"networkID", @"@\"NSNumber\""),
+                   DECLARE_PROPERTY(@"lastScrapedLocalContacts", @"@\"NSDate\""),
+                   DECLARE_PROPERTY(@"permalink", @"@\"NSString\""),
+                   DECLARE_PROPERTY(@"url", @"@\"NSString\""),
+                   DECLARE_PROPERTY(@"unseenMessageCount", @"@\"NSNumber\""),
+                   DECLARE_PROPERTY(@"name", @"@\"NSString\""),
+                   DECLARE_PROPERTY(@"userID", @"@\"NSNumber\""),
+                   DECLARE_PROPERTY(@"groupSubscriptionIds", @"@\"NSArray\""),
+                   DECLARE_PROPERTY(@"tagSubscriptionIds", @"@\"NSArray\""),
+                   DECLARE_PROPERTY(@"userSubscriptionIds", @"@\"NSArray\""),
+                   DECLARE_PROPERTY(@"community", @"@\"NSNumber\"")
+                   )
+
 - (void)dealloc
 {
   self.token = nil;

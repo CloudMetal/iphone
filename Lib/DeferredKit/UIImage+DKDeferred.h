@@ -11,5 +11,7 @@
 
 + (UIImage *)imageWithImage:(UIImage *)image scaledToSize:(CGSize)newSize;
 - (UIImage *)scaleImageToSize:(CGSize)newSize;
++ (NSData *)dataForCache;
++ (id)fromCacheData:(NSData *)data;
 
 @end

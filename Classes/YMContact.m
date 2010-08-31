@@ -16,6 +16,32 @@
             phoneNumbers, im, externalURLs, birthDate, hireDate, 
             summary ,timeZone, networkID, networkDomains, networkName, stats, gotFullRep;
 
+DECLARE_PROPERTIES(
+                   DECLARE_PROPERTY(@"type", @"@\"NSString\""),
+                   DECLARE_PROPERTY(@"userID", @"@\"NSNumber\""),
+                   DECLARE_PROPERTY(@"state", @"@\"NSString\""),
+                   DECLARE_PROPERTY(@"username", @"@\"NSString\""),
+                   DECLARE_PROPERTY(@"fullName", @"@\"NSString\""),
+                   DECLARE_PROPERTY(@"mugshotURL", @"@\"NSString\""),
+                   DECLARE_PROPERTY(@"url", @"@\"NSString\""),
+                   DECLARE_PROPERTY(@"webURL", @"@\"NSString\""),
+                   DECLARE_PROPERTY(@"jobTitle", @"@\"NSString\""),
+                   DECLARE_PROPERTY(@"location", @"@\"NSString\""),
+                   DECLARE_PROPERTY(@"emailAddresses", @"@\"NSArray\""),
+                   DECLARE_PROPERTY(@"phoneNumbers", @"@\"NSArray\""),
+                   DECLARE_PROPERTY(@"im", @"@\"NSArray\""),
+                   DECLARE_PROPERTY(@"externalURLs", @"@\"NSArray\""),
+                   DECLARE_PROPERTY(@"birthDate", @"@\"NSString\""),
+                   DECLARE_PROPERTY(@"hireDate", @"@\"NSString\""),
+                   DECLARE_PROPERTY(@"summary", @"@\"NSString\""),
+                   DECLARE_PROPERTY(@"timeZone", @"@\"NSString\""),
+                   DECLARE_PROPERTY(@"networkID", @"@\"NSNumber\""),
+                   DECLARE_PROPERTY(@"networkDomains", @"@\"NSArray\""),
+                   DECLARE_PROPERTY(@"networkName", @"@\"NSString\""),
+                   DECLARE_PROPERTY(@"stats", @"@\"NSDictionary\""),
+                   DECLARE_PROPERTY(@"gotFullRep", @"@\"NSNumber\"")
+                   )
+
 + (NSArray *) indices
 {
   return array_(

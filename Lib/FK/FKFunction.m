@@ -297,7 +297,7 @@ READ NSObject *target;
 }
 
 + (FKFunction *)functionFromInvocation:(NSInvocation *)invocation parameterIndex:(NSUInteger)index {
-	return [[FKFunctionFromInvocation alloc] initWithInvocation:invocation parameterIndex:index];	
+	return [[[FKFunctionFromInvocation alloc] initWithInvocation:invocation parameterIndex:index] autorelease];	
 }
 
 - (id):(id)arg {
@@ -309,7 +309,7 @@ READ NSObject *target;
 }
 
 - (FKFunction *)composeWith:(FKFunction *)other {
-	return [[FKFunctionComposition alloc] initWithF:self andG:other];
+	return [[[FKFunctionComposition alloc] initWithF:self andG:other] autorelease];
 }
 @end
 

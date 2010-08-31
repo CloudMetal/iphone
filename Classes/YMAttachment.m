@@ -14,6 +14,19 @@
 @synthesize type, name, webURL, isImage, attachmentID, 
             size, url, imageThumbnailURL, messageID, messagePK;
 
+DECLARE_PROPERTIES(
+                   DECLARE_PROPERTY(@"type", @"@\"NSString\""),
+                   DECLARE_PROPERTY(@"name", @"@\"NSString\""),
+                   DECLARE_PROPERTY(@"webURL", @"@\"NSString\""),
+                   DECLARE_PROPERTY(@"isImage", @"@\"NSNumber\""),
+                   DECLARE_PROPERTY(@"attachmentID", @"@\"NSNumber\""),
+                   DECLARE_PROPERTY(@"size", @"@\"NSNumber\""),
+                   DECLARE_PROPERTY(@"url", @"@\"NSString\""),
+                   DECLARE_PROPERTY(@"imaageThumbnailURL", @"@\"NSString\""),
+                   DECLARE_PROPERTY(@"messageID", @"@\"NSNumber\""),
+                   DECLARE_PROPERTY(@"messagePK", @"@\"NSNumber\"")
+                   )
+
 - (NSString *) description
 {
   return [NSString stringWithFormat:@"<YMAttachment type=%@ name=%@ webURL=%@ "
