@@ -108,8 +108,6 @@
   [moreButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
   [moreButton setTitle:@"Show More Messages" forState:UIControlStateNormal];
   moreButton.titleLabel.font = [UIFont systemFontOfSize:13];
-//  [moreButton setBackgroundColor:[UIColor colorWithPatternImage:
-//                            [UIImage imageNamed:@"inline-button-bg-blue.png"]]];
   [moreButton setBackgroundImage:
    [[UIImage imageNamed:@"inline-button-bg-blue.png"] stretchableImageWithLeftCapWidth:
     0 topCapHeight:0] forState:UIControlStateNormal];
@@ -409,8 +407,6 @@
   titles = nil;
   if (mugshotURLs) [mugshotURLs release];
   mugshotURLs = nil;
-  if (mugshots) [mugshots release];
-  mugshots = nil;
   if (bodies) [bodies release];
   bodies = nil;
   if (reads) [reads release];
@@ -441,7 +437,6 @@
   mugshotURLs = [[a objectAtIndex:1] retain];
   NSMutableArray *_titles = [NSMutableArray arrayWithCapacity:
                              [messagePKs count]];
-  mugshots = [[NSMutableArray arrayWithCapacity:[messagePKs count]] retain];
   bodies = [[a objectAtIndex:4] retain];
   dates = [[a objectAtIndex:5] retain];
   reads = [[a objectAtIndex:6] retain];
@@ -457,13 +452,6 @@
   [self updateBadge];
   
   for (int i = 0; i < [messagePKs count]; i++) {
-    UIImage *img = nil;
-    NSString *mugshotUrl = [mugshotURLs objectAtIndex:i];
-    if ([mugshotUrl isKindOfClass:
-         [NSString class]] && [mugshotUrl length])
-      img = [[web imageForURLInMemoryCache:mugshotUrl] retain];
-    [mugshots addObject:(img ? [img autorelease] : (id)[NSNull null])];
-    
     NSString *tit = [[a objectAtIndex:2] objectAtIndex:i];
     NSString *rtit = [[a objectAtIndex:3] objectAtIndex:i];
     NSString *ttit = [privates objectAtIndex:i];
@@ -674,26 +662,22 @@ cellForRowAtIndexPath:(NSIndexPath *)indexPath
   
   id read = [reads objectAtIndex:idx];
   if ([read isKindOfClass:[NSObject class]] && !intv(read)) {
-//    [newlyReadMessageIndexes addIndex:idx];
     cell.unread = YES;
   } else {
     cell.unread = NO;
   }
   
-  id img = [mugshots objectAtIndex:idx];
-  if (![img isKindOfClass:[UIImage class]]) {
+  static NSString *photoRegex = @"no_photo_small\\.gif$";
+  id imgURL = [mugshotURLs objectAtIndex:idx];
+  UIImage *img = [[DKDeferred cache] objectForKeyInMemory:imgURL];
+  if (!img) {
     img = [UIImage imageNamed:@"user-70.png"];
-    NSString *ms = [mugshotURLs objectAtIndex:idx];
-    if (!loadedAvatars) { // do nothing if we haven't yet loaded
-    } else if ([ms isKindOfClass:[NSString class]] && [ms length] &&
-               !(img = [web imageForURLInMemoryCache:ms])) {
-      img = [UIImage imageNamed:@"user-70.png"];
-      [[web contactImageForURL:ms]
-       addCallback:curryTS(self, @selector(_gotMugshot::), 
-                           [messagePKs objectAtIndex:idx])];
+    if (![imgURL isEqual:[NSNull null]] && ![imgURL isMatchedByRegex:photoRegex]) {
+      [[web contactImageForURL:imgURL] addCallback:
+       curryTS(self, @selector(_gotMugshot::), [messagePKs objectAtIndex:idx])];
     }
   }
-
+  
   cell.avatar = img;
   cell.body = [bodies objectAtIndex:idx];
   cell.date = [NSDate fastStringForDisplayFromDate:
@@ -796,17 +780,13 @@ willSelectRowAtIndexPath:(NSIndexPath *)indexPath
   if ([result isKindOfClass:[UIImage class]]) {
     int idx = [messagePKs indexOfObject:messagePK];
     if (idx != NSNotFound) {
-      loadedAvatars = YES;
-      [mugshots replaceObjectAtIndex:idx withObject:result];
       if (self.selectedIndexPath && self.selectedIndexPath.row < idx) idx++;
       NSIndexPath *path = [NSIndexPath indexPathForRow:idx inSection:0];
       int idx2 = [[self.tableView indexPathsForVisibleRows] indexOfObject:path];
       if (idx2 != NSNotFound) {
-        YMFastMessageTableViewCell *cell = (YMFastMessageTableViewCell *)[[self.tableView visibleCells] objectAtIndex:idx2];
+        YMFastMessageTableViewCell *cell = (YMFastMessageTableViewCell *)
+          [[self.tableView visibleCells] objectAtIndex:idx2];
         cell.avatar = result;
-//      YMFastMessageTableViewCell *cell = (YMFastMessageTableViewCell *)      
-//        [self.tableView cellForRowAtIndexPath:path];      
-//      if (cell) cell.avatar = result;
       }
     }
   }
@@ -830,8 +810,6 @@ willSelectRowAtIndexPath:(NSIndexPath *)indexPath
 
 - (id)gotoMessageIndexPath:(NSIndexPath *)indexPath sender:(id)s
 {
-//  [self.tableView selectRowAtIndexPath:indexPath animated:
-//   YES scrollPosition:UITableViewScrollPositionNone];
   [[NSRunLoop currentRunLoop] runUntilDate:
    [NSDate dateWithTimeIntervalSinceNow:0.05]];
   
@@ -928,7 +906,6 @@ willSelectRowAtIndexPath:(NSIndexPath *)indexPath
    removeObserver:self];
   [bodies release];
   [messagePKs release];
-  [mugshots release];
   [mugshotURLs release];
   [dates release];
   [titles release];

@@ -29,7 +29,7 @@
   NSString *date;
   NSString *group;
   UIImage *avatar;
-  UIImageView *imageView;
+//  UIImageView *imageView;
   BOOL unread;
   BOOL hasAttachments;
   BOOL liked;

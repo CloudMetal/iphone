@@ -12,7 +12,7 @@
 @implementation YMComposeView
 
 @synthesize messageTextView, toLabel, toTargetLabel, activity, onPhoto, onUserPhoto,
-onUserInputsHash, onUserInputsAt, onPartialWillClose, actionBar, tableView, onHash, onUser, onPartial, interfaceOrientation, onDrafts, onUserDrafts;
+onUserInputsHash, onUserInputsAt, onPartialWillClose, actionBar, tableView, onHash, onUser, onPartial, interfaceOrientation, onDrafts, onUserDrafts, onTextChange;
 
 //- (id)initWithCoder:(NSCoder *)aDecoder
 //{
@@ -88,6 +88,8 @@ onUserInputsHash, onUserInputsAt, onPartialWillClose, actionBar, tableView, onHa
 
 - (void) textViewDidChange:(UITextView *)textView
 {
+  if (self.onTextChange) [self.onTextChange :textView.text];
+  
   NSString *s = [textView.text stringByMatching:@"((@|#)[a-zA-Z0-9-]+)$" options:
                  RKLDotAll | RKLMultiline | RKLUnicodeWordBoundaries inRange:
                  NSMakeRange(0, textView.text.length) capture:1 error:nil];

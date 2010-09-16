@@ -1015,7 +1015,7 @@ static DKDeferredCache *__sharedCache;
 
 @implementation DKDeferredCache
 
-@synthesize maxEntries, defaultTimeout;
+@synthesize maxEntries, defaultTimeout, dir;
 
 /// DKCache Protocol
 - (id)setValue:(NSObject *)value forKey:(NSString *)key timeout:(NSTimeInterval)timeout {

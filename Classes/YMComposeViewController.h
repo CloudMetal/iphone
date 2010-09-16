@@ -8,6 +8,7 @@
 
 #import <UIKit/UIKit.h>
 #import "YMDraft.h"
+#import "MBProgressHUD.h"
 
 @class YMWebService;
 @class YMUserAccount;
@@ -15,9 +16,12 @@
 @class YMMessageTextView;
 @class YMComposeView;
 
+
 @interface YMComposeViewController : UIViewController 
 <UITableViewDataSource, UITableViewDelegate, UITextViewDelegate, UIActionSheetDelegate,
-UIImagePickerControllerDelegate, UINavigationControllerDelegate, UISearchBarDelegate> {
+UIImagePickerControllerDelegate, UINavigationControllerDelegate, UISearchBarDelegate,
+MBProgressHUDDelegate> 
+{
   YMWebService *web;
   YMUserAccount *userAccount;
   YMNetwork *network;
@@ -38,6 +42,8 @@ UIImagePickerControllerDelegate, UINavigationControllerDelegate, UISearchBarDele
   id<DKCallback> onCompleteSend;
   BOOL searchBarWillClear;
   YMDraft *draft;
+  MBProgressHUD *HUD;
+  NSString *text;
 }
 
 @property (nonatomic, retain) YMDraft *draft;

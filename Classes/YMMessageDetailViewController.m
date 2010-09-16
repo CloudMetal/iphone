@@ -23,6 +23,15 @@
 
 @synthesize message, userAccount, feedItems;
 
+- (id)initWithStyle:(UITableViewStyle)style
+{
+  if ((self = [super initWithStyle:style])) {
+    loadingIndexSet = [[NSMutableIndexSet alloc] init];
+    loadingPool = [[DKDeferredPool alloc] init];
+  }
+  return self;
+}
+
 - (void)loadView
 {
   self.tableView = [[UITableView alloc] initWithFrame:
@@ -47,6 +56,10 @@
 - (void)refreshMessageData
 {
   refreshing = YES;
+  if (attachments) [attachments release];
+  attachments = nil;
+  [loadingPool drain];
+  
   [self.tableView reloadData];
   [[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
   refreshing = NO;
@@ -72,13 +85,10 @@
                                     forState:UIControlStateNormal];
   self.tableView.tableHeaderView = detailView.headerView;
   self.tableView.tableFooterView = detailView.footerView;
-  if (attachments) [attachments release];
-  attachments = nil;
   attachments = [[YMAttachment findByCriteria:@"WHERE message_p_k=%i",
                   message.pk] retain];
   if (attachmentCache) [attachmentCache release];
   attachmentCache = [[NSMutableDictionary dictionary] retain];
-  if (!loadingPool) loadingPool = [[[DKDeferredPool alloc] init] retain];
   
   UIView *v = [[[UIView alloc] initWithFrame:CGRectMake(0, 0, 76, 44)] autorelease];
   UISegmentedControl *sw = [[[UISegmentedControl alloc] initWithItems:
@@ -261,19 +271,38 @@ cellForRowAtIndexPath:(NSIndexPath *)indexPath
   if (indexPath.section == 0) return detailView;
   static NSString *ident = @"YMAttachmentCell1";
   UITableViewCell *cell = [table dequeueReusableCellWithIdentifier:ident];
-  if (!cell) cell = [[[UITableViewCell alloc] initWithStyle:
-                      UITableViewCellStyleSubtitle reuseIdentifier:ident]
-                     autorelease];
+  if (!cell) {
+    cell = [[[UITableViewCell alloc] initWithStyle:
+             UITableViewCellStyleSubtitle reuseIdentifier:ident] autorelease];
+    UIActivityIndicatorView *act = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:
+                                    UIActivityIndicatorViewStyleGray];
+    act.hidesWhenStopped = YES;
+    act.frame = CGRectMake(table.frame.size.width - 52, 15, 22, 22);
+    act.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin;
+    act.tag = 2;
+    [act stopAnimating];
+    [cell.contentView addSubview:act];
+  }
+  if ([loadingIndexSet containsIndex:indexPath.row]) 
+    [(id)[cell.contentView viewWithTag:2] startAnimating];
+  else [(id)[cell.contentView viewWithTag:2] stopAnimating];
+  
   YMAttachment *a = [attachments objectAtIndex:indexPath.row];
   cell.textLabel.text = a.name;
   cell.detailTextLabel.text = [NSString stringWithFormat:@"%dk",
                                intv(a.size)/1024];
   NSLog(@"a %@ %@", a, a.imageThumbnailURL);
   UIImage *image = nil;
+  if ([a.type isEqual:@"ymodule"]) {
+    cell.imageView.contentMode = UIViewContentModeCenter;
+  } else {
+    cell.imageView.contentMode   = UIViewContentModeScaleAspectFit;
+  }
   if ([attachmentCache objectForKey:a.imageThumbnailURL]) {
     image = [attachmentCache objectForKey:a.imageThumbnailURL];
   } else if (a.imageThumbnailURL) {
-    image = [UIImage imageNamed:@"42-photos.png"];
+    cell.imageView.contentMode = UIViewContentModeCenter;
+    image = [UIImage imageNamed:@"picture_empty.png"];
     
     NSMutableURLRequest *req = [[[NSMutableURLRequest alloc] initWithURL:
                                  [NSURL URLWithString:a.imageThumbnailURL]]
@@ -283,9 +312,10 @@ cellForRowAtIndexPath:(NSIndexPath *)indexPath
                         initRequest:req decodeFunction:nil paused:YES]
                        autorelease]
                   key:a.imageThumbnailURL]
-     addCallback:curryTS(self, @selector(_gotThumbnail::), indexPath)];
+     addCallback:curryTS(self, @selector(_gotThumbnail:::), indexPath, message)];
   } else {
-    image = [UIImage imageNamed:@"68-paperclip.png"];
+    cell.imageView.contentMode = UIViewContentModeCenter;
+    image = [UIImage imageNamed:@"attach.png"];
   }
   cell.imageView.image = image;
   return cell;
@@ -324,27 +354,35 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath
          show];
       }
     } else {
+      [loadingIndexSet addIndex:indexPath.row];
+      [self.tableView reloadRowsAtIndexPaths:array_(indexPath) withRowAnimation:
+       UITableViewRowAnimationNone];
+      fetchingAttachment = YES;
+      
       NSMutableURLRequest *req = [[[NSMutableURLRequest alloc] initWithURL:
                                    [NSURL URLWithString:a.url]] autorelease];
-      fetchingAttachment = YES;
       [web authorizeRequest:req withAccount:self.userAccount];
       [[[[StatusBarNotifier sharedNotifier]
         flashLoading:@"Loading File" deferred:
         [[[DKDeferredURLConnection alloc] initRequest:
           req decodeFunction:nil paused:NO] autorelease]]
-       addCallback:curryTS(self, @selector(_showFullsize:::), 
+        addCallback:curryTS(self, @selector(_showFullsize::::), 
                            [NSURL fileURLWithPath:
                             [NSString stringWithFormat:@"/%@", a.name]], 
-                           a.isImage)]
-       addErrback:callbackTS(self, _failShowFullsize:)];
+                           a.isImage, indexPath)]
+        addErrback:curryTS(self, @selector(_failShowFullsize::), indexPath)];
     }
   }
   [self.tableView deselectRowAtIndexPath:indexPath animated:YES];
 }
 
--_failShowFullsize:r
+-_failShowFullsize:(NSIndexPath *)indexPath :r
 {
+  [loadingIndexSet removeIndex:indexPath.row];
+  [self.tableView reloadRowsAtIndexPaths:array_(indexPath) withRowAnimation:
+   UITableViewRowAnimationNone];
   fetchingAttachment = NO;
+  
   [[[[UIAlertView alloc]
      initWithTitle:@"Download Failed" message:
      @"An error occured while downloading the attachment" delegate:nil 
@@ -352,9 +390,13 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath
   return r;
 }
 
-- (id)_showFullsize:(NSURL *)url :(NSNumber *)isImage :(id)result
+- (id)_showFullsize:(NSURL *)url :(NSNumber *)isImage :(NSIndexPath *)indexPath :(id)result
 {
   fetchingAttachment = NO;
+  [loadingIndexSet removeIndex:indexPath.row];
+  [self.tableView reloadRowsAtIndexPaths:array_(indexPath) withRowAnimation:
+   UITableViewRowAnimationNone];
+  
   if ([result isKindOfClass:[NSData class]] && boolv(isImage))
     result = [UIImage imageWithData:result];
   if ([result isKindOfClass:[UIImage class]]) {
@@ -390,11 +432,13 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath
   return result;
 }
 
-- (id)_gotThumbnail:(NSIndexPath *)indexPath :(id)result
+- (id)_gotThumbnail:(NSIndexPath *)indexPath :(YMMessage *)m :(id)result
 {
+  if (!(m == message)) return result;
   if ([result isKindOfClass:[NSData class]])
     result = [UIImage imageWithData:result];
-  if ([result isKindOfClass:[UIImage class]]) {
+  if ([result isKindOfClass:[UIImage class]] 
+      && [[attachments objectAtIndex:indexPath.row] imageThumbnailURL]) {
     UITableViewCell *c = [self.tableView cellForRowAtIndexPath:indexPath];
     [attachmentCache setObject:result forKey:
      [[attachments objectAtIndex:indexPath.row] imageThumbnailURL]];
@@ -420,6 +464,7 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 
 - (void)dealloc
 {
+  [loadingIndexSet release];
   self.feedItems = nil;
   [detailView release];
   [message release];

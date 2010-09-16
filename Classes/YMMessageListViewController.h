@@ -75,7 +75,7 @@
 @property(nonatomic, readwrite, copy) NSNumber *threaded;
 @property(nonatomic, readwrite, copy) NSNumber *remainingUnseenItems;
 @property(nonatomic, readwrite, copy) NSNumber *lastLoadedMessageID, *lastSeenMessageID;
-@property(nonatomic, assign) BOOL loadedAvatars, shouldUpdateBadge, reloading;
+@property(nonatomic, assign) BOOL loadedAvatars, shouldUpdateBadge;
 
 - (void)refreshFeed:(id)sender;
 - (void)refreshMessagePKs;

@@ -175,6 +175,17 @@ timeout:(NSTimeInterval)_seconds paused:(BOOL)_paused
     [existingKeys removeObject:[NSNumber numberWithUnsignedInteger:key.hash]];
 }
 
+- (void)deleteAllValues
+{
+  if (useMemoryCache) {
+    @synchronized(memoryCache) {
+      [memoryCache invalidateAllKeys];
+    }
+  }
+  @synchronized(self) { sqlite3_exec(db, "DELETE FROM dkcache", NULL, NULL, NULL); }
+  [existingKeys removeAllObjects];
+}
+
 - (id)getManyValues:(NSArray *)keys 
 {
   return [self getManyValues:keys paused:NO];

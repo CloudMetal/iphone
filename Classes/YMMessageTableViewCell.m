@@ -82,6 +82,7 @@ static UIImage *smallAttachmentImage = nil;
 static UIImage *smallFollowingImage = nil;
 static UIImage *smallPrivateImage = nil;
 
+//#define YMSwipeActionsEnabled
 
 @implementation YMFastMessageTableViewCell
 
@@ -132,14 +133,14 @@ isPrivate, group, swipeSelector, swipeTarget;
     contentView.opaque = YES;
     [self addSubview:contentView];
     
-    imageView = [[[UIImageView alloc] initWithFrame:CGRectMake(10, 8, 44, 44)] autorelease];
-    imageView.layer.masksToBounds = YES;
-    imageView.layer.borderColor = borderColor.CGColor;
-    imageView.layer.cornerRadius = 3;
-    imageView.layer.borderWidth = 1;
-    imageView.contentMode = UIViewContentModeScaleToFill;
-    imageView.backgroundColor = [UIColor clearColor];
-    [contentView addSubview:imageView];
+//    imageView = [[[UIImageView alloc] initWithFrame:CGRectMake(10, 8, 44, 44)] autorelease];
+//    imageView.layer.masksToBounds = YES;
+//    imageView.layer.borderColor = borderColor.CGColor;
+//    imageView.layer.cornerRadius = 3;
+//    imageView.layer.borderWidth = 1;
+//    imageView.contentMode = UIViewContentModeScaleToFill;
+//    imageView.backgroundColor = [UIColor clearColor];
+//    [contentView addSubview:imageView];
     
     unread = NO;
     liked = NO;
@@ -153,6 +154,8 @@ isPrivate, group, swipeSelector, swipeTarget;
   }
   return self;
 }
+
+#ifdef YMTouchActionsEnabled
 
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
 {
@@ -198,6 +201,9 @@ isPrivate, group, swipeSelector, swipeTarget;
   movementTrackFirstTouch = CGPointZero;
   [super touchesCancelled:touches withEvent:event];
 }
+
+
+#endif
 
 - (void)setIsPrivate:(BOOL)p
 {
@@ -265,7 +271,9 @@ isPrivate, group, swipeSelector, swipeTarget;
 
 - (void)setAvatar:(UIImage *)a
 {
-  imageView.image = a;
+//  imageView.image = a;
+  [avatar release];
+  avatar = [a retain];
   [self setNeedsDisplay];
 }
 
@@ -346,7 +354,8 @@ isPrivate, group, swipeSelector, swipeTarget;
   [date drawInRect:dateLabel withFont:dateFont 
      lineBreakMode:UILineBreakModeClip alignment:UITextAlignmentRight];
   
-  [imageView.layer drawInContext:ctx];
+  [avatar drawAtPoint:CGPointMake(10, 8)];
+//  [imageView.layer drawInContext:ctx];
 }
 
 @end

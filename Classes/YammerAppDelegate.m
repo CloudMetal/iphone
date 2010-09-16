@@ -26,6 +26,8 @@
   [YMContact tableCheck];
   [YMNetwork tableCheck];
   
+  [DKDeferred setCache:[DKDeferredSqliteCache sharedCache]];
+  
   NSUserDefaults *defs = [NSUserDefaults standardUserDefaults];
   NSString *version = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"];
   NSString *prevVersion = [defs objectForKey:@"YMPreviousBundleVersion"];
@@ -44,11 +46,14 @@
       userAcct.activeNetworkPK = nil;
       [userAcct save];
     }
+  } 
+  if ([prevVersion isEqual:@"3.1.0.968"]) { // 3.1 => 3.1.1 upgrade path 
+    [[DKDeferred cache] deleteAllValues];
   }
+  
   [defs setObject:version forKey:@"YMPreviousBundleVersion"];
   [defs synchronize];
   
-  [DKDeferred setCache:[DKDeferredSqliteCache sharedCache]];
   [[YMWebService sharedWebService] setShouldUpdateBadgeIcon:YES];
   
   [[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
@@ -136,7 +141,7 @@ didFailToRegisterForRemoteNotificationsWithError:(NSError *)error
       NSLog(@"unseenMessageCount %@", n.unseenMessageCount);
     }
   }
-  [[YMWebService sharedWebService] updateUIAppliredcationBadge];
+  [[YMWebService sharedWebService] updateUIApplicationBadge];
   [DKDeferred cache].forceImmediateCaching = YES;
   [[DKDeferred cache] purgeMemoryCache];
 }

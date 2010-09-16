@@ -28,11 +28,15 @@
 		150BF1081210C9E9002BC81E /* Reachability.m in Sources */ = {isa = PBXBuildFile; fileRef = 150BF0FA1210C9E9002BC81E /* Reachability.m */; };
 		150BF1091210C9E9002BC81E /* UIImage+DKDeferred.m in Sources */ = {isa = PBXBuildFile; fileRef = 150BF0FC1210C9E9002BC81E /* UIImage+DKDeferred.m */; };
 		150BF11B1210CD29002BC81E /* DKSimpleMemoryCache.m in Sources */ = {isa = PBXBuildFile; fileRef = 150BF11A1210CD29002BC81E /* DKSimpleMemoryCache.m */; };
+		150DE211123AD8C300D68C3A /* attach.png in Resources */ = {isa = PBXBuildFile; fileRef = 150DE210123AD8C300D68C3A /* attach.png */; };
+		150DE213123AD8F200D68C3A /* picture_empty.png in Resources */ = {isa = PBXBuildFile; fileRef = 150DE212123AD8F200D68C3A /* picture_empty.png */; };
 		15460B991213D3FB00350BB7 /* YMDraft.m in Sources */ = {isa = PBXBuildFile; fileRef = 15460B981213D3FB00350BB7 /* YMDraft.m */; };
 		154D1D1B122DCC2300D5B8F7 /* inline-button-bg-blue-pressed.png in Resources */ = {isa = PBXBuildFile; fileRef = 154D1D1A122DCC2300D5B8F7 /* inline-button-bg-blue-pressed.png */; };
 		157B4ADA11ED8B5700886050 /* UIImage+Resize.m in Sources */ = {isa = PBXBuildFile; fileRef = 157B4AD911ED8B5700886050 /* UIImage+Resize.m */; };
 		157B4AE311ED8CC200886050 /* UIImage+Alpha.m in Sources */ = {isa = PBXBuildFile; fileRef = 157B4ADF11ED8CC200886050 /* UIImage+Alpha.m */; };
 		157B4AE411ED8CC200886050 /* UIImage+RoundedCorner.m in Sources */ = {isa = PBXBuildFile; fileRef = 157B4AE111ED8CC200886050 /* UIImage+RoundedCorner.m */; };
+		15A7EDCD1230582600F75009 /* MBProgressHUD.m in Sources */ = {isa = PBXBuildFile; fileRef = 15A7EDCC1230582600F75009 /* MBProgressHUD.m */; };
+		15A7EE8C12307DA300F75009 /* UIImage+ProportionalFill.m in Sources */ = {isa = PBXBuildFile; fileRef = 15A7EE8B12307DA300F75009 /* UIImage+ProportionalFill.m */; };
 		15BFEE94121C8C4900F7B704 /* YMMenuController.m in Sources */ = {isa = PBXBuildFile; fileRef = 15BFEE93121C8C4900F7B704 /* YMMenuController.m */; };
 		15BFEE9D121CA0EE00F7B704 /* all-iPad.png in Resources */ = {isa = PBXBuildFile; fileRef = 15BFEE95121CA0EE00F7B704 /* all-iPad.png */; };
 		15BFEE9E121CA0EE00F7B704 /* bookmarked-iPad.png in Resources */ = {isa = PBXBuildFile; fileRef = 15BFEE96121CA0EE00F7B704 /* bookmarked-iPad.png */; };
@@ -249,6 +253,8 @@
 		150BF0FC1210C9E9002BC81E /* UIImage+DKDeferred.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIImage+DKDeferred.m"; sourceTree = "<group>"; };
 		150BF1191210CD29002BC81E /* DKSimpleMemoryCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DKSimpleMemoryCache.h; sourceTree = "<group>"; };
 		150BF11A1210CD29002BC81E /* DKSimpleMemoryCache.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DKSimpleMemoryCache.m; sourceTree = "<group>"; };
+		150DE210123AD8C300D68C3A /* attach.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = attach.png; sourceTree = "<group>"; };
+		150DE212123AD8F200D68C3A /* picture_empty.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = picture_empty.png; sourceTree = "<group>"; };
 		15460B971213D3FB00350BB7 /* YMDraft.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YMDraft.h; sourceTree = "<group>"; };
 		15460B981213D3FB00350BB7 /* YMDraft.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = YMDraft.m; sourceTree = "<group>"; };
 		154D1D1A122DCC2300D5B8F7 /* inline-button-bg-blue-pressed.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "inline-button-bg-blue-pressed.png"; path = "Resources/inline-button-bg-blue-pressed.png"; sourceTree = "<group>"; };
@@ -258,6 +264,10 @@
 		157B4AE011ED8CC200886050 /* UIImage+Alpha.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "UIImage+Alpha.h"; path = "Lib/UIImage+Alpha.h"; sourceTree = "<group>"; };
 		157B4AE111ED8CC200886050 /* UIImage+RoundedCorner.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "UIImage+RoundedCorner.m"; path = "Lib/UIImage+RoundedCorner.m"; sourceTree = "<group>"; };
 		157B4AE211ED8CC200886050 /* UIImage+RoundedCorner.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "UIImage+RoundedCorner.h"; path = "Lib/UIImage+RoundedCorner.h"; sourceTree = "<group>"; };
+		15A7EDCB1230582600F75009 /* MBProgressHUD.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MBProgressHUD.h; sourceTree = "<group>"; };
+		15A7EDCC1230582600F75009 /* MBProgressHUD.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MBProgressHUD.m; sourceTree = "<group>"; };
+		15A7EE8A12307DA300F75009 /* UIImage+ProportionalFill.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIImage+ProportionalFill.h"; sourceTree = "<group>"; };
+		15A7EE8B12307DA300F75009 /* UIImage+ProportionalFill.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIImage+ProportionalFill.m"; sourceTree = "<group>"; };
 		15BFEE92121C8C4900F7B704 /* YMMenuController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YMMenuController.h; sourceTree = "<group>"; };
 		15BFEE93121C8C4900F7B704 /* YMMenuController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = YMMenuController.m; sourceTree = "<group>"; };
 		15BFEE95121CA0EE00F7B704 /* all-iPad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "all-iPad.png"; path = "Resources-iPad/all-iPad.png"; sourceTree = "<group>"; };
@@ -638,6 +648,8 @@
 				226598A511A3F3CC009A8AD8 /* YMComposeView.xib */,
 				22751A0B11E4283B00FDE984 /* YMRefreshView.h */,
 				22751A0C11E4283B00FDE984 /* YMRefreshView.m */,
+				22751A0E11E428B200FDE984 /* YMTableViewController.h */,
+				22751A0F11E428B200FDE984 /* YMTableViewController.m */,
 			);
 			name = Views;
 			path = ..;
@@ -667,8 +679,6 @@
 				2233D86D11C475C2002DCDFB /* YMSimpleWebView.h */,
 				2233D86E11C475C2002DCDFB /* YMSimpleWebView.m */,
 				2233D86F11C475C2002DCDFB /* YMSimpleWebView.xib */,
-				22751A0E11E428B200FDE984 /* YMTableViewController.h */,
-				22751A0F11E428B200FDE984 /* YMTableViewController.m */,
 				15C763D611F02CF800E660BE /* YMSettingsViewController.h */,
 				15C763D711F02CF800E660BE /* YMSettingsViewController.m */,
 				15CAFE3C1219EA7700B51153 /* YMSplitViewController.h */,
@@ -892,6 +902,10 @@
 		29B97315FDCFA39411CA2CEA /* Other Sources */ = {
 			isa = PBXGroup;
 			children = (
+				15A7EE8A12307DA300F75009 /* UIImage+ProportionalFill.h */,
+				15A7EE8B12307DA300F75009 /* UIImage+ProportionalFill.m */,
+				15A7EDCB1230582600F75009 /* MBProgressHUD.h */,
+				15A7EDCC1230582600F75009 /* MBProgressHUD.m */,
 				157B4ADF11ED8CC200886050 /* UIImage+Alpha.m */,
 				157B4AE011ED8CC200886050 /* UIImage+Alpha.h */,
 				157B4AE111ED8CC200886050 /* UIImage+RoundedCorner.m */,
@@ -936,6 +950,8 @@
 		29B97317FDCFA39411CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				150DE212123AD8F200D68C3A /* picture_empty.png */,
+				150DE210123AD8C300D68C3A /* attach.png */,
 				15E909F5120A78990046349A /* UIButtonBarArrowDownSmall.png */,
 				15E909F6120A78990046349A /* UIButtonBarArrowDownSmall@2x.png */,
 				15E909F7120A78990046349A /* UIButtonBarArrowUpSmall.png */,
@@ -1154,6 +1170,8 @@
 				15BFEEA4121CA0EE00F7B704 /* sent-iPad.png in Resources */,
 				15BFEEBC121CA5EF00F7B704 /* contacts-iPad.png in Resources */,
 				154D1D1B122DCC2300D5B8F7 /* inline-button-bg-blue-pressed.png in Resources */,
+				150DE211123AD8C300D68C3A /* attach.png in Resources */,
+				150DE213123AD8F200D68C3A /* picture_empty.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1270,6 +1288,8 @@
 				15460B991213D3FB00350BB7 /* YMDraft.m in Sources */,
 				15CAFE3E1219EA7700B51153 /* YMSplitViewController.m in Sources */,
 				15BFEE94121C8C4900F7B704 /* YMMenuController.m in Sources */,
+				15A7EDCD1230582600F75009 /* MBProgressHUD.m in Sources */,
+				15A7EE8C12307DA300F75009 /* UIImage+ProportionalFill.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

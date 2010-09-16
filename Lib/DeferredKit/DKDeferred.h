@@ -354,6 +354,7 @@
 - (id)valueForKey:(NSString *)_key paused:(BOOL)_paused;
 
 - (void)deleteValueForKey:(NSString *)_key; // deferred -> NSNumber
+- (void)deleteAllValues;
 
 - (id)getManyValues:(NSArray *)_keys; // deferred -> NSDictionary
 - (id)getManyValues:(NSArray *)_keys paused:(BOOL)_paused;
@@ -404,6 +405,7 @@
 
 @property (assign) int maxEntries;
 @property (assign) NSTimeInterval defaultTimeout;
+@property (readonly) NSString *dir;
 
 @end
 

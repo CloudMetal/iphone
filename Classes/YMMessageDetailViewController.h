@@ -26,6 +26,7 @@
   BOOL fetchingAttachment;
   NSArray *feedItems;
   BOOL refreshing;
+  NSMutableIndexSet *loadingIndexSet;
 }
 
 @property (nonatomic, readwrite, retain) NSArray *feedItems;

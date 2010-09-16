@@ -16,7 +16,9 @@
 #import "SQLiteInstanceManager.h"
 #import "DataCache.h"
 #import "NSString+XMLEntities.h"
-#import "UIImage+Resize.h"
+#import "UIImage+RoundedCorner.h"
+#import "UIImage+DKDeferred.h"
+#import "UIImage+ProportionalFill.h"
 
 static YMWebService *__sharedWebService;
 
@@ -253,7 +255,9 @@ id _nil(id r)
 
 - (id)_gotNetworksAndTokens:(YMUserAccount *)acct :(id)results
 {
-  return [DKDeferred deferInThread:curryTS(self, @selector(_processNetworksAndTokensThread::), acct) withObject:results];
+  return [DKDeferred deferInThread:
+          curryTS(self, @selector(_processNetworksAndTokensThread::), 
+                  acct) withObject:results];
 }
 
 - (id)_processNetworksAndTokensThread:(YMUserAccount *)acct :(id)results
@@ -262,6 +266,9 @@ id _nil(id r)
   NSMutableArray *networks = [NSMutableArray array];
 //  NSLog(@"results %@", results);
   if ([results count] == 2) {
+    id o = [results objectAtIndex:0];
+    id o2 = [results objectAtIndex:1];
+    if (![o isKindOfClass:[NSArray class]] && ![o2 isKindOfClass:[NSArray class]]) return EMPTY_ARRAY;
     SQLiteInstanceManager *db = [SQLiteInstanceManager sharedManager];
     @synchronized(self)  {
       [db executeUpdateSQL:@"BEGIN TRANSACTION;"];
@@ -271,8 +278,8 @@ id _nil(id r)
 
         NSDictionary *ad = nil;
         for (NSDictionary *_ in [results objectAtIndex:1]) {
-          if ([_ isKindOfClass:[NSDictionary class]] && 
-              [[_ objectForKey:@"network_id"] isEqual:[d objectForKey:@"id"]])
+          if ([_ isKindOfClass:[NSDictionary class]] && [d isKindOfClass:[NSDictionary class]]
+              && [[_ objectForKey:@"network_id"] isEqual:[d objectForKey:@"id"]])
             ad = _;
         }
         if (!ad) continue;
@@ -379,7 +386,7 @@ withID:(NSNumber *)targetID params:(NSDictionary *)params fetchToID:(NSNumber *)
 /// yes this method has become rediculiously bloated
 /// im sorry.
 - (id)_saveMessagesThread:(YMUserAccount *)acct target:(id)target targetID:(id)targetID
-                     page:(id)page fetchToID:(id)toID networkID:(id)networkID unseenLeft:(id)unseenLeftCount results:(id)results 
+page:(id)page fetchToID:(id)toID networkID:(id)networkID unseenLeft:(id)unseenLeftCount results:(id)results 
 {
   NSMutableArray *ret = [NSMutableArray array];
 
@@ -449,6 +456,7 @@ withID:(NSNumber *)targetID params:(NSDictionary *)params fetchToID:(NSNumber *)
         
         // build out attachments
         if ([[m objectForKey:@"attachments"] count]) {
+          //NSLog(@"m %@", [m objectForKey:@"attachments"]);
           for (NSDictionary *a in [m objectForKey:@"attachments"]) {
             YMAttachment *attachment;
             if (!(attachment = (id)[YMAttachment findFirstByCriteria:
@@ -466,6 +474,9 @@ withID:(NSNumber *)targetID params:(NSDictionary *)params fetchToID:(NSNumber *)
               attachment.isImage = nsnb(YES);
               attachment.url = [[a objectForKey:@"image"] objectForKey:@"url"];
               attachment.imageThumbnailURL = [[a objectForKey:@"image"] objectForKey:@"thumbnail_url"];
+            } else if ([attachment.type isEqual:@"ymodule"]) {
+              attachment.imageThumbnailURL = [[a objectForKey:@"ymodule"] objectForKey:@"icon_url"];
+              attachment.isImage = nsnb(NO);
             } else {
               attachment.isImage = nsnb(NO);
               attachment.size = [[a objectForKey:@"file"] objectForKey:@"size"];
@@ -1276,22 +1287,33 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches
   
   id ret = [[self deferredDiskCache] objectForKeyInMemory:url];
   if (ret) return [DKDeferred succeed:ret];
-  return [[self.loadingPool add:
-          [DKDeferred loadImage:url sizeTo:CGSizeMake(44, 44) cached:YES paused:YES] key:url] 
-           addCallback:curryTS(self, @selector(_placeLoadedImageInCache::), url)];
+  id d = nil;
+  if ([[DKDeferred cache] hasKey:url]) 
+    d = [[DKDeferred cache] valueForKey:url paused:YES];
+  else d = [[DKDeferred loadURL:url paused:YES] addCallback:
+            curryTS(self, @selector(_gotMugshotKey:data:), url)];
+  return [self.loadingPool add:d key:url];
 }
+
+- (id)_gotMugshotKey:(NSString *)k data:(NSData *)mugshot
+{
+  if ([mugshot isKindOfClass:[NSData class]]) {
+    UIImage *img = [UIImage imageWithData:mugshot];
+    if (img) {
+      UIImage *scaled = [[img imageCroppedToFitSize:CGSizeMake(44, 44)] 
+                         roundedCornerImage:3 borderSize:1];
+      if (!scaled) return nil;
+      [[DKDeferred cache] setValue:scaled forKey:k timeout:-1];
+      return scaled;
+    }
+  }
+  return nil;
+}
+      
 
 - (id)imageForURLInMemoryCache:(NSString *)url
 {
   return [[self deferredDiskCache] objectForKeyInMemory:url];
-}
-
-- (id)_placeLoadedImageInCache:(NSString *)url :(UIImage *)img
-{
-//  if ([img isEqual:[NSNull null]])
-//    img = [UIImage imageNamed:@"user-70.png"];
-//  [[self contactImageCache] setObject:img forKey:url];
-  return img;
 }
 
 #pragma mark -

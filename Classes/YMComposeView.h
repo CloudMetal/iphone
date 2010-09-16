@@ -19,13 +19,15 @@
   BOOL onHash, onUser, onPartial, onDrafts;
   IBOutlet UITableView *tableView;
   IBOutlet UIActivityIndicatorView *activity;
-  id<DKCallback> onUserInputsHash, onUserInputsAt, onPartialWillClose, onUserPhoto, onUserDrafts;
+  id<DKCallback> onUserInputsHash, onUserInputsAt, onPartialWillClose, 
+  onUserPhoto, onUserDrafts, onTextChange;
 //  IBOutlet UIImagePickerController *imagePicker;
   UIInterfaceOrientation interfaceOrientation;
 }
 
 @property(nonatomic, assign) UIInterfaceOrientation interfaceOrientation;
-@property(nonatomic, readwrite, retain) id<DKCallback> onUserInputsHash, onUserInputsAt, onPartialWillClose, onUserPhoto, onUserDrafts;
+@property(nonatomic, readwrite, retain) id<DKCallback> onUserInputsHash, onUserInputsAt, 
+    onPartialWillClose, onUserPhoto, onUserDrafts, onTextChange;
 @property(nonatomic, readwrite, retain) YMMessageTextView *messageTextView;
 @property(nonatomic, readwrite, retain) UILabel *toLabel, *toTargetLabel;
 @property(nonatomic, retain) UIToolbar *actionBar;

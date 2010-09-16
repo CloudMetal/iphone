@@ -13,6 +13,7 @@
 #import "StatusBarNotifier.h"
 #import "NSMutableArray-MultipleSort.h"
 #import "UIImage+Resize.h"
+#import "MBProgressHUD.h"
 
 static UIImagePickerController *__imagePicker = nil;
 
@@ -31,6 +32,7 @@ static UIImagePickerController *__imagePicker = nil;
 {
   if ((self = [super init])) {
     self.hidesBottomBarWhenPushed = YES;
+    attachments = [[NSMutableArray alloc] init];
   }
   return self;
 }
@@ -64,12 +66,15 @@ static UIImagePickerController *__imagePicker = nil;
   composeView.onPartialWillClose = callbackTS(self, textViewPartialWillClose:);
   composeView.onUserPhoto = callbackTS(self, onPhoto:);
   composeView.onUserDrafts = callbackTS(self, onDrafts:);
+  composeView.onTextChange = callbackTS(self, onTextChange:);
   
   if (!web) web = [YMWebService sharedWebService];
   
-  if (attachments) [attachments release];
-  attachments = nil;
-  attachments = [[NSMutableArray array] retain];
+  if (text) textView.text = text;
+  
+//  if (attachments) [attachments release];
+//  attachments = nil;
+//  attachments = [[NSMutableArray array] retain];
 }
 
 - (void) viewWillAppear:(BOOL)animated
@@ -78,7 +83,7 @@ static UIImagePickerController *__imagePicker = nil;
   self.navigationItem.rightBarButtonItem = 
   [[UIBarButtonItem alloc] initWithTitle:@"Send" style:UIBarButtonItemStyleDone 
                                   target:self action:@selector(sendMessage:)];
-  if (!composeView.onPhoto)
+  if (!composeView.onPhoto && !HUD)
     [textView becomeFirstResponder];
   
   if (!usernames)
@@ -87,9 +92,6 @@ static UIImagePickerController *__imagePicker = nil;
                    intv(network.networkID)] objectAtIndex:1] retain];
   if (!hashes) hashes = [EMPTY_ARRAY retain];
   
-//  if(UIInterfaceOrientationIsLandscape(self.interfaceOrientation)) {
-//    [composeView.actionBar setHidden:YES];
-//  }
   composeView.interfaceOrientation = self.interfaceOrientation;
   if (UIInterfaceOrientationIsLandscape(self.interfaceOrientation)) {
     NSLog(@"will rotate to landscape");
@@ -158,6 +160,13 @@ static UIImagePickerController *__imagePicker = nil;
   [controller presentModalViewController:c animated:YES];
 }
 
+- (id)onTextChange:(NSString *)theText
+{
+  if (text) [text release];
+  text = [theText copy];
+  return nil;
+}
+
 - (void)sendMessage:(id)sender
 {
   if (![textView.text length]) {
@@ -174,7 +183,6 @@ static UIImagePickerController *__imagePicker = nil;
     if (self.inReplyTo.groupID) [params setObject:
                                  [self.inReplyTo.groupID stringValue]
                                            forKey:YMGroupIDKey];
-    
   }
   if (self.inGroup)
     [params setObject:[self.inGroup.groupID stringValue] forKey:YMGroupIDKey];
@@ -202,15 +210,15 @@ static UIImagePickerController *__imagePicker = nil;
 
 - (void)cancelSend:(id)sender
 {
-  if ([textView.text length]) {
-    UIActionSheet *a = [[[UIActionSheet alloc] initWithTitle:
-                         @"Would you like to save this message as a draft?" delegate:
-                         self cancelButtonTitle:@"No" destructiveButtonTitle:
-                         nil otherButtonTitles:@"Yes", nil] autorelease];
-    a.tag = 101;
-    [a showInView:self.view];
-    return;
-  }
+//  if ([textView.text length]) {
+//    UIActionSheet *a = [[[UIActionSheet alloc] initWithTitle:
+//                         @"Would you like to save this message as a draft?" delegate:
+//                         self cancelButtonTitle:@"No" destructiveButtonTitle:
+//                         nil otherButtonTitles:@"Yes", nil] autorelease];
+//    a.tag = 101;
+//    [a showInView:self.view];
+//    return;
+//  }
   self.navigationItem.leftBarButtonItem = nil;
   [self.navigationController.parentViewController 
    dismissModalViewControllerAnimated:YES];
@@ -311,15 +319,15 @@ didDismissWithButtonIndex:(NSInteger)buttonIndex
 {
   if (actionSheet.tag == 101) {
     if (buttonIndex == 0) {
-      YMDraft *d = [[[YMDraft alloc] init] autorelease];
-      d.groupID = inGroup.groupID;
-      d.inReplyToID = inReplyTo.messageID;
-      d.directToID = directTo.userID;
-      d.attachments = attachments;
-      d.body = textView.text;
-      d.networkPK = nsni(network.pk);
-      d.userAccountPK = nsni(userAccount.pk);
-      [d save];
+//      YMDraft *d = [[[YMDraft alloc] init] autorelease];
+//      d.groupID = inGroup.groupID;
+//      d.inReplyToID = inReplyTo.messageID;
+//      d.directToID = directTo.userID;
+//      d.attachments = attachments;
+//      d.body = textView.text;
+//      d.networkPK = nsni(network.pk);
+//      d.userAccountPK = nsni(userAccount.pk);
+//      [d save];
     }
     self.navigationItem.leftBarButtonItem = nil;
     [self.navigationController.parentViewController 
@@ -345,13 +353,38 @@ didDismissWithButtonIndex:(NSInteger)buttonIndex
         didFinishPickingImage:(UIImage *)image 
                   editingInfo:(NSDictionary *)editingInfo
 {
-  [attachments addObject:[image resizedImageWithContentMode:
-                          UIViewContentModeScaleAspectFit bounds:
-                          CGSizeMake(1024, 1024) interpolationQuality:
-                          kCGInterpolationDefault]];
-  NSLog(@"attachments %@", attachments);
-  [composeView.tableView reloadData];
   [self dismissModalViewControllerAnimated:YES];
+  HUD = [[MBProgressHUD alloc] initWithView:self.view];
+  [self.view addSubview:HUD];
+  HUD.delegate = self;
+  HUD.labelText = @"Processing...";
+  [HUD showWhileExecuting:@selector(processPhoto:) onTarget:
+   self withObject:image animated:YES];
+}
+
+- (void)processPhoto:(UIImage *)img
+{
+  UIImage *scaled = [img resizedImageWithContentMode:
+                     UIViewContentModeScaleAspectFit bounds:
+                     CGSizeMake(1024, 1024) interpolationQuality:
+                     kCGInterpolationDefault];
+  [self performSelectorOnMainThread:@selector(doneProcessingPhoto:) 
+                         withObject:scaled waitUntilDone:NO];
+  return;
+}
+
+- (void)doneProcessingPhoto:(UIImage *)img
+{
+  [attachments addObject:img];
+  [composeView photo:nil];
+  [composeView.tableView reloadData];
+}
+
+- (void)hudWasHidden
+{
+  [HUD removeFromSuperview];
+  [HUD release];
+  HUD = nil;
 }
 
 - (id)textViewPartialWillClose:(id)sender
@@ -711,6 +744,7 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 
 - (void)dealloc
 {
+  [text release];
   [attachments release];
   [usernames release];
   [hashes release];

@@ -361,8 +361,11 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath
   feedsController.network = network;
   
   if (animateNetworkTransition) {
-    [self.navigationController presentModalViewController:c withAnimatedTransition:
-     UIViewControllerAnimationTransitionPushFromRight];
+    UIViewControllerAnimationTransition t = UIViewControllerAnimationTransitionPushFromRight;
+    if (UIInterfaceOrientationIsLandscape(self.interfaceOrientation))
+      t = self.interfaceOrientation == UIInterfaceOrientationLandscapeRight 
+        ? UIViewControllerAnimationTransitionPushFromTop : UIViewControllerAnimationTransitionPushFromBottom;
+    [self.navigationController presentModalViewController:c withAnimatedTransition:t];
   } else {
     [self.navigationController presentModalViewController:c animated:NO];
   }
