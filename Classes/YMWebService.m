@@ -310,9 +310,9 @@ id _nil(id r)
       }
       [db executeUpdateSQL:@"COMMIT TRANSACTION;"];
     }
-    if (self.shouldUpdateBadgeIcon) {
-      [self updateUIApplicationBadge];
-    }
+//    if (self.shouldUpdateBadgeIcon) {
+    [self updateUIApplicationBadge];
+//    }
   }
   NSLog(@"process networks and tokens done");
   return networks;
@@ -514,10 +514,16 @@ page:(id)page fetchToID:(id)toID networkID:(id)networkID unseenLeft:(id)unseenLe
 
 - (id)messageWith:(YMMessage *)message fromDictionary:(NSDictionary *)m withReferences:(NSDictionary *)refs
 {
-  static NSDateFormatter *formatter = nil;
-  if (!formatter) {
-    formatter = [[[NSDateFormatter alloc] init] retain];
-    [formatter setDateFormat:@"yyyy/MM/dd HH:mm:ss ZZ"];
+  // thanks guys
+  static NSDateFormatter *formatterOld = nil;
+  static NSDateFormatter *formatterNew = nil;
+  if (!formatterOld) {
+    formatterOld = [[[NSDateFormatter alloc] init] retain];
+    [formatterOld setDateFormat:@"yyyy/MM/dd HH:mm:ss ZZ"];
+  }
+  if (!formatterNew) {
+    formatterNew = [[[NSDateFormatter alloc] init] retain];
+    [formatterNew setDateFormat:@"yyyy-MM-dd HH:mm:ss zzz"];
   }
   message.liked = nsnb(NO);
   message.read = nsnb(NO);
@@ -536,7 +542,13 @@ page:(id)page fetchToID:(id)toID networkID:(id)networkID unseenLeft:(id)unseenLe
   message.senderID = [m objectForKey:@"sender_id"];
   message.senderType = [m objectForKey:@"sender_type"];
 //  NSLog(@"sender type id %@ type %@", message.senderID, message.senderType);
-  message.createdAt = [formatter dateFromString:[m objectForKey:@"created_at"]];
+//  NSLog(@"created %@", [m objectForKey:@"created_at"]);
+  id _d = [m objectForKey:@"created_at"];
+  if ([_d rangeOfString:@"/"].location == NSNotFound) {
+    message.createdAt = [formatterNew dateFromString:_d];
+  } else {
+    message.createdAt = [formatterOld dateFromString:_d];
+  }
   message.hasAttachments = nsnb(NO);
   
   // connect important references

@@ -114,16 +114,17 @@ didFailToRegisterForRemoteNotificationsWithError:(NSError *)error
 
 - (void)applicationDidEnterBackground:(UIApplication *)application
 {
-  if (PREF_KEY(@"lastNetworkPK")) {
-    YMNetwork *n = (YMNetwork *)[YMNetwork findByPK:
-                                 intv(PREF_KEY(@"lastNetworkPK"))];
-    if (n) {
-      n.unseenMessageCount = nsni(([YMMessage countByCriteria:
-       @"WHERE network_p_k=%i AND read=0 AND (target='following' OR target='received')", n.pk]));
-      [n save];
-      NSLog(@"unseenMessageCount %@", n.unseenMessageCount);
-    }
-  }
+//  this is done in the network now
+//  if (PREF_KEY(@"lastNetworkPK")) {
+//    YMNetwork *n = (YMNetwork *)[YMNetwork findByPK:
+//                                 intv(PREF_KEY(@"lastNetworkPK"))];
+//    if (n) {
+//      n.unseenMessageCount = nsni(([YMMessage countByCriteria:
+//       @"WHERE network_p_k=%i AND read=0 AND (target='following' OR target='received')", n.pk]));
+//      [n save];
+//      NSLog(@"unseenMessageCount %@", n.unseenMessageCount);
+//    }
+//  }
   [[YMWebService sharedWebService] updateUIApplicationBadge];
   [[DKDeferred cache] purgeMemoryCache];
 }
@@ -131,16 +132,17 @@ didFailToRegisterForRemoteNotificationsWithError:(NSError *)error
 
 - (void)applicationWillTerminate:(UIApplication *)application
 {
-  if (PREF_KEY(@"lastNetworkPK")) {
-    YMNetwork *n = (YMNetwork *)[YMNetwork findByPK:
-                                 intv(PREF_KEY(@"lastNetworkPK"))];
-    if (n) {
-      n.unseenMessageCount = nsni(([YMMessage countByCriteria:
-       @"WHERE network_p_k=%i AND read=0 AND (target='following' OR target='received')", n.pk]));
-      [n save];
-      NSLog(@"unseenMessageCount %@", n.unseenMessageCount);
-    }
-  }
+//  this is done in the network now
+//  if (PREF_KEY(@"lastNetworkPK")) {
+//    YMNetwork *n = (YMNetwork *)[YMNetwork findByPK:
+//                                 intv(PREF_KEY(@"lastNetworkPK"))];
+//    if (n) {
+//      n.unseenMessageCount = nsni(([YMMessage countByCriteria:
+//       @"WHERE network_p_k=%i AND read=0 AND (target='following' OR target='received')", n.pk]));
+//      [n save];
+//      NSLog(@"unseenMessageCount %@", n.unseenMessageCount);
+//    }
+//  }
   [[YMWebService sharedWebService] updateUIApplicationBadge];
   [DKDeferred cache].forceImmediateCaching = YES;
   [[DKDeferred cache] purgeMemoryCache];
