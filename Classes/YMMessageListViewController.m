@@ -121,6 +121,8 @@
   bottomLoadingView = [[[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:
                         UIActivityIndicatorViewStyleGray] autorelease];
   bottomLoadingView.hidesWhenStopped = YES;
+  bottomLoadingView.autoresizingMask 
+    = UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin;
   bottomLoadingView.frame = CGRectMake(149, 7, 22, 22);
   [bottomLoadingView stopAnimating];
   [tf insertSubview:bottomLoadingView atIndex:0];
@@ -325,6 +327,7 @@
   self.tableView.tableFooterView.hidden = NO;
 //  self.reloading = NO;
   shouldUpdateBadge = NO;
+  int networkBadgeCount = 0;
   
   if ([results objectForKey:@"unseenItemsLeftToFetch"]) {
     self.remainingUnseenItems 
@@ -332,6 +335,7 @@
     self.lastLoadedMessageID = [results objectForKey:@"lastFetchedID"];
     self.lastSeenMessageID = [results objectForKey:@"lastSeenID"];
     int u = intv(self.remainingUnseenItems);
+    networkBadgeCount = u > 0 ? u : 0;
     [moreButton setTitle:[NSString stringWithFormat:@"More (%i unread)", 
                           ((u > 0) ? u : 0)] forState:UIControlStateNormal];
     moreButton.hidden = NO;
@@ -344,6 +348,16 @@
     self.remainingUnseenItems = nil;
     [moreButton setTitle:@"More" forState:UIControlStateNormal];
   }
+  
+//  explicitely set badge count for this network
+//  int curCount = intv(network.unseenMessageCount);
+//  network.unseenMessageCount = [NSNumber numberWithInt:MAX(curCount - networkBadgeCount, 0)];
+//  [network save];
+//  [[SQLiteInstanceManager sharedManager] executeUpdateSQL:[NSString stringWithFormat:
+//   @"UPDATE y_m_network SET unseen_message_count=%i WHERE network_i_d=%@", 
+//   networkBadgeCount, network.networkID];
+//  [web updateUIApplicationBadge];
+  
   if ([results objectForKey:@"olderAvailable"] && 
       [YMMessage countByCriteria:@"WHERE message_i_d=%@", 
         [results objectForKey:@"lastFetchedID"]]) {
@@ -680,9 +694,13 @@ cellForRowAtIndexPath:(NSIndexPath *)indexPath
   
   cell.avatar = img;
   cell.body = [bodies objectAtIndex:idx];
-  cell.date = [NSDate fastStringForDisplayFromDate:
-               [NSDate objectWithSqlColumnRepresentation:
-                [dates objectAtIndex:idx]]];
+  id _date = [dates objectAtIndex:idx];
+  if ([_date isKindOfClass:[NSString class]]) {
+    cell.date = [NSDate fastStringForDisplayFromDate:
+                 [NSDate objectWithSqlColumnRepresentation:_date]];
+  } else {
+    cell.date = nil;
+  }
   cell.title = [titles objectAtIndex:idx];
   cell.liked = boolv([likeds objectAtIndex:idx]);
   cell.hasAttachments = boolv([hasattachments objectAtIndex:idx]);

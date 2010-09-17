@@ -140,7 +140,7 @@
   receivedMessagesController = [[YMMessageListViewController alloc] init];
   receivedMessagesController.tabBarItem = 
   [[[UITabBarItem alloc] initWithTitle:@"Received" image:
-    [UIImage imageNamed:@"received.png"] tag:1] autorelease];
+    [UIImage imageNamed:@"privateinbox.png"] tag:1] autorelease];
   receivedMessagesController.shouldUpdateBadge = YES;
   
   directoryController = [[YMContactsListViewController alloc] init];
@@ -353,7 +353,7 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath
   myMessagesController.title = @"My Feed";
   myMessagesController.network = network;
   receivedMessagesController.userAccount = acct;
-  receivedMessagesController.target = YMMessageTargetReceived;
+  receivedMessagesController.target = YMMessageTargetPrivate;
   receivedMessagesController.title = @"Received";
   receivedMessagesController.network = network;
   directoryController.userAccount = acct;

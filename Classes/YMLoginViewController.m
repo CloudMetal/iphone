@@ -72,7 +72,7 @@
     theTextField.delegate = self;
     theTextField.font = [UIFont boldSystemFontOfSize:17];
     theTextField.textColor = [UIColor colorWithHexString:@"486681"];
-    theTextField.placeholder = @"Pulll down to change URL";
+    theTextField.placeholder = @"Pull down to change URL";
     theTextField.textAlignment = UITextAlignmentLeft;
     theTextField.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter;
     theTextField.backgroundColor = [UIColor whiteColor];

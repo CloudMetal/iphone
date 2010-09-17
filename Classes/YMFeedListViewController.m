@@ -115,7 +115,7 @@
   return array_(
     array_(YMMessageTargetAll, [NSNull null], @"All", @"world.png"),
     array_(YMMessageTargetSent, [NSNull null], @"Sent", @"envelope.png"),
-    array_(YMMessageTargetFavoritesOf, network.userID, @"Favorites", @"heart.png"));
+    array_(YMMessageTargetFavoritesOf, network.userID, @"Bookmarks", @"heart.png"));
 }
 
 - (NSInteger) numberOfSectionsInTableView:(UITableView *)tableView

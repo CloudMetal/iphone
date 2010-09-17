@@ -28,6 +28,7 @@
 #define YMMessageTargetAll @""
 #define YMMessageTargetSent @"sent"
 #define YMMessageTargetReceived @"received"
+#define YMMessageTargetPrivate @"private"
 #define YMMessageTargetFollowing @"following"
 #define YMMessageTargetFromUser @"from_user"
 #define YMMessageTargetFromBot @"from_bot"

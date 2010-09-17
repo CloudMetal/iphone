@@ -30,6 +30,7 @@
 		150BF11B1210CD29002BC81E /* DKSimpleMemoryCache.m in Sources */ = {isa = PBXBuildFile; fileRef = 150BF11A1210CD29002BC81E /* DKSimpleMemoryCache.m */; };
 		150DE211123AD8C300D68C3A /* attach.png in Resources */ = {isa = PBXBuildFile; fileRef = 150DE210123AD8C300D68C3A /* attach.png */; };
 		150DE213123AD8F200D68C3A /* picture_empty.png in Resources */ = {isa = PBXBuildFile; fileRef = 150DE212123AD8F200D68C3A /* picture_empty.png */; };
+		1535CF2A1242E458002A28BB /* privateinbox.png in Resources */ = {isa = PBXBuildFile; fileRef = 1535CF291242E458002A28BB /* privateinbox.png */; };
 		15460B991213D3FB00350BB7 /* YMDraft.m in Sources */ = {isa = PBXBuildFile; fileRef = 15460B981213D3FB00350BB7 /* YMDraft.m */; };
 		154D1D1B122DCC2300D5B8F7 /* inline-button-bg-blue-pressed.png in Resources */ = {isa = PBXBuildFile; fileRef = 154D1D1A122DCC2300D5B8F7 /* inline-button-bg-blue-pressed.png */; };
 		157B4ADA11ED8B5700886050 /* UIImage+Resize.m in Sources */ = {isa = PBXBuildFile; fileRef = 157B4AD911ED8B5700886050 /* UIImage+Resize.m */; };
@@ -255,6 +256,7 @@
 		150BF11A1210CD29002BC81E /* DKSimpleMemoryCache.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DKSimpleMemoryCache.m; sourceTree = "<group>"; };
 		150DE210123AD8C300D68C3A /* attach.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = attach.png; sourceTree = "<group>"; };
 		150DE212123AD8F200D68C3A /* picture_empty.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = picture_empty.png; sourceTree = "<group>"; };
+		1535CF291242E458002A28BB /* privateinbox.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = privateinbox.png; path = Resources/privateinbox.png; sourceTree = "<group>"; };
 		15460B971213D3FB00350BB7 /* YMDraft.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YMDraft.h; sourceTree = "<group>"; };
 		15460B981213D3FB00350BB7 /* YMDraft.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = YMDraft.m; sourceTree = "<group>"; };
 		154D1D1A122DCC2300D5B8F7 /* inline-button-bg-blue-pressed.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "inline-button-bg-blue-pressed.png"; path = "Resources/inline-button-bg-blue-pressed.png"; sourceTree = "<group>"; };
@@ -950,6 +952,7 @@
 		29B97317FDCFA39411CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				1535CF291242E458002A28BB /* privateinbox.png */,
 				150DE212123AD8F200D68C3A /* picture_empty.png */,
 				150DE210123AD8C300D68C3A /* attach.png */,
 				15E909F5120A78990046349A /* UIButtonBarArrowDownSmall.png */,
@@ -1070,7 +1073,14 @@
 			isa = PBXProject;
 			buildConfigurationList = C01FCF4E08A954540054247B /* Build configuration list for PBXProject "Yammer" */;
 			compatibilityVersion = "Xcode 3.1";
+			developmentRegion = English;
 			hasScannedForEncodings = 1;
+			knownRegions = (
+				English,
+				Japanese,
+				French,
+				German,
+			);
 			mainGroup = 29B97314FDCFA39411CA2CEA /* CustomTemplate */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -1172,6 +1182,7 @@
 				154D1D1B122DCC2300D5B8F7 /* inline-button-bg-blue-pressed.png in Resources */,
 				150DE211123AD8C300D68C3A /* attach.png in Resources */,
 				150DE213123AD8F200D68C3A /* picture_empty.png in Resources */,
+				1535CF2A1242E458002A28BB /* privateinbox.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1340,7 +1351,7 @@
 				);
 				PRODUCT_NAME = Yammer;
 				PROVISIONING_PROFILE = "720DC109-4428-4C31-B4CB-9DD85CE70B32";
-				SDKROOT = iphoneos4.0;
+				SDKROOT = iphoneos4.1;
 				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Store;
@@ -1391,7 +1402,7 @@
 				PRODUCT_NAME = Yammer;
 				PROVISIONING_PROFILE = "43074AE4-A15D-4A72-98AF-3A803ECCEB54";
 				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "43074AE4-A15D-4A72-98AF-3A803ECCEB54";
-				SDKROOT = iphoneos4.0;
+				SDKROOT = iphoneos4.1;
 				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = AdHoc;
@@ -1420,7 +1431,7 @@
 				PRODUCT_NAME = Yammer;
 				PROVISIONING_PROFILE = "61C60CFE-97BC-4685-9758-8F09D9ABB3A6";
 				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "61C60CFE-97BC-4685-9758-8F09D9ABB3A6";
-				SDKROOT = iphoneos4.0;
+				SDKROOT = iphoneos4.1;
 				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;

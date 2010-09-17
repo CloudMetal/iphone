@@ -397,7 +397,7 @@ page:(id)page fetchToID:(id)toID networkID:(id)networkID unseenLeft:(id)unseenLe
   
   if (![results isKindOfClass:[NSDictionary class]]) return ret;
   
-//  NSLog(@"meta %@", [results objectForKey:@"meta"]);
+  NSLog(@"meta %@", [results objectForKey:@"meta"]);
   
   SQLiteInstanceManager *db = [SQLiteInstanceManager sharedManager];
   
@@ -417,7 +417,6 @@ page:(id)page fetchToID:(id)toID networkID:(id)networkID unseenLeft:(id)unseenLe
     [db executeUpdateSQL:[NSString stringWithFormat:@"UPDATE y_m_message SET read=1 WHERE message_i_d <= %i",
                           intv([[results objectForKey:@"meta"] objectForKey:@"last_seen_message_id"])]];
   }
-  
   
   if ([[results objectForKey:@"messages"] count]) {
     NSArray *likedIDs = [[results objectForKey:@"meta"] objectForKey:@"liked_message_ids"];
