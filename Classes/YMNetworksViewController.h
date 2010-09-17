@@ -34,6 +34,7 @@
   YMUserAccount *scrape_acct;
   UITableViewStyle style;
   id<DKCallback> onChooseNetwork;
+  BOOL updatingNetworks;
 }
 
 @property (nonatomic, retain) id<DKCallback> onChooseNetwork;

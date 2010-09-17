@@ -48,18 +48,28 @@
 - (void)refreshNetworks
 {
   [self.tableView reloadData];
+  if (updatingNetworks) return;
   
   NSArray *accounts = [YMUserAccount allObjects];
   NSMutableArray *ops = [NSMutableArray array];
   for (YMUserAccount *acct in accounts) {
     [ops addObject:[[YMWebService sharedWebService] networksForUserAccount:acct]];
   }
-  [[[StatusBarNotifier sharedNotifier] 
-    flashLoading:@"Updating Networks..."
-    deferred:[DKDeferred gatherResults:ops]]
-   addCallback:callbackTS(self, doneUpdatingAccounts:)];
+  updatingNetworks = YES;
+  [[[[StatusBarNotifier sharedNotifier] 
+     flashLoading:@"Updating Networks..."
+     deferred:[DKDeferred gatherResults:ops]]
+    addCallback:callbackTS(self, doneUpdatingAccounts:)]
+   addBoth:callbackTS(self, _resetUpdatingNetworks:)];
   [[NSNotificationCenter defaultCenter] addObserver:self selector:
    @selector(didBecomeActive:) name:UIApplicationDidBecomeActiveNotification object:nil];
+}
+
+- (void)_resetUpdatingNetworks:(id)r
+{
+  NSLog(@"doneUpdatingNetworks");
+  updatingNetworks = NO;
+  return r;
 }
 
 - (void)didBecomeActive:(id)n
@@ -81,6 +91,7 @@
     networkPKs = nil;
     style = UITableViewStylePlain;
     onChooseNetwork = nil;
+    updatingNetworks = NO;
   }
   return self;
 }

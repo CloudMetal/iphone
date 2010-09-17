@@ -349,14 +349,9 @@
     [moreButton setTitle:@"More" forState:UIControlStateNormal];
   }
   
-//  explicitely set badge count for this network
-//  int curCount = intv(network.unseenMessageCount);
-//  network.unseenMessageCount = [NSNumber numberWithInt:MAX(curCount - networkBadgeCount, 0)];
-//  [network save];
-//  [[SQLiteInstanceManager sharedManager] executeUpdateSQL:[NSString stringWithFormat:
-//   @"UPDATE y_m_network SET unseen_message_count=%i WHERE network_i_d=%@", 
-//   networkBadgeCount, network.networkID];
-//  [web updateUIApplicationBadge];
+  network.unseenMessageCount = nsni(networkBadgeCount);
+  [network save];
+  [web updateUIApplicationBadge];
   
   if ([results objectForKey:@"olderAvailable"] && 
       [YMMessage countByCriteria:@"WHERE message_i_d=%@", 
