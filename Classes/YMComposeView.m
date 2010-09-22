@@ -83,14 +83,13 @@ onUserInputsHash, onUserInputsAt, onPartialWillClose, actionBar, tableView, onHa
   onHash = YES;
   onUser = onPhoto = onPartial = onDrafts = NO;
   [self.messageTextView resignFirstResponder];
-  [self.onUserInputsHash :@"#"];
-}
+  [self.onUserInputsHash :@"#"]; }
 
 - (void) textViewDidChange:(UITextView *)textView
 {
   if (self.onTextChange) [self.onTextChange :textView.text];
   
-  NSString *s = [textView.text stringByMatching:@"((@|#)[a-zA-Z0-9-]+)$" options:
+  NSString *s = [textView.text stringByMatching:@"(@[a-zA-Z0-9-]+)$" options:
                  RKLDotAll | RKLMultiline | RKLUnicodeWordBoundaries inRange:
                  NSMakeRange(0, textView.text.length) capture:1 error:nil];
   

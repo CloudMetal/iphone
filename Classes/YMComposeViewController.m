@@ -57,7 +57,7 @@ static UIImagePickerController *__imagePicker = nil;
   CGRect f = composeView.actionBar.frame;
   f.size.height = 31;
   composeView.actionBar.frame = f;
-  
+ 
   textView = composeView.messageTextView;
   
   textView.font = [UIFont systemFontOfSize:13];
@@ -105,10 +105,10 @@ static UIImagePickerController *__imagePicker = nil;
   [self refreshData];
 }
 
-- (void)viewDidAppear:(BOOL)animated
-{
-  [super viewDidAppear:animated];
-}
+////- (void)viewDidAppear:(BOOL)animated
+////{
+  ////[super viewDidAppear:animated];
+////}
 
 - (BOOL)shouldAutorotateToInterfaceOrientation:
 (UIInterfaceOrientation)interfaceOrientation
