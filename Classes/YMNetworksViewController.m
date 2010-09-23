@@ -65,7 +65,7 @@
    @selector(didBecomeActive:) name:UIApplicationDidBecomeActiveNotification object:nil];
 }
 
-- (void)_resetUpdatingNetworks:(id)r
+- (id)_resetUpdatingNetworks:(id)r
 {
   NSLog(@"doneUpdatingNetworks");
   updatingNetworks = NO;
@@ -150,7 +150,7 @@
   
   receivedMessagesController = [[YMMessageListViewController alloc] init];
   receivedMessagesController.tabBarItem = 
-  [[[UITabBarItem alloc] initWithTitle:@"Received" image:
+  [[[UITabBarItem alloc] initWithTitle:@"Direct" image:
     [UIImage imageNamed:@"privateinbox.png"] tag:1] autorelease];
   receivedMessagesController.shouldUpdateBadge = YES;
   
@@ -312,10 +312,12 @@ cellForRowAtIndexPath:(NSIndexPath *)indexPath
   [cell.unreadLabel setHidden:NO];
   cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
   cell.textLabel.text = network.name;
-  if (!intv(network.unseenMessageCount))
+  int u = intv(network.unseenMessageCount), p = intv(network.unseenPrivateCount);
+  int t = u + p;
+  if (!t)
     [cell.unreadLabel setHidden:YES];
   else
-    cell.unreadLabel.text = [network.unseenMessageCount description];
+    cell.unreadLabel.text = [NSString stringWithFormat:@"%i", t];
   
   return cell;
 }
@@ -365,7 +367,7 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath
   myMessagesController.network = network;
   receivedMessagesController.userAccount = acct;
   receivedMessagesController.target = YMMessageTargetPrivate;
-  receivedMessagesController.title = @"Received";
+  receivedMessagesController.title = @"Direct";
   receivedMessagesController.network = network;
   directoryController.userAccount = acct;
   feedsController.userAccount = acct;

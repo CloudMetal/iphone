@@ -12,10 +12,11 @@
 @implementation YMNetwork
 
 @synthesize token, secret, userAccountPK, networkID, lastScrapedLocalContacts, 
-            permalink, url, unseenMessageCount, name, userID,
+            permalink, url, unseenMessageCount, name, userID, unseenPrivateCount,
             groupSubscriptionIds, tagSubscriptionIds, userSubscriptionIds, community;
 
 DECLARE_PROPERTIES(
+    DECLARE_PROPERTY(@"unseenPrivateCount", @"@\"NSNumber\""),
                    DECLARE_PROPERTY(@"token", @"@\"NSString\""),
                    DECLARE_PROPERTY(@"secret", @"@\"NSString\""),
                    DECLARE_PROPERTY(@"userAccountPK", @"@\"NSNumber\""),
@@ -34,6 +35,7 @@ DECLARE_PROPERTIES(
 
 - (void)dealloc
 {
+  self.unseenPrivateCount = nil;
   self.token = nil;
   self.secret = nil;
   self.userID = nil;

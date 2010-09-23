@@ -40,9 +40,12 @@
   CGPoint movementTrackFirstTouch;
   SEL swipeSelector;
   id swipeTarget;
+  BOOL dm;
+  int unreadInThread, numberOfParticipants, messagesInThread;
 }
 
-@property(nonatomic, assign) BOOL unread, hasAttachments, liked, following, isPrivate;
+@property(nonatomic, assign) BOOL unread, hasAttachments, liked, following, isPrivate, dm;
+@property(nonatomic, assign) int unreadInThread, numberOfParticipants, messagesInThread;
 @property(nonatomic, assign) SEL swipeSelector;
 @property(nonatomic, assign) id swipeTarget;
 @property(nonatomic, copy) NSString *title, *body, *date, *group;

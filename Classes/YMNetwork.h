@@ -16,7 +16,7 @@
   NSNumber *networkID;
   NSNumber *userAccountPK;
   NSString *permalink, *url;
-  NSNumber *unseenMessageCount;
+  NSNumber *unseenMessageCount, *unseenPrivateCount;
   NSDate *lastScrapedLocalContacts;
   NSString *name;
   NSNumber *community;
@@ -29,7 +29,7 @@
 
 @property (nonatomic, readwrite, retain) NSNumber *userAccountPK, *userID, *community;
 @property (nonatomic, readwrite, retain) NSDate *lastScrapedLocalContacts;
-@property (nonatomic, readwrite, retain) NSNumber *networkID, *unseenMessageCount;
+@property (nonatomic, readwrite, retain) NSNumber *networkID, *unseenMessageCount, *unseenPrivateCount;
 @property (nonatomic, readwrite, retain) NSString *permalink, *url, *name;
 @property (nonatomic, readwrite, retain) NSString *token, *secret;
 @property (nonatomic, readwrite, retain) NSArray 

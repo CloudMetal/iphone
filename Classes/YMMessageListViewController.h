@@ -33,6 +33,8 @@
   NSArray *followeds;
   NSArray *privates;
   NSArray *groups;
+  NSArray *unseenThreadCounts, *messageInThreadCounts, *numberOfParticipantCounts;
+  int totalUnseenThreads;
   
   // ui elements
   UIButton *moreButton;
@@ -48,6 +50,8 @@
   int limit;
   BOOL viewHasAppeared;
   BOOL shouldUpdateBadge;
+  int numberOfUnseenInThread;
+  BOOL didGetFirstUpdate, didRefresh, privateThread;
   
   NSString *target;
   NSNumber *targetID;
@@ -64,7 +68,7 @@
 
 }
 
-@property(nonatomic, assign) int limit;
+@property(nonatomic, assign) int limit, numberOfUnseenInThread;
 @property(nonatomic, readwrite, retain) NSIndexPath *selectedIndexPath;
 @property(nonatomic, readwrite, retain) YMUserAccount *userAccount;
 @property(nonatomic, readwrite, retain) YMNetwork *network;
@@ -75,7 +79,7 @@
 @property(nonatomic, readwrite, copy) NSNumber *threaded;
 @property(nonatomic, readwrite, copy) NSNumber *remainingUnseenItems;
 @property(nonatomic, readwrite, copy) NSNumber *lastLoadedMessageID, *lastSeenMessageID;
-@property(nonatomic, assign) BOOL loadedAvatars, shouldUpdateBadge;
+@property(nonatomic, assign) BOOL loadedAvatars, shouldUpdateBadge, privateThread;
 
 - (void)refreshFeed:(id)sender;
 - (void)refreshMessagePKs;

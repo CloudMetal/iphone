@@ -16,11 +16,15 @@
 @synthesize messageID, groupID, directToID, url, webURL, repliedToID, target, 
             threadID, bodyPlain, bodyParsed, messageType, targetID, liked, hasAttachments, 
             clientType, senderID, senderType, createdAt, networkPK, read, repliedToSenderID,
+            unseenThreadCount, totalThreadCount, numberOfParticipants,
             /// these are cache attributes
             repliedToSenderName, directToSenderName, senderName, senderMugshot, groupName;
 
 DECLARE_PROPERTIES(
                    DECLARE_PROPERTY(@"messageID", @"@\"NSNumber\""),
+                   DECLARE_PROPERTY(@"numberOfParticipants", @"@\"NSNumber\""),
+                   DECLARE_PROPERTY(@"unseenTheadCount", @"@\"NSNumber\""),
+                   DECLARE_PROPERTY(@"totalThreadCount", @"@\"NSNumber\""),
                    DECLARE_PROPERTY(@"groupID", @"@\"NSNumber\""),
                    DECLARE_PROPERTY(@"directToID", @"@\"NSNumber\""),
                    DECLARE_PROPERTY(@"url", @"@\"NSString\""),

@@ -34,10 +34,11 @@
   NSNumber *liked;
   
   NSString *repliedToSenderName, *directToSenderName, *senderName, *senderMugshot, *groupName;
+  NSNumber *totalThreadCount, *unseenThreadCount, *numberOfParticipants;
 }
 
 @property(nonatomic, readwrite, retain) NSNumber *messageID;
-
+@property(nonatomic, readwrite, retain) NSNumber *totalThreadCount, *unseenThreadCount, *numberOfParticipants;
 @property(nonatomic, readwrite, retain) NSNumber *groupID;
 @property(nonatomic, readwrite, retain) NSNumber *directToID;
 @property(nonatomic, readwrite, retain) NSNumber *repliedToID;

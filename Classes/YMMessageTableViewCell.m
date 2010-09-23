@@ -81,13 +81,16 @@ static UIImage *smallLikeImage = nil;
 static UIImage *smallAttachmentImage = nil;
 static UIImage *smallFollowingImage = nil;
 static UIImage *smallPrivateImage = nil;
-
+static UIImage *badgeBackgroundImage = nil;
+static UIColor *badgeColor = nil;
+static UIFont  *badgeFont = nil;
+static UIImage *chevron = nil;
 //#define YMSwipeActionsEnabled
 
 @implementation YMFastMessageTableViewCell
 
 @synthesize title, body, date, avatar, unread, hasAttachments, liked, following,
-isPrivate, group, swipeSelector, swipeTarget;
+isPrivate, group, swipeSelector, swipeTarget, dm, numberOfParticipants, unreadInThread, messagesInThread;
 
 + (void)initialize
 {
@@ -108,6 +111,11 @@ isPrivate, group, swipeSelector, swipeTarget;
     smallAttachmentImage = [[UIImage imageNamed:@"paperclip-tiny.png"] retain];
     smallFollowingImage = [[UIImage imageNamed:@"following-tiny.png"] retain];
     smallPrivateImage = [[UIImage imageNamed:@"lock.png"] retain];
+    badgeBackgroundImage = [[[UIImage imageNamed:@"unreadbadge.png"] 
+                stretchableImageWithLeftCapWidth:7 topCapHeight:7] retain];
+    badgeColor = [[UIColor whiteColor] retain];
+    badgeFont = [[UIFont boldSystemFontOfSize:13] retain];
+    chevron = [[UIImage imageNamed:@"UITableNext.png"] retain];
   }
 }
 
@@ -151,6 +159,8 @@ isPrivate, group, swipeSelector, swipeTarget;
     movementTrackFirstTouch = CGPointZero;
     swipeSelector = NULL;
     swipeTarget = nil;
+    dm = NO;
+    unreadInThread = numberOfParticipants = messagesInThread = 0;
   }
   return self;
 }
@@ -208,6 +218,24 @@ isPrivate, group, swipeSelector, swipeTarget;
 - (void)setIsPrivate:(BOOL)p
 {
   isPrivate = p;
+  [self setNeedsDisplay];
+}
+
+- (void)setDm:(BOOL)d
+{
+  dm = d;
+  [self setNeedsDisplay];
+}
+
+- (void)setNumberOfParticipants:(int)n
+{
+  numberOfParticipants = n;
+  [self setNeedsDisplay];
+}
+
+- (void)setUnreadInThread:(int)n
+{
+  unreadInThread = n;
   [self setNeedsDisplay];
 }
 
@@ -315,11 +343,30 @@ isPrivate, group, swipeSelector, swipeTarget;
   CGRect titleSize = CGRectMake(62, 4, r.size.width - 137.0 
                                 - (hasAttachments ? 10.0 : 0) 
                                 - (isPrivate ? 14.0 : 0) 
-                                - (liked ? 15.0 : 0), 
+                                - (liked ? 15.0 : 0),
                                 21);
-  CGRect bodySize = CGRectMake(62, 23.0, r.size.width - 72.0, r.size.height - 32.0);
+  CGRect bodySize = CGRectMake(62, 23.0, 
+        r.size.width - 72.0 - (dm > 0 ? 25.0 : 0) - (unreadInThread > 0 ? 24.0 : 0),
+        r.size.height - 32.0 - (dm ? 17.0 : 0));
   CGRect dateLabel = CGRectMake(r.size.width - 73.0, 4, 63, 21);
-  
+
+  if (dm) {
+    NSString *dms = [NSString stringWithFormat:@"%i participant%@, %i messages", 
+                     numberOfParticipants, (numberOfParticipants > 0 ? @"s" : @""), messagesInThread];
+    CGRect dmr = CGRectMake(62, r.size.height - 22.0, r.size.width - 72, 17);
+    [groupColor set];
+    [dms drawInRect:dmr withFont:groupFont];
+    CGRect cvr = CGRectMake(r.size.width - 24, dateLabel.origin.y + 30, 10, 13);
+    [chevron drawAtPoint:CGPointMake(cvr.origin.x, cvr.origin.y)];
+    if (unreadInThread > 0) {
+      NSString *ur = [NSString stringWithFormat:@"%i", unreadInThread];
+      CGRect urr = CGRectMake(r.size.width - 50, cvr.origin.y -1, 21, 17);
+      [badgeBackgroundImage drawInRect:urr];
+      [badgeColor set];
+      [ur drawInRect:CGRectMake(urr.origin.x + 3, urr.origin.y+1, 16, 13) withFont:badgeFont 
+       lineBreakMode:UILineBreakModeClip alignment:UITextAlignmentCenter];
+    }
+  }
   if (hasAttachments) {
     CGRect ar = CGRectMake(r.size.width - 83.0 
                            - (liked ? 14.0 : 0) 

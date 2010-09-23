@@ -192,6 +192,12 @@ id _nil(id r)
                         :callbackTS(self, _failedGetAccessToken:)];
 }
 
+- (int)unseenThreadCountForNetwork:(YMNetwork *)network
+{
+  id t = PREF_KEY(([NSString stringWithFormat:@"%@%@-unseenthreads", network.userID, network.networkID]));
+  if (t) return intv(t);
+  return 0;
+}
 - (id)_gotAccessToken:(YMUserAccount *)acct :(id)result 
 {
 //  NSLog(@"_gotAccessToken: %@ %@", result, [[result URLResponse] allHeaderFields]);
@@ -211,7 +217,7 @@ id _nil(id r)
 
 - (id)_saveCookieToUserAccount:(YMUserAccount *)acct andDecodeResponse:(DKRequestData *)result
 {
-  NSLog(@"saveCookieHeaders %@", [[result URLResponse] allHeaderFields]);
+  //NSLog(@"saveCookieHeaders %@", [[result URLResponse] allHeaderFields]);
   if ([result isKindOfClass:[DKRequestData class]] && 
       [[result URLResponse] respondsToSelector:@selector(allHeaderFields)]) {
     acct.cookie = [[[result URLResponse] allHeaderFields] objectForKey:@"Set-Cookie"];
@@ -301,6 +307,7 @@ id _nil(id r)
         n.permalink = [d objectForKey:@"permalink"];
         n.name = [d objectForKey:@"name"];
         n.networkID = [d objectForKey:@"id"];
+        n.unseenPrivateCount = [d objectForKey:@"private_unseen_thread_count"];
         n.unseenMessageCount = [d objectForKey:@"unseen_message_count"];
         n.token = [ad objectForKey:@"token"];
         n.secret = [ad objectForKey:@"secret"];
@@ -342,6 +349,21 @@ id _nil(id r)
 #pragma mark -
 #pragma mark Messages
 
+
+- (DKDeferred *)resetSeenCountForThread:(YMMessage *)m forUserAccount:(YMUserAccount *)acct
+{
+  NSMutableURLRequest *req = [self mutableRequestWithMethod:@"messages/last_seen_in_thread.json"
+    account:acct defaults:dict_(m.threadID, @"thread_id", m.messageID, @"message_id")];
+  id d = [[[DKDeferredURLConnection alloc] initWithRequest:req pauseFor:0 decodeFunction:nil] autorelease];
+  return [d addBoth:callbackTS(self, _gotSeenCountsReset:)];
+}
+
+- (id)_gotSeenCountsReset:(id)r
+{
+  NSLog(@"GotSeenCountsReset %@", [[[NSString alloc] initWithData:r encoding:NSUTF8StringEncoding] autorelease]);
+  return r;
+}
+
 - (DKDeferred *)getMessages:(YMUserAccount *)acct withTarget:(NSString *)target 
 withID:(NSNumber *)targetID params:(NSDictionary *)params fetchToID:(NSNumber *)toID unseenLeft:(NSNumber *)unseenLeftCount
 {
@@ -361,6 +383,12 @@ withID:(NSNumber *)targetID params:(NSDictionary *)params fetchToID:(NSNumber *)
     params = r;
   }
   
+  if ([target isEqual:YMMessageTargetPrivate]) {
+    id r = [NSMutableDictionary dictionaryWithDictionary:params];
+    [r setObject:@"extended" forKey:@"threaded"];
+    params = r;
+  }
+
   return [[[[[DKDeferredURLConnection alloc] initWithRequest:
            [self mutableRequestWithMethod:method
             account:acct defaults:params]
@@ -392,12 +420,25 @@ page:(id)page fetchToID:(id)toID networkID:(id)networkID unseenLeft:(id)unseenLe
 
   BOOL fetchToIdFound = NO;
   BOOL fetchingTo = ![toID isEqual:[NSNull null]];
+  BOOL isPrivate = [target isEqual:YMMessageTargetPrivate];
+  NSDictionary *unseenThreadIds = [[results objectForKey:@"meta"] objectForKey:
+                                   @"unseen_message_count_by_thread"];
+  if (isPrivate) {
+    YMNetwork *n = (YMNetwork *)[YMNetwork findByPK:intv(networkID)];
+    if (n && [[results objectForKey:@"meta"] objectForKey:@"unseen_thread_count"]) {
+      PREF_SET(([NSString stringWithFormat:@"%@%@-unseenthreads", n.userID, n.networkID]),
+                   [[results objectForKey:@"meta"] objectForKey:@"unseen_thread_count"]);
+      PREF_SYNCHRONIZE;
+    }
+    NSLog(@"\n\nupdating unseen %i %@", [self unseenThreadCountForNetwork:n], n);
+  }
+          
   
-  NSLog(@" save messages thread %@ %@ %@ %@ %i %@", target, targetID, page, toID, fetchingTo, unseenLeftCount);
+  //NSLog(@" save messages thread %@ %@ %@ %@ %i %@", target, targetID, page, toID, fetchingTo, unseenLeftCount);
   
   if (![results isKindOfClass:[NSDictionary class]]) return ret;
   
-  NSLog(@"meta %@", [results objectForKey:@"meta"]);
+  //NSLog(@"meta %@", [results objectForKey:@"meta"]);
   
   SQLiteInstanceManager *db = [SQLiteInstanceManager sharedManager];
   
@@ -450,7 +491,10 @@ page:(id)page fetchToID:(id)toID networkID:(id)networkID unseenLeft:(id)unseenLe
           message.read = nsnb(!lastSeenID || (intv(lastSeenID) >= intv(message.messageID)));
         message.liked = nsnb([likedIDs containsObject:message.messageID]);
         i--;
-
+        if (isPrivate && unseenThreadIds) {
+          message.unseenThreadCount = [unseenThreadIds objectForKey:[[m objectForKey:@"thread_id"] description]];
+          //message.totalThreadCount = nsni(0); //TODO: get total number of messages from refs
+        }
         [message save];
         
         // build out attachments
@@ -504,6 +548,8 @@ page:(id)page fetchToID:(id)toID networkID:(id)networkID unseenLeft:(id)unseenLe
                    lastFetched.messageID, @"lastFetchedID");
     }
   }
+  //if ([target isEqual:YMMessageTargetPrivate]) {
+    
   if (olderAvailable && boolv(olderAvailable)) {
     YMMessage *lastFetched = [ret lastObject];
     return dict_(nsnb(YES), @"olderAvailable", lastFetched.messageID, @"lastFetchedID");
@@ -582,8 +628,18 @@ page:(id)page fetchToID:(id)toID networkID:(id)networkID unseenLeft:(id)unseenLe
 //    message.senderName = sender.fullName;
 //    message.senderMugshot = sender.mugshotURL;
 //  }
-  
+  NSString *convoId = [m objectForKey:@"conversation_id"];
+  NSString *threadId = [m objectForKey:@"thread_id"];
   for (NSDictionary *g in refs) {
+    if (convoId && [[g objectForKey:@"type"] isEqual:@"conversation"] 
+                && [[g objectForKey:@"id"] isEqual:convoId]) {
+      message.numberOfParticipants = [g objectForKey:@"participating_users_count"];
+    }
+    if (threadId && [[g objectForKey:@"type"] isEqual:@"thread"] 
+                 && [[g objectForKey:@"id"] isEqual:threadId]) {
+//      NSLog(@"thread %@ %@", threadId, g);
+      message.totalThreadCount = [[g objectForKey:@"stats"] objectForKey:@"updates"];
+    }
     if ([[g objectForKey:@"type"] isEqual:@"group"]) {
       YMGroup *group;
       if (!(group = (YMGroup *)[YMGroup findFirstByCriteria:
@@ -1392,8 +1448,8 @@ account:(YMUserAccount *)acct defaults:(NSDictionary *)defaults
   if (defaults && [[defaults allKeys] count]) {
     [params setString:@"?"];
     for (NSString *k in [defaults allKeys]) {
-      [params appendFormat:@"%@=%@&", [k encodedURLParameterString], 
-       [[defaults objectForKey:k] encodedURLParameterString]];
+      [params appendFormat:@"%@=%@&", [[k description] encodedURLParameterString], 
+       [[[defaults objectForKey:k] description] encodedURLParameterString]];
     }
     if ([params length] > 1)
       [params replaceCharactersInRange:

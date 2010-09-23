@@ -75,8 +75,8 @@
 - (int)totalUnseen;
 - (void)updateUIApplicationBadge;
 - (void)subtractUnseenCount:(int)ct fromNetwork:(YMNetwork *)network;
-
-// high performance contact image caching
+- (int)unseenThreadCountForNetwork:(YMNetwork *)network;
+- (DKDeferred *)resetSeenCountForThread:(YMMessage *)m forUserAccount:(YMUserAccount *)acct;
 - (DKDeferred *)loadCachedContactImagesForUserAccount:(YMUserAccount *)acct;
 - (void)purgeCachedContactImages;
 - (void)writeCachedContactImages;
