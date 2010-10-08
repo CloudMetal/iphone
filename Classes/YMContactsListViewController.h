@@ -27,8 +27,15 @@
   UISearchBar *searchBar;
   BOOL shouldHideSectionIndex;
   UIView *lastView;
+  BOOL isPicker, canRemove;
   UINavigationController *rootNavController;
+  NSMutableArray *selected;
+  id<DKCallback> onDone;
 }
+
+@property (nonatomic, retain) id onDone;
+@property (nonatomic, assign) BOOL isPicker, canRemove;
+@property (nonatomic, retain) NSMutableArray *selected;
 
 @property (nonatomic, readwrite, retain) NSString *filterText;
 @property (nonatomic, readwrite, retain) YMUserAccount *userAccount;

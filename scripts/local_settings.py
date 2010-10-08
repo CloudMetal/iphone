@@ -1,0 +1,10 @@
+consumer_key='CRzHSwPXUNGqMVGz78SjWw'
+consumer_secret='ww6JosyfGDRyNkOrzNsYWuGlkssKXG7UszQDmUUWWQ'
+access_token_key='GExyResw6bU1Pdc9jwLg'
+access_token_secret='bqIXssbGROpp1yCuI05pgcP8AtXLV26d4bugsuLcUA'
+debug=False
+proxy_host=None
+proxy_port=0
+proxy_username='None'
+proxy_password='None'
+username=''

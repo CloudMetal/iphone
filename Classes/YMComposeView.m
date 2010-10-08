@@ -11,7 +11,7 @@
 
 @implementation YMComposeView
 
-@synthesize messageTextView, toLabel, toTargetLabel, activity, onPhoto, onUserPhoto,
+@synthesize messageTextView, toLabel, toTargetLabel, activity, onPhoto, onUserPhoto, showParticipants,
 onUserInputsHash, onUserInputsAt, onPartialWillClose, actionBar, tableView, onHash, onUser, onPartial, interfaceOrientation, onDrafts, onUserDrafts, onTextChange;
 
 //- (id)initWithCoder:(NSCoder *)aDecoder
@@ -33,6 +33,29 @@ onUserInputsHash, onUserInputsAt, onPartialWillClose, actionBar, tableView, onHa
 //-(void) cancel:(id)s
 //{
 //}
+
+id _flex() {
+  return [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace
+                                                        target:nil action:nil] autorelease];
+}
+id _fix() {
+  return [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFixedSpace
+                                                        target:nil action:nil] autorelease];
+}
+
+- (void)setShowParticipants:(BOOL)s
+{
+  if (s != showParticipants) {
+//    NSMutableArray *i = [[actionBar.items mutableCopy] autorelease];
+//    if (!s) [i removeObjectAtIndex:[i count] - 1];
+//    else [i insertObject:hash atIndex:[i count] - 1];
+//    actionBar.items = i;
+//    if (s) actionBar.items = array_(_fix(), _flex(), kb, _flex(), photo, _flex(), at, _flex(), hash, _flex(), _fix());
+//    else actionBar.items = array_(_fix(), _flex(), kb, _flex(), photo, _flex(), at, _flex(), _fix());
+//    NSLog(@"action bar items %@", actionBar.items);
+  }
+  showParticipants = s;
+}
 
 - (void)drafts:(id)s
 {
@@ -83,7 +106,8 @@ onUserInputsHash, onUserInputsAt, onPartialWillClose, actionBar, tableView, onHa
   onHash = YES;
   onUser = onPhoto = onPartial = onDrafts = NO;
   [self.messageTextView resignFirstResponder];
-  [self.onUserInputsHash :@"#"]; }
+  [self.onUserInputsHash :@""]; 
+}
 
 - (void) textViewDidChange:(UITextView *)textView
 {

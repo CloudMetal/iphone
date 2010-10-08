@@ -40,6 +40,7 @@
 		157B4ADA11ED8B5700886050 /* UIImage+Resize.m in Sources */ = {isa = PBXBuildFile; fileRef = 157B4AD911ED8B5700886050 /* UIImage+Resize.m */; };
 		157B4AE311ED8CC200886050 /* UIImage+Alpha.m in Sources */ = {isa = PBXBuildFile; fileRef = 157B4ADF11ED8CC200886050 /* UIImage+Alpha.m */; };
 		157B4AE411ED8CC200886050 /* UIImage+RoundedCorner.m in Sources */ = {isa = PBXBuildFile; fileRef = 157B4AE111ED8CC200886050 /* UIImage+RoundedCorner.m */; };
+		1599358D124D7701006C5D9A /* YMParticipantTableViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 1599358C124D7701006C5D9A /* YMParticipantTableViewCell.xib */; };
 		15A7EDCD1230582600F75009 /* MBProgressHUD.m in Sources */ = {isa = PBXBuildFile; fileRef = 15A7EDCC1230582600F75009 /* MBProgressHUD.m */; };
 		15A7EE8C12307DA300F75009 /* UIImage+ProportionalFill.m in Sources */ = {isa = PBXBuildFile; fileRef = 15A7EE8B12307DA300F75009 /* UIImage+ProportionalFill.m */; };
 		15BFEE94121C8C4900F7B704 /* YMMenuController.m in Sources */ = {isa = PBXBuildFile; fileRef = 15BFEE93121C8C4900F7B704 /* YMMenuController.m */; };
@@ -54,6 +55,9 @@
 		15BFEEBC121CA5EF00F7B704 /* contacts-iPad.png in Resources */ = {isa = PBXBuildFile; fileRef = 15BFEEBB121CA5EF00F7B704 /* contacts-iPad.png */; };
 		15C763D811F02CF800E660BE /* YMSettingsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 15C763D711F02CF800E660BE /* YMSettingsViewController.m */; };
 		15CAFE3E1219EA7700B51153 /* YMSplitViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 15CAFE3D1219EA7700B51153 /* YMSplitViewController.m */; };
+		15E1BB8712548F170087F58D /* participants.png in Resources */ = {isa = PBXBuildFile; fileRef = 15E1BB8612548F170087F58D /* participants.png */; };
+		15E1BB96125490CC0087F58D /* mention.png in Resources */ = {isa = PBXBuildFile; fileRef = 15E1BB95125490CC0087F58D /* mention.png */; };
+		15E1BC1C1254999E0087F58D /* blueArrow.png in Resources */ = {isa = PBXBuildFile; fileRef = 15E1BC1B1254999E0087F58D /* blueArrow.png */; };
 		15E909E7120A777F0046349A /* UIButtonBarArrowDown.png in Resources */ = {isa = PBXBuildFile; fileRef = 15E909E3120A777F0046349A /* UIButtonBarArrowDown.png */; };
 		15E909E8120A777F0046349A /* UIButtonBarArrowDown@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 15E909E4120A777F0046349A /* UIButtonBarArrowDown@2x.png */; };
 		15E909E9120A777F0046349A /* UIButtonBarArrowUp.png in Resources */ = {isa = PBXBuildFile; fileRef = 15E909E5120A777F0046349A /* UIButtonBarArrowUp.png */; };
@@ -274,6 +278,7 @@
 		157B4AE011ED8CC200886050 /* UIImage+Alpha.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "UIImage+Alpha.h"; path = "Lib/UIImage+Alpha.h"; sourceTree = "<group>"; };
 		157B4AE111ED8CC200886050 /* UIImage+RoundedCorner.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "UIImage+RoundedCorner.m"; path = "Lib/UIImage+RoundedCorner.m"; sourceTree = "<group>"; };
 		157B4AE211ED8CC200886050 /* UIImage+RoundedCorner.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "UIImage+RoundedCorner.h"; path = "Lib/UIImage+RoundedCorner.h"; sourceTree = "<group>"; };
+		1599358C124D7701006C5D9A /* YMParticipantTableViewCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = YMParticipantTableViewCell.xib; sourceTree = "<group>"; };
 		15A7EDCB1230582600F75009 /* MBProgressHUD.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MBProgressHUD.h; sourceTree = "<group>"; };
 		15A7EDCC1230582600F75009 /* MBProgressHUD.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MBProgressHUD.m; sourceTree = "<group>"; };
 		15A7EE8A12307DA300F75009 /* UIImage+ProportionalFill.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIImage+ProportionalFill.h"; sourceTree = "<group>"; };
@@ -293,6 +298,9 @@
 		15C763D711F02CF800E660BE /* YMSettingsViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = YMSettingsViewController.m; path = Classes/YMSettingsViewController.m; sourceTree = "<group>"; };
 		15CAFE3C1219EA7700B51153 /* YMSplitViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YMSplitViewController.h; sourceTree = "<group>"; };
 		15CAFE3D1219EA7700B51153 /* YMSplitViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = YMSplitViewController.m; sourceTree = "<group>"; };
+		15E1BB8612548F170087F58D /* participants.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = participants.png; sourceTree = "<group>"; };
+		15E1BB95125490CC0087F58D /* mention.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = mention.png; sourceTree = "<group>"; };
+		15E1BC1B1254999E0087F58D /* blueArrow.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = blueArrow.png; path = Resources/blueArrow.png; sourceTree = "<group>"; };
 		15E909E3120A777F0046349A /* UIButtonBarArrowDown.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = UIButtonBarArrowDown.png; path = Resources/UIButtonBarArrowDown.png; sourceTree = "<group>"; };
 		15E909E4120A777F0046349A /* UIButtonBarArrowDown@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "UIButtonBarArrowDown@2x.png"; path = "Resources/UIButtonBarArrowDown@2x.png"; sourceTree = "<group>"; };
 		15E909E5120A777F0046349A /* UIButtonBarArrowUp.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = UIButtonBarArrowUp.png; path = Resources/UIButtonBarArrowUp.png; sourceTree = "<group>"; };
@@ -889,6 +897,7 @@
 				225FAAF3119B7B90003579E0 /* YMMessageCompanionTableViewCell.h */,
 				225FAAF4119B7B90003579E0 /* YMMessageCompanionTableViewCell.m */,
 				225FAAE4119B6856003579E0 /* YMMessageCompanionTableViewCell.xib */,
+				1599358C124D7701006C5D9A /* YMParticipantTableViewCell.xib */,
 			);
 			name = "Table View Cells";
 			path = ..;
@@ -960,6 +969,9 @@
 		29B97317FDCFA39411CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				15E1BC1B1254999E0087F58D /* blueArrow.png */,
+				15E1BB95125490CC0087F58D /* mention.png */,
+				15E1BB8612548F170087F58D /* participants.png */,
 				152434E9124AA75300F3102D /* unreadbadge.png */,
 				152434EA124AA75300F3102D /* unreadbadge@2x.png */,
 				152434D9124AA4A600F3102D /* UITableNext.png */,
@@ -1199,6 +1211,10 @@
 				152434DA124AA4A600F3102D /* UITableNext.png in Resources */,
 				152434EB124AA75300F3102D /* unreadbadge.png in Resources */,
 				152434EC124AA75300F3102D /* unreadbadge@2x.png in Resources */,
+				1599358D124D7701006C5D9A /* YMParticipantTableViewCell.xib in Resources */,
+				15E1BB8712548F170087F58D /* participants.png in Resources */,
+				15E1BB96125490CC0087F58D /* mention.png in Resources */,
+				15E1BC1C1254999E0087F58D /* blueArrow.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1416,8 +1432,8 @@
 					"-ObjC",
 				);
 				PRODUCT_NAME = Yammer;
-				PROVISIONING_PROFILE = "43074AE4-A15D-4A72-98AF-3A803ECCEB54";
-				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "43074AE4-A15D-4A72-98AF-3A803ECCEB54";
+				PROVISIONING_PROFILE = "6562A075-87CF-46F4-B2BF-B97F88693DB2";
+				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "6562A075-87CF-46F4-B2BF-B97F88693DB2";
 				SDKROOT = iphoneos4.1;
 				TARGETED_DEVICE_FAMILY = 1;
 			};

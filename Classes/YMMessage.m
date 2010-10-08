@@ -16,12 +16,13 @@
 @synthesize messageID, groupID, directToID, url, webURL, repliedToID, target, 
             threadID, bodyPlain, bodyParsed, messageType, targetID, liked, hasAttachments, 
             clientType, senderID, senderType, createdAt, networkPK, read, repliedToSenderID,
-            unseenThreadCount, totalThreadCount, numberOfParticipants,
+            unseenThreadCount, totalThreadCount, numberOfParticipants, threadLastUpdated,
             /// these are cache attributes
             repliedToSenderName, directToSenderName, senderName, senderMugshot, groupName;
 
 DECLARE_PROPERTIES(
                    DECLARE_PROPERTY(@"messageID", @"@\"NSNumber\""),
+                   DECLARE_PROPERTY(@"threadLastUpdated", @"@\"NSDate\""),
                    DECLARE_PROPERTY(@"numberOfParticipants", @"@\"NSNumber\""),
                    DECLARE_PROPERTY(@"unseenTheadCount", @"@\"NSNumber\""),
                    DECLARE_PROPERTY(@"totalThreadCount", @"@\"NSNumber\""),
@@ -57,8 +58,10 @@ DECLARE_PROPERTIES(
   return array_(
                 array_(@"pk"),
                 array_(@"messageID"), // TODO: add networkPK
+                array_(@"threadID"),
                 array_(@"messageID", @"senderID"),
-                array_(@"messageID", @"targetID", @"target")
+                array_(@"messageID", @"targetID", @"target"),
+                array_(@"threadLastUpdated"), array_(@"createdAt")
                 );
 //                array_(@"messageID", @"repliedToID", @"repliedToSenderID"),
 //                array_(@"messageID", @"repliedToID", @"senderID", @"repliedToSenderID"),
@@ -68,6 +71,10 @@ DECLARE_PROPERTIES(
 
 - (void)dealloc
 {
+  self.numberOfParticipants = 0;
+  self.unseenThreadCount = 0;
+  self.totalThreadCount = 0;
+  self.threadLastUpdated = nil;
   self.messageID = nil;
   self.groupID = nil;
   self.directToID = nil;

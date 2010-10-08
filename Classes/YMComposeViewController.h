@@ -29,6 +29,7 @@ MBProgressHUDDelegate>
   YMMessage *inReplyTo;
   YMGroup *inGroup;
   YMContact *directTo;
+  YMMessage *inThread;
   IBOutlet UITableView *autocompleteTable;
   NSArray *usernames;
   NSArray *fullNames;
@@ -44,8 +45,17 @@ MBProgressHUDDelegate>
   YMDraft *draft;
   MBProgressHUD *HUD;
   NSString *text;
+  BOOL isPrivate;
+  NSMutableArray *recipients;
+  id delegate;
+  SEL sendAction;
 }
 
+@property (nonatomic, assign) id delegate;
+@property (nonatomic, assign) SEL sendAction;
+@property (nonatomic, assign) NSMutableArray *recipients;
+@property (nonatomic, assign) BOOL isPrivate;
+@property (nonatomic, retain) YMMessage *inThread;
 @property (nonatomic, retain) YMDraft *draft;
 @property (nonatomic, retain) id<DKCallback> onCompleteSend;
 @property (nonatomic, readwrite, retain) YMUserAccount *userAccount;

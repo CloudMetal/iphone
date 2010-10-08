@@ -21,6 +21,7 @@
 #import "YMComposeViewController.h"
 #import "NSDate-SQLitePersistence.h"
 #import "SQLiteInstanceManager.h"
+#import "YMContactsListViewController.h"
 
 @interface YMMessageListViewController (PrivateStuffs)
 
@@ -40,7 +41,8 @@
 
 @synthesize target, targetID, olderThan, newerThan, threaded, loadedAvatars, 
           userAccount, selectedIndexPath, limit, shouldUpdateBadge, privateThread, 
-          remainingUnseenItems, lastLoadedMessageID, lastSeenMessageID, network, numberOfUnseenInThread;
+          remainingUnseenItems, lastLoadedMessageID, lastSeenMessageID, network, 
+          numberOfUnseenInThread, lastLoadedThreadID;
 
 - (id)init
 {
@@ -54,7 +56,10 @@
     self.remainingUnseenItems = nil;
     self.lastLoadedMessageID = nil;
     self.lastSeenMessageID = nil;
+    self.lastLoadedThreadID = nil;
     self.actionTableViewHeaderClass = [YMRefreshView class];
+    loadedIds = nil;
+    threadInfo = nil;
     
     wasInactive = NO;
     privateThread = NO;
@@ -72,8 +77,19 @@
     [[NSNotificationCenter defaultCenter]
      addObserver:self selector:@selector(orientationDidChange:) name:
      UIDeviceOrientationDidChangeNotification object:nil];
+    [[NSNotificationCenter defaultCenter]
+     addObserver:self selector:@selector(networksDidUpdate:) name:@"YMNetworksUpdated" object:nil];
 
+    if (&UIApplicationWillEnterForegroundNotification != NULL) {
+      [[NSNotificationCenter defaultCenter]
+       addObserver:self selector:@selector(didBackground:) name:
+       UIApplicationDidEnterBackgroundNotification object:nil];
+      [[NSNotificationCenter defaultCenter]
+       addObserver:self selector:@selector(didBecomeActive:) name:
+       UIApplicationDidBecomeActiveNotification object:nil];
+    }
     web = [YMWebService sharedWebService];
+    HUD = nil;
   }
   return self;
 }
@@ -86,10 +102,16 @@
 - (void)didBecomeActive:(id)n
 {
   NSLog(@"didBecomeActive %@", n);
-  if (wasInactive) {
+  if (wasInactive && ([self.target isEqual:YMMessageTargetPrivate] 
+                   || [self.target isEqual:YMMessageTargetFollowing]) && self.tabBarController.view.window) {
     wasInactive = NO;
     [self reloadTableViewDataSource];
   }
+}
+
+- (void)networksDidUpdate:(id)n
+{
+  [self updateBadge];
 }
 
 - (void)loadView
@@ -147,18 +169,124 @@
 
 - (void) viewWillAppear:(BOOL)animated
 {
+  self.navigationController.delegate = self;
   self.navigationController.navigationBar.tintColor 
   = [UIColor colorWithRed:0.27 green:0.34 blue:0.39 alpha:1.0];
   self.navigationController.toolbar.tintColor 
   = [UIColor colorWithHexString:@"353535"];
   self.selectedIndexPath = nil;
   viewHasAppeared = YES;
+  if (![self.target isEqual:YMMessageTargetPrivate] 
+      && ![self.target isEqual:YMMessageTargetFollowing])
+    didGetFirstUpdate = NO;
   if (!messagePKs || ![messagePKs count]) {
     [self refreshMessagePKs];
+    if (![messagePKs count] && !didGetFirstUpdate) {
+      if (HUD) [HUD release];
+      HUD = [[MBProgressHUD alloc] initWithView:self.navigationController.view];
+      [self.navigationController.view addSubview:HUD];
+      HUD.labelText = @"Loading";
+      [HUD show:YES];
+    }
     [self.tableView reloadData];
   }   
   [self setHeaderTitle:self.title andSubtitle:self.network.name];
   [super viewWillAppear:animated];
+  if (self.view) {
+    if ([self.target isEqual:YMMessageTargetPrivate]) {
+      self.navigationItem.rightBarButtonItem = 
+      [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCompose
+                                                     target:self action:@selector(composePrivate:)]
+       autorelease];
+    }
+  }
+}
+
+- (void)navigationController:(UINavigationController *)navigationController willShowViewController:(UIViewController *)viewController animated:(BOOL)animated
+{
+  isPushing = YES;
+}
+
+- (void)navigationController:(UINavigationController *)navigationController didShowViewController:(UIViewController *)viewController animated:(BOOL)animated
+{
+  isPushing = NO;
+  if (currentlySelectedIndexPath) [currentlySelectedIndexPath release];
+  currentlySelectedIndexPath = nil;
+}
+
+- (void)hudWasHidden
+{
+  [HUD removeFromSuperview];
+  [HUD release];
+  HUD = nil;
+}
+
+- (void)composePrivate:s
+{
+  YMContactsListViewController *c = [[[YMContactsListViewController alloc] init] autorelease];
+  [c setUseSubtitleHeader:NO];
+  UINavigationController *n = [[[UINavigationController alloc] initWithRootViewController:c] autorelease];
+  c.navigationItem.leftBarButtonItem = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:
+                                         UIBarButtonSystemItemCancel target:self.navigationController
+                                         action:@selector(dismissModalViewControllerAnimated:)] autorelease];
+  c.userAccount = self.userAccount;
+  
+  c.isPicker = YES;
+  c.selected = [NSMutableArray array];
+  c.onDone = callbackTS(self, contactPickerFinished:);
+  c.canRemove = YES;
+  [self.navigationController presentModalViewController:n animated:YES];
+  c.navigationController.navigationBar.tintColor = self.navigationController.navigationBar.tintColor;
+  c.title = @"Select Recipient";
+}
+
+- (void)contactPickerFinished:(YMContactsListViewController *)picker
+{
+  YMComposeViewController *c = [[[YMComposeViewController alloc]
+                                 init] autorelease];
+  c.userAccount = self.userAccount;
+  c.network = self.network;
+  c.delegate = self;
+  c.sendAction = @selector(didSendMessage:);
+  if ([self.target isEqual:YMMessageTargetInGroup]) {
+    c.inGroup = (YMGroup *)[YMGroup findFirstByCriteria:
+                            @"WHERE group_i_d=%i", intv(self.targetID)];
+  }
+  if ([self.target isEqual:YMMessageTargetInThread] && [messagePKs count]) {
+    c.inThread = (YMMessage *)[YMMessage findByPK:intv([messagePKs objectAtIndex:0])];
+    NSLog(@"c.inThread = %@", c.inThread);
+  }
+  c.isPrivate = [self.target isEqual:YMMessageTargetPrivate] || self.privateThread;
+  //c.recipients = picker.selected;
+  c.directTo = (YMContact *)[YMContact findByPK:intv([picker.selected objectAtIndex:0])];
+  [self.navigationController dismissModalViewControllerAnimated:NO];
+  [c showFromController:self animated:YES];
+}
+
+- (void)didSendMessage:(DKDeferred *)msgSend
+{
+  if (HUD) [HUD release];
+  HUD = [[MBProgressHUD alloc] initWithView:self.tabBarController.view];
+  HUD.labelText = @"Sending";
+  [self.tabBarController.view addSubview:HUD];
+  [HUD show:YES];
+  [msgSend addBoth:callbackTS(self, _finishedSendMessage:)];
+}
+
+- (id)_finishedSendMessage:(id)r
+{  
+  NSLog(@"finished send message %@", r);
+  if ([r isKindOfClass:[YMMessage class]]) {
+    YMMessage *m = r;
+    m.target = self.target;
+    if (self.targetID) m.targetID = self.targetID;
+    m.read = nsni(1);
+    [m save];
+    [self refreshMessagePKs];
+    [self.tableView reloadData];
+  }
+  [HUD hide:YES];
+  return r;
 }
 
 - (void) viewDidAppear:(BOOL)animated
@@ -169,14 +297,7 @@
   if (![self.target isEqual:YMMessageTargetFollowing] 
       && ![self.target isEqual:YMMessageTargetPrivate]) [self doReload:nil];
   else [self.tableView reloadData];
-  if (&UIApplicationWillEnterForegroundNotification != NULL) {
-    [[NSNotificationCenter defaultCenter]
-     addObserver:self selector:@selector(didBackground:) name:
-     UIApplicationDidEnterBackgroundNotification object:nil];
-    [[NSNotificationCenter defaultCenter]
-     addObserver:self selector:@selector(didBecomeActive:) name:
-     UIApplicationDidBecomeActiveNotification object:nil];
-  }
+
   int fontSize = 13;
   id p = PREF_KEY(@"fontsize");
   if (p) fontSize = intv(p);
@@ -204,12 +325,6 @@
 
 - (void)viewDidDisappear:(BOOL)animated
 {
-  if (&UIApplicationWillEnterForegroundNotification != NULL) {
-    [[NSNotificationCenter defaultCenter] removeObserver:self name:
-     UIApplicationDidBecomeActiveNotification object:nil];
-    [[NSNotificationCenter defaultCenter] removeObserver:self name:
-     UIApplicationDidEnterBackgroundNotification object:nil];
-  }
   [self updateBadge];
   [super viewDidDisappear:animated];
 }
@@ -267,7 +382,7 @@
   if (self.reloading || moreButton.hidden) return;
   if ([messagePKs count]) {
     int currentCount = [messagePKs count];
-    limit += 100;
+    limit += 50;
     if (self.lastLoadedMessageID == nil &&
         [YMMessage countByCriteria:@"%@ LIMIT %i", 
          [self listCriteria], limit] > currentCount) {
@@ -305,6 +420,8 @@
     [self markAllMessagesRead];
     [self updateBadge];
   }
+  if (loadedIds) [loadedIds release];
+  loadedIds = nil;
   self.olderThan = nil;
   [self doReload:nil];
 }
@@ -315,10 +432,17 @@
                                  init] autorelease];
   c.userAccount = self.userAccount;
   c.network = self.network;
+  c.delegate = self;
+  c.sendAction = @selector(didSendMessage:);
   if ([self.target isEqual:YMMessageTargetInGroup]) {
     c.inGroup = (YMGroup *)[YMGroup findFirstByCriteria:
                             @"WHERE group_i_d=%i", intv(self.targetID)];
   }
+  if ([self.target isEqual:YMMessageTargetInThread] && [messagePKs count]) {
+    c.inThread = (YMMessage *)[YMMessage findByPK:intv([messagePKs objectAtIndex:0])];
+    NSLog(@"c.inThread = %@", c.inThread);
+  }
+  c.isPrivate = [self.target isEqual:YMMessageTargetPrivate] || self.privateThread;
   [c showFromController:self animated:YES];
 }
 
@@ -337,7 +461,6 @@
   if ([results objectForKey:@"unseenItemsLeftToFetch"]) {
     self.remainingUnseenItems 
       = [results objectForKey:@"unseenItemsLeftToFetch"];
-    self.lastLoadedMessageID = [results objectForKey:@"lastFetchedID"];
     self.lastSeenMessageID = [results objectForKey:@"lastSeenID"];
     int u = intv(self.remainingUnseenItems);
     networkBadgeCount = u > 0 ? u : 0;
@@ -347,23 +470,32 @@
     shouldUpdateBadge = NO;
   } else {
     shouldUpdateBadge = YES;
-    [self updateBadge];
+    
     self.lastSeenMessageID = nil;
-    self.lastLoadedMessageID = nil;
     self.remainingUnseenItems = nil;
+
+    [self updateBadge];
     [moreButton setTitle:@"More" forState:UIControlStateNormal];
   }
+  if (!loadedIds) loadedIds = [NSMutableArray new];
+  [loadedIds addObjectsFromArray:[results objectForKey:@"loadedMessageIDs"]];
+  self.lastLoadedMessageID = [results objectForKey:@"lastFetchedID"];
+  self.lastLoadedThreadID = [results objectForKey:@"lastFetchedThreadID"];
   
-  network.unseenMessageCount = nsni(networkBadgeCount);
-  [network save];
-  [web updateUIApplicationBadge];
+  [self performSelectorInBackground:@selector(updateAppBadge:) withObject:nsni(networkBadgeCount)];
+  //network.unseenMessageCount = nsni(networkBadgeCount);
+  //[network save];
+  //[web updateUIApplicationBadge];
   
-  if ([results objectForKey:@"olderAvailable"] && 
-      [YMMessage countByCriteria:@"WHERE message_i_d=%@", 
-        [results objectForKey:@"lastFetchedID"]]) {
-    moreButton.hidden = NO;
-    self.lastLoadedMessageID = [results objectForKey:@"lastFetchedID"];
-  } else moreButton.hidden = YES;
+/*  if ([results objectForKey:@"olderAvailable"] && */
+      //[YMMessage countByCriteria:@"WHERE message_i_d=%@", 
+        //[results objectForKey:@"lastFetchedID"]]) {
+    //moreButton.hidden = NO;
+    //self.lastLoadedMessageID = [results objectForKey:@"lastFetchedID"];
+  /*} else moreButton.hidden = YES;*/
+  
+  moreButton.hidden = !boolv([results objectForKey:@"olderAvailable"]); 
+  NSLog(@"more available %@", results);
   
   if (didGetFirstUpdate)
     didRefresh = YES;
@@ -386,7 +518,8 @@
   loadingDeferred = nil;
   
   [self dataSourceDidFinishLoadingNewData];
-  moreButton.hidden = NO;
+  //if ([results objectForKey:
+  //moreButton.hidden = NO;
   [bottomLoadingView stopAnimating];
   
   return results;
@@ -402,15 +535,38 @@
   return error;
 }
 
+- (void)updateAppBadge:(NSNumber *)currNetworkBadgeCount
+{
+  NSAutoreleasePool *p = [[NSAutoreleasePool alloc] init];
+  network.unseenMessageCount = currNetworkBadgeCount;
+  @synchronized(web) {
+    [network save];
+  }
+  [web updateUIApplicationBadge];
+  [p release];
+}
+
 - (NSString *)listCriteria
 {
+//  YMMessage *lastLoaded = nil;
+  BOOL useThreadId = [self.target isEqual:YMMessageTargetPrivate];
+  id limitField    = useThreadId ? @"thread_i_d" : @"message_i_d";
+//  id limiter       = useThreadId ? self.lastLoadedThreadID : self.lastLoadedMessageID;
+  id andTarget     = self.targetID != nil 
+                     ? [NSString stringWithFormat:@" AND target_i_d='%@'", self.targetID] : @"";
+  
+//  if (self.lastLoadedMessageID != nil)
+//    lastLoaded = (YMMessage *)[YMMessage findFirstByCriteria:
+//       @"WHERE %@=%@ AND target='%@'%@", limitField, limiter, self.target, andTarget];
+//  NSString *andLimit = lastLoaded != nil
+//    ? [NSString stringWithFormat:@" AND %@ >= %@", limitField, limiter] : @"";
+  NSString *andLimit = self.lastLoadedMessageID != nil 
+    ? [NSString stringWithFormat:@" AND %@ IN(%@)", limitField, 
+       [loadedIds componentsJoinedByString:@","]] 
+    : @"";
+  
   return [NSString stringWithFormat:@"WHERE network_p_k=%i AND target='%@'%@%@", 
-          self.network.pk, target, 
-          (self.targetID != nil ? [NSString stringWithFormat:
-                              @" AND target_i_d='%@'", self.targetID] : @""),
-          (self.lastLoadedMessageID != nil 
-           ? [NSString stringWithFormat:@" AND message_i_d >= %@", 
-              self.lastLoadedMessageID] : @"")];
+          self.network.pk, target, andTarget, andLimit];
 }
 
 - (void)refreshMessagePKs
@@ -452,13 +608,15 @@
     extra = @", unseen_thread_count, number_of_participants, total_thread_count";
   }
   
+  NSString *order = [self.target isEqual:YMMessageTargetPrivate] ? @"thread_last_updated": @"created_at";
   NSString *q = [NSString stringWithFormat:
      @"SELECT pk, sender_mugshot, sender_name, replied_to_sender_name, " 
-     @"body_plain, created_at, read, liked, has_attachments, sender_i_d, "
+     @"body_plain, %@, read, liked, has_attachments, sender_i_d, "
      @"direct_to_sender_name, group_name%@ FROM y_m_message %@ ORDER BY "
-     @"created_at DESC LIMIT %i", extra, [self listCriteria], limit];
+     @"%@ DESC LIMIT %i", order, extra, [self listCriteria], order, limit];
+  NSLog(@"q %@", q);
 
-  NSArray *a = [YMMessage pairedArraySelect:q fields:15];
+  NSArray *a = [YMMessage pairedArraySelect:q fields:17];
   
   messagePKs = [[a objectAtIndex:0] retain];
   mugshotURLs = [[a objectAtIndex:1] retain];
@@ -495,9 +653,11 @@
   [self updateBadge];
 
   if ([messagePKs count]) {
-    YMMessage *first = (YMMessage *)[YMMessage findByPK:intv([messagePKs objectAtIndex:0])];
     if ([self.target isEqual:YMMessageTargetInThread] && self.privateThread) {
+      YMMessage *first = (YMMessage *)[YMMessage findByPK:intv([messagePKs objectAtIndex:0])];
       [web resetSeenCountForThread:first forUserAccount:self.userAccount];
+      DKDeferred *d = [web threadInfo:[first.threadID description] forAccount:self.userAccount];
+      [d addCallback:callbackTS(self, _gotThreadInfo:)];
     }
   }
 
@@ -549,6 +709,21 @@
   
   PREF_SET(@"previouslylastloaded", d);
   PREF_SYNCHRONIZE;
+  if (currentlySelectedIndexPath) [currentlySelectedIndexPath release];
+  currentlySelectedIndexPath = nil;
+  
+  if (HUD && [HUD superview]) {
+    [HUD hide:YES];
+  }
+}
+
+- (id)_gotThreadInfo:(id)r
+{
+  NSLog(@"%@ gotThreadInfo %@", self, r);
+  if (threadInfo)[threadInfo release];
+  threadInfo = [r retain];
+  [self.tableView reloadData];
+  return r;
 }
 
 - (void)updateBadge
@@ -558,11 +733,13 @@
       //self.tabBarItem.badgeValue = [NSString stringWithFormat:@"%i", totalUnseenThreads];
     //return;
     int u = [web unseenThreadCountForNetwork:self.network];
-    self.network.unseenPrivateCount = nsni(u);
-    [self.network save];
-    NSLog(@"unseenForNetwork %i", u);
+    //self.network.unseenPrivateCount = nsni(u);
+    //[self.network save];
+    //NSLog(@"unseenForNetwork %i", u);
+    [self performSelectorInBackground:@selector(updateAppBadge:) withObject:nsni(u)];
     if (self.tabBarItem)
       self.tabBarItem.badgeValue = (u > 0) ? [NSString stringWithFormat:@"%i", u] : nil;
+    [web updateUIApplicationBadge];
     return;
   }
   if (!shouldUpdateBadge) return;
@@ -578,36 +755,36 @@
 
 - (void)markAllMessagesRead
 {
-  if (!([messagePKs count] >= 1)) return;
-  if (newlyReadMessageIndexes) [newlyReadMessageIndexes release];
-  newlyReadMessageIndexes = [[NSMutableIndexSet indexSetWithIndexesInRange:
-                             NSMakeRange(0, [messagePKs count] - 1)] retain];
-  [self updateNewlyReadMessages];
+  //if (!([messagePKs count] >= 1)) return;
+  //if (newlyReadMessageIndexes) [newlyReadMessageIndexes release];
+  //newlyReadMessageIndexes = [[NSMutableIndexSet indexSetWithIndexesInRange:
+                             //NSMakeRange(0, [messagePKs count] - 1)] retain];
+  //[self updateNewlyReadMessages];
 }
 
 - (void)updateNewlyReadMessages
 {
-  if (self.lastLoadedMessageID != nil) return;
+  //if (self.lastLoadedMessageID != nil) return;
   
-  NSArray *pks = [messagePKs objectsAtIndexes:newlyReadMessageIndexes];
-  SQLiteInstanceManager *db = [SQLiteInstanceManager sharedManager];
-  NSString *q = [NSString stringWithFormat:
-                 @"UPDATE y_m_message SET read = 1 WHERE pk IN(%@);",
-                 [pks componentsJoinedByString:@","]];
-  [db executeUpdateSQL:q];
-  NSMutableArray *newReads = [NSMutableArray array];
-  NSMutableArray *indexPaths = [NSMutableArray array];
-  for (int i = 0; i < [newlyReadMessageIndexes count]; i++) {
-    [newReads addObject:nsni(1)];
-    [indexPaths addObject:[NSIndexPath indexPathForRow:
-                           [messagePKs indexOfObject:
-                            [pks objectAtIndex:i]] inSection:0]];
-  }
-  [reads replaceObjectsAtIndexes:newlyReadMessageIndexes withObjects:newReads];
-  [newlyReadMessageIndexes release];
-  newlyReadMessageIndexes = [[NSMutableIndexSet indexSet] retain];
+  //NSArray *pks = [messagePKs objectsAtIndexes:newlyReadMessageIndexes];
+  //SQLiteInstanceManager *db = [SQLiteInstanceManager sharedManager];
+  //NSString *q = [NSString stringWithFormat:
+                 //@"UPDATE y_m_message SET read = 1 WHERE pk IN(%@);",
+                 //[pks componentsJoinedByString:@","]];
+  //[db executeUpdateSQL:q];
+  //NSMutableArray *newReads = [NSMutableArray array];
+  //NSMutableArray *indexPaths = [NSMutableArray array];
+  //for (int i = 0; i < [newlyReadMessageIndexes count]; i++) {
+    //[newReads addObject:nsni(1)];
+    //[indexPaths addObject:[NSIndexPath indexPathForRow:
+                           //[messagePKs indexOfObject:
+                            //[pks objectAtIndex:i]] inSection:0]];
+  //}
+  //[reads replaceObjectsAtIndexes:newlyReadMessageIndexes withObjects:newReads];
+  //[newlyReadMessageIndexes release];
+  //newlyReadMessageIndexes = [[NSMutableIndexSet indexSet] retain];
   
-  [web subtractUnseenCount:[pks count] fromNetwork:self.network];
+  //[web subtractUnseenCount:[pks count] fromNetwork:self.network];
 }
 
 - (NSInteger)rowForIndexPath:(NSIndexPath *)indexPath
@@ -639,32 +816,41 @@
   return ret;
 }
 
-- (void) scrollViewDidEndDecelerating:(UIScrollView *)scrollView
-{
-  if (scrollView.decelerating || ![newlyReadMessageIndexes count]) return;
-  
-  [self updateNewlyReadMessages];
-  [self updateBadge];
-}
-
-- (void) scrollViewDidEndDragging:(UIScrollView *)scrollView
-                   willDecelerate:(BOOL)decelerate
-{
-  [super scrollViewDidEndDragging:scrollView willDecelerate:decelerate];
-  if (!decelerate) {
-    [self updateNewlyReadMessages];
-    [self updateBadge];
-  }
-}
+// - (void) scrollViewDidEndDecelerating:(UIScrollView *)scrollView
+// {
+  // if (scrollView.decelerating || ![newlyReadMessageIndexes count]) return;
+  // 
+  // [self updateNewlyReadMessages];
+  // [self updateBadge];
+// }
+// 
+// - (void) scrollViewDidEndDragging:(UIScrollView *)scrollView
+                   // willDecelerate:(BOOL)decelerate
+// {
+  // [super scrollViewDidEndDragging:scrollView willDecelerate:decelerate];
+  // if (!decelerate) {
+    // [self updateNewlyReadMessages];
+    // [self updateBadge];
+  // }
+// }
 
 -(NSInteger) numberOfSectionsInTableView:(UITableView *)table
 {
+  if (privateThread && threadInfo) return 2;
   return 1;
+}
+
+- (NSString *)tableView:(UITableView *)tv titleForHeaderInSection:(NSInteger)sec
+{
+  if (privateThread && sec == 1) return @"Participants";
+  return nil;
 }
 
 - (CGFloat) tableView:(UITableView *)table
 heightForRowAtIndexPath:(NSIndexPath *)indexPath
 {
+  if (![messagePKs count]) return 60;
+  if (privateThread && indexPath.section == 1) return 44;
   if ([self.target isEqual:YMMessageTargetPrivate]) return 82;
   CGFloat ret;
   if (selectedIndexPath && selectedIndexPath.row + 1 == indexPath.row)
@@ -685,12 +871,51 @@ heightForRowAtIndexPath:(NSIndexPath *)indexPath
 - (NSInteger) tableView:(UITableView *)table
   numberOfRowsInSection:(NSInteger)section
 {
-  return [messagePKs count] + ((self.selectedIndexPath != nil) ? 1 : 0);
+  if (privateThread && threadInfo && section == 1) 
+    return [[threadInfo objectForKey:@"participants"] count];
+  return MAX(1, ([messagePKs count] + ((self.selectedIndexPath != nil) ? 1 : 0)));
 }
 
 - (UITableViewCell *) tableView:(UITableView *)table
 cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {  
+  if (indexPath.section == 1 && threadInfo && privateThread) {
+    UITableViewCell *cell = [table dequeueReusableCellWithIdentifier:@"participant"];
+    if (!cell) {
+      //cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault
+                                  //reuseIdentifier:@"participant"] autorelease];
+      //cell.textLabel.font = [UIFont systemFontOfSize:15];
+      cell = [[[NSBundle mainBundle] loadNibNamed:@"YMParticipantTableViewCell"
+                                            owner:nil options:nil] objectAtIndex:0];
+    }
+    NSDictionary *p = nil;
+    for (NSDictionary *d in [threadInfo objectForKey:@"references"]) {
+      if ([[d objectForKey:@"id"] isEqual:[[[threadInfo objectForKey:
+          @"participants"] objectAtIndex:indexPath.row] objectForKey:@"id"]]
+                     && [[d objectForKey:@"type"] isEqual:@"user"]) {
+        p = d;
+      }
+    }
+    if (p) {
+      //cell.textLabel.text = [p objectForKey:@"full_name"];
+      [(UILabel *)[cell viewWithTag:709] setText:[p objectForKey:@"full_name"]];
+      static NSString *photoRegex = @"no_photo_small\\.gif$";
+      id imgURL = [p objectForKey:@"mugshot_url"];
+      UIImage *img = [[DKDeferred cache] objectForKeyInMemory:imgURL];
+      UIImageView *imageView = (UIImageView *)[cell viewWithTag:707];
+      if (!img) {
+        img = [UIImage imageNamed:@"user-70.png"];
+        if (![imgURL isEqual:[NSNull null]] && ![imgURL isMatchedByRegex:photoRegex]) {
+          [[web contactImageForURL:imgURL] addCallback:
+           curryTS(self, @selector(_gotParticipantMugshot::), indexPath)];
+        }
+      }
+      imageView.image = img;
+    }
+    return cell;
+
+
+  }
   if (selectedIndexPath && indexPath.row == selectedIndexPath.row + 1) {
     YMMessageCompanionTableViewCell *cell = nil;
     for (id v in [[NSBundle mainBundle] loadNibNamed:
@@ -718,9 +943,6 @@ cellForRowAtIndexPath:(NSIndexPath *)indexPath
     return cell;
   }
   
-  int idx = [self rowForIndexPath:indexPath];
-  if (idx >= [messagePKs count]) return nil;
-  
   static NSString *ident = @"YMMessageCell1";
   
   YMFastMessageTableViewCell *cell = (YMFastMessageTableViewCell *)
@@ -728,9 +950,16 @@ cellForRowAtIndexPath:(NSIndexPath *)indexPath
   if (!cell) {
     cell = [[[YMFastMessageTableViewCell alloc] initWithFrame:
              CGRectMake(0, 0, 320, 72) reuseIdentifier:ident] autorelease];
-    cell.swipeTarget = self;
-    cell.swipeSelector = @selector(cellDidSwipe:);
+//    cell.swipeTarget = self;
+//    cell.swipeSelector = @selector(cellDidSwipe:);
   }
+  if (![messagePKs count]) {
+    cell.body = @"      No messages in this feed.";
+    return cell;
+  }
+  
+  int idx = [self rowForIndexPath:indexPath];
+  if (idx >= [messagePKs count]) return nil;
   
   id read = [reads objectAtIndex:idx];
   if ([read isKindOfClass:[NSObject class]] && !intv(read)) {
@@ -759,10 +988,11 @@ cellForRowAtIndexPath:(NSIndexPath *)indexPath
   } else {
     cell.date = nil;
   }
-  if ([self.target isEqual:YMMessageTargetPrivate]) {
+  BOOL isPrivate = ([self.target isEqual:YMMessageTargetPrivate]);
+  if (isPrivate) {
     cell.dm = YES;
-    cell.numberOfParticipants = MAX(intv([numberOfParticipantCounts objectAtIndex:idx]), 0);
-    cell.messagesInThread = MAX(intv([messageInThreadCounts objectAtIndex:idx]), 0);
+    cell.numberOfParticipants = MAX(intv([numberOfParticipantCounts objectAtIndex:idx]), 1);
+    cell.messagesInThread = MAX(intv([messageInThreadCounts objectAtIndex:idx]), 1);
     cell.unreadInThread = intv([unseenThreadCounts objectAtIndex:idx]);
     cell.unread = boolv([unseenThreadCounts objectAtIndex:idx]);
   }
@@ -772,7 +1002,7 @@ cellForRowAtIndexPath:(NSIndexPath *)indexPath
   cell.title = [titles objectAtIndex:idx];
   cell.liked = boolv([likeds objectAtIndex:idx]);
   cell.hasAttachments = boolv([hasattachments objectAtIndex:idx]);
-  cell.isPrivate = ![[privates objectAtIndex:idx] 
+  cell.isPrivate = privateThread || isPrivate || ![[privates objectAtIndex:idx] 
                      isEqual:[NSNull null]];
   if ([[groups objectAtIndex:idx] isEqual:[NSNull null]])
     cell.group = nil;
@@ -780,12 +1010,30 @@ cellForRowAtIndexPath:(NSIndexPath *)indexPath
     cell.group = [@"posted in " stringByAppendingString:
                   [groups objectAtIndex:idx]];
   
+  currentRow = idx;
   return cell;
+}
+
+- (void) tableView:(UITableView *)tableView willDisplayCell:
+(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath
+{
+  if (indexPath.section == 1) {
+    NSLog(@"wut");
+    cell.imageView.frame = CGRectMake(10, 1, 44, 44);
+  }
 }
 
 - (void) tableView:(UITableView *)table
 didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
+  if (isPushing) return;
+  if (privateThread && threadInfo && indexPath.section == 1) {
+    YMContact *c = (YMContact *)[YMContact findFirstByCriteria:
+                 @"WHERE user_i_d=%@", [[[threadInfo objectForKey:@"participants"] 
+                                 objectAtIndex:indexPath.row] objectForKey:@"id"]];
+    if (c) [self gotoContact:c];
+    return;
+  }
   if ([self.target isEqual:YMMessageTargetPrivate]) {
     [self gotoThreadIndexPath:indexPath sender:nil];
   } else {
@@ -819,6 +1067,8 @@ willSelectRowAtIndexPath:(NSIndexPath *)indexPath
       return nil;
     }
   }
+  if (currentlySelectedIndexPath || isPushing) return nil;
+  currentlySelectedIndexPath = [indexPath copy];
   NSArray *v = [self.tableView indexPathsForVisibleRows];
   int idx = [v indexOfObject:indexPath];
   if (idx != NSNotFound) {
@@ -826,6 +1076,7 @@ willSelectRowAtIndexPath:(NSIndexPath *)indexPath
     c.selected = YES;
   }
   [[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:1.0/30.0]];
+
   return indexPath;
 }
 
@@ -869,7 +1120,7 @@ willSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {  
   if ([result isKindOfClass:[UIImage class]]) {
     int idx = [messagePKs indexOfObject:messagePK];
-    if (idx != NSNotFound) {
+    if (idx != currentRow && idx != NSNotFound) {
       if (self.selectedIndexPath && self.selectedIndexPath.row < idx) idx++;
       NSIndexPath *path = [NSIndexPath indexPathForRow:idx inSection:0];
       int idx2 = [[self.tableView indexPathsForVisibleRows] indexOfObject:path];
@@ -883,6 +1134,18 @@ willSelectRowAtIndexPath:(NSIndexPath *)indexPath
   return result;
 }
 
+- (id)_gotParticipantMugshot:(NSIndexPath *)indexPath :(id)r
+{
+  if ([r isKindOfClass:[UIImage class]]) {
+    int idx2 = [[self.tableView indexPathsForVisibleRows] indexOfObject:indexPath];
+    if (idx2 != NSNotFound) {
+      UITableViewCell *cell = [[self.tableView visibleCells] objectAtIndex:idx2];
+      [(UIImageView *)[cell viewWithTag:707] setImage:r];
+    }
+  }
+  return r;
+}
+
 - (id)gotoUserIndexPath:(NSIndexPath *)indexPath sender:(id)s
 {
   int idx = [self rowForIndexPath:indexPath];
@@ -890,12 +1153,17 @@ willSelectRowAtIndexPath:(NSIndexPath *)indexPath
                                      intv([messagePKs objectAtIndex:idx])];
   YMContact *contact = (YMContact *)[YMContact findFirstByCriteria:
                                @"WHERE user_i_d=%i", intv(message.senderID)];
+  [self gotoContact:contact];
+  return nil;
+}
+
+- (void)gotoContact:(YMContact *)contact
+{
   YMContactDetailViewController *c = [[[YMContactDetailViewController alloc] 
                                        init] autorelease];
   c.contact = contact;
   c.userAccount = self.userAccount;
   [self.navigationController pushViewController:c animated:YES];
-  return nil;
 }
 
 - (id)gotoMessageIndexPath:(NSIndexPath *)indexPath sender:(id)s
@@ -911,8 +1179,12 @@ willSelectRowAtIndexPath:(NSIndexPath *)indexPath
                                       autorelease];
   c.feedItems = messagePKs;
   c.message = m;
+  c.isPrivate = [self.target isEqual:YMMessageTargetPrivate] || self.privateThread;
+  NSLog(@"isPrivate %i", c.isPrivate);
   c.userAccount = self.userAccount;
   [self.navigationController pushViewController:c animated:YES];
+  if (currentlySelectedIndexPath) [currentlySelectedIndexPath release];
+  currentlySelectedIndexPath = nil;
   return nil;
 }
 
@@ -939,7 +1211,7 @@ willSelectRowAtIndexPath:(NSIndexPath *)indexPath
       PREF_SYNCHRONIZE;
       if (self.tabBarItem)
         self.tabBarItem.badgeValue = n ? [NSString stringWithFormat:@"%i", n] : nil;
-      self.network.unseenPrivateCount = n;
+      self.network.unseenPrivateCount = nsni(n);
       [self.network save];
     }
     c.privateThread = YES; 
@@ -947,7 +1219,11 @@ willSelectRowAtIndexPath:(NSIndexPath *)indexPath
   }
 
   [self.navigationController pushViewController:c animated:YES];
+  c.navigationItem.rightBarButtonItem = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:
+    UIBarButtonSystemItemCompose target:c action:@selector(composeNew:)] autorelease];
   c.title = @"Thread";
+  if (currentlySelectedIndexPath) [currentlySelectedIndexPath release];
+  currentlySelectedIndexPath = nil;
   return nil;
 }
 
@@ -960,6 +1236,8 @@ willSelectRowAtIndexPath:(NSIndexPath *)indexPath
                             intv(userAccount.activeNetworkPK)];
   c.inReplyTo = (YMMessage *)[YMMessage findByPK:
                               intv([messagePKs objectAtIndex:indexPath.row])];
+  
+  if ([self.target isEqual:YMMessageTargetPrivate]) c.isPrivate = YES;
   
   [c showFromController:self animated:YES];
   return nil;
@@ -1014,6 +1292,7 @@ willSelectRowAtIndexPath:(NSIndexPath *)indexPath
   [[NSNotificationCenter defaultCenter]
    removeObserver:self];
   [bodies release];
+  [threadInfo release];
   [unseenThreadCounts release];
   [messagePKs release];
   [mugshotURLs release];

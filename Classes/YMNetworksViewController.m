@@ -61,8 +61,8 @@
      deferred:[DKDeferred gatherResults:ops]]
     addCallback:callbackTS(self, doneUpdatingAccounts:)]
    addBoth:callbackTS(self, _resetUpdatingNetworks:)];
-  [[NSNotificationCenter defaultCenter] addObserver:self selector:
-   @selector(didBecomeActive:) name:UIApplicationDidBecomeActiveNotification object:nil];
+  //[[NSNotificationCenter defaultCenter] addObserver:self selector:
+   //@selector(didBecomeActive:) name:UIApplicationDidBecomeActiveNotification object:nil];
 }
 
 - (id)_resetUpdatingNetworks:(id)r
@@ -72,10 +72,10 @@
   return r;
 }
 
-- (void)didBecomeActive:(id)n
-{
-  [self refreshNetworks];
-}
+//- (void)didBecomeActive:(id)n
+//{
+  //[self refreshNetworks];
+//}
 
 - (id)doneUpdatingAccounts:(id)r
 {
@@ -92,8 +92,25 @@
     style = UITableViewStylePlain;
     onChooseNetwork = nil;
     updatingNetworks = NO;
+    
+
+    wasInactive = NO;
+    
+    if (&UIApplicationWillEnterForegroundNotification != NULL) {
+      [[NSNotificationCenter defaultCenter]
+       addObserver:self selector:@selector(didBackground:) name:
+       UIApplicationDidEnterBackgroundNotification object:nil];
+      [[NSNotificationCenter defaultCenter]
+       addObserver:self selector:@selector(didBecomeActive:) name:
+       UIApplicationDidBecomeActiveNotification object:nil];
+    }
   }
   return self;
+}
+
+- (void)didBackground:(id)n { wasInactive = YES; }
+- (void)didBecomeActive:(id)n {
+  if (wasInactive) [self refreshNetworks];
 }
 
 - (id)initWithStyle:(UITableViewStyle)_style
@@ -104,6 +121,16 @@
     networkPKs = nil;
     style = _style;
     onChooseNetwork = nil;
+    wasInactive = NO;
+    
+    if (&UIApplicationWillEnterForegroundNotification != NULL) {
+      [[NSNotificationCenter defaultCenter]
+       addObserver:self selector:@selector(didBackground:) name:
+       UIApplicationDidEnterBackgroundNotification object:nil];
+      [[NSNotificationCenter defaultCenter]
+       addObserver:self selector:@selector(didBecomeActive:) name:
+       UIApplicationDidBecomeActiveNotification object:nil];
+    }
   }
   return self;
 }
@@ -221,6 +248,7 @@
   }
   NSUserDefaults *defs = [NSUserDefaults standardUserDefaults];
   [defs removeObjectForKey:@"lastNetworkPK"];
+  [defs synchronize];
   [self.navigationController dismissModalViewControllerWithAnimatedTransition:
    UIViewControllerAnimationTransitionMoveInFromLeft];
 }
@@ -262,6 +290,7 @@
        [self accountsController] animated:NO];
     }
   }
+  [self.tableView reloadData];
 }
 
 - (void) viewDidAppear:(BOOL)animated
@@ -270,7 +299,7 @@
   if (UI_USER_INTERFACE_IDIOM() != UIUserInterfaceIdiomPad)
     [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"lastNetworkPK"];
   [[StatusBarNotifier sharedNotifier] setTopOffset:460];
-  [self.tableView reloadData];
+  //[self.tableView reloadData];
   [self refreshNetworks];
   [super viewDidAppear:animated];
 }
@@ -365,13 +394,24 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath
   myMessagesController.target = YMMessageTargetFollowing;
   myMessagesController.title = @"My Feed";
   myMessagesController.network = network;
+  myMessagesController.lastLoadedMessageID = nil;
+  myMessagesController.remainingUnseenItems = nil;
+  myMessagesController.lastSeenMessageID = nil;
   receivedMessagesController.userAccount = acct;
   receivedMessagesController.target = YMMessageTargetPrivate;
   receivedMessagesController.title = @"Direct";
   receivedMessagesController.network = network;
+  receivedMessagesController.lastLoadedMessageID = nil;
+  receivedMessagesController.remainingUnseenItems = nil;
+  receivedMessagesController.lastSeenMessageID = nil;
+
   directoryController.userAccount = acct;
   feedsController.userAccount = acct;
   feedsController.network = network;
+  for (id c in array_(myMessagesController, receivedMessagesController, directoryController, feedsController)) {
+    NSLog(@"c.nav %@", [c navigationController]);
+    [[c navigationController] popToRootViewControllerAnimated:NO];
+  }
   
   if (animateNetworkTransition) {
     UIViewControllerAnimationTransition t = UIViewControllerAnimationTransitionPushFromRight;

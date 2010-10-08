@@ -23,6 +23,7 @@
   onUserPhoto, onUserDrafts, onTextChange;
 //  IBOutlet UIImagePickerController *imagePicker;
   UIInterfaceOrientation interfaceOrientation;
+  BOOL showParticipants;
 }
 
 @property(nonatomic, assign) UIInterfaceOrientation interfaceOrientation;
@@ -32,7 +33,7 @@
 @property(nonatomic, readwrite, retain) UILabel *toLabel, *toTargetLabel;
 @property(nonatomic, retain) UIToolbar *actionBar;
 @property(nonatomic, retain) UITableView *tableView;
-@property(nonatomic, assign) BOOL onHash, onUser, onPhoto, onPartial, onDrafts;
+@property(nonatomic, assign) BOOL onHash, onUser, onPhoto, onPartial, onDrafts, showParticipants;
 @property(nonatomic, retain) UIActivityIndicatorView *activity;
 //@property(nonatomic, retain) UIImagePickerController *imagePicker;
 

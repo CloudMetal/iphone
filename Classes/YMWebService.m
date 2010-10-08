@@ -261,9 +261,16 @@ id _nil(id r)
 
 - (id)_gotNetworksAndTokens:(YMUserAccount *)acct :(id)results
 {
-  return [DKDeferred deferInThread:
+  return [[DKDeferred deferInThread:
           curryTS(self, @selector(_processNetworksAndTokensThread::), 
-                  acct) withObject:results];
+                  acct) withObject:results]
+                       addCallback:callbackTS(self, _doneUpdatingNetworks:)];
+}
+
+- (id)_doneUpdatingNetworks:(id)r
+{
+  [[NSNotificationCenter defaultCenter] postNotificationName:@"YMNetworksUpdated" object:nil];
+  return r;
 }
 
 - (id)_processNetworksAndTokensThread:(YMUserAccount *)acct :(id)results
@@ -309,6 +316,8 @@ id _nil(id r)
         n.networkID = [d objectForKey:@"id"];
         n.unseenPrivateCount = [d objectForKey:@"private_unseen_thread_count"];
         n.unseenMessageCount = [d objectForKey:@"unseen_message_count"];
+        PREF_SET([d objectForKey:@"private_unseen_thread_count"], 
+          ([NSString stringWithFormat:@"%@%@-unseenthreads", [ad objectForKey:@"user_id"], [d objectForKey:@"id"]]));
         n.token = [ad objectForKey:@"token"];
         n.secret = [ad objectForKey:@"secret"];
         n.userID = [ad objectForKey:@"user_id"];
@@ -318,6 +327,8 @@ id _nil(id r)
       [db executeUpdateSQL:@"COMMIT TRANSACTION;"];
     }
 //    if (self.shouldUpdateBadgeIcon) {
+    //[[NSNotificationCenter defaultCenter]
+      //postNotificationName:@"YMNetworksUpdated" object:nil];
     [self updateUIApplicationBadge];
 //    }
   }
@@ -354,13 +365,32 @@ id _nil(id r)
 {
   NSMutableURLRequest *req = [self mutableRequestWithMethod:@"messages/last_seen_in_thread.json"
     account:acct defaults:dict_(m.threadID, @"thread_id", m.messageID, @"message_id")];
-  id d = [[[DKDeferredURLConnection alloc] initWithRequest:req pauseFor:0 decodeFunction:nil] autorelease];
+  id d = [[[DKDeferredURLConnection alloc] initWithRequest:req pauseFor:0 
+                                            decodeFunction:nil] autorelease];
   return [d addBoth:callbackTS(self, _gotSeenCountsReset:)];
 }
 
 - (id)_gotSeenCountsReset:(id)r
 {
-  NSLog(@"GotSeenCountsReset %@", [[[NSString alloc] initWithData:r encoding:NSUTF8StringEncoding] autorelease]);
+//  if ([r isKindOfClass:[NSData class]])
+//    NSLog(@"GotSeenCountsReset %@", [[[NSString alloc] initWithData:r encoding:NSUTF8StringEncoding] autorelease]);
+  return r;
+}
+
+
+- (DKDeferred *)threadInfo:(NSString *)threadId forAccount:(YMUserAccount *)acct;
+{
+  id req = [self mutableRequestWithMethod:[NSString stringWithFormat:@"threads/%@.json", threadId]
+            account:acct defaults:EMPTY_DICT];
+  return [[[[DKDeferredURLConnection alloc] initWithRequest:req pauseFor:0
+                                             decodeFunction:callbackP(__decodeJSON)] autorelease]
+          addCallback:curryTS(self, @selector(_gotThreadDetailsForAccount:results:), acct)];
+}
+
+- (id)_gotThreadDetailsForAccount:(YMUserAccount *)acct results:(id)r
+{
+
+//  NSLog(@"_gotThreadDetailsForAccount:%@ results %@", acct, r);
   return r;
 }
 
@@ -418,6 +448,7 @@ page:(id)page fetchToID:(id)toID networkID:(id)networkID unseenLeft:(id)unseenLe
 {
   NSMutableArray *ret = [NSMutableArray array];
 
+  //NSLog(@"gotMessages %@", results);
   BOOL fetchToIdFound = NO;
   BOOL fetchingTo = ![toID isEqual:[NSNull null]];
   BOOL isPrivate = [target isEqual:YMMessageTargetPrivate];
@@ -430,7 +461,7 @@ page:(id)page fetchToID:(id)toID networkID:(id)networkID unseenLeft:(id)unseenLe
                    [[results objectForKey:@"meta"] objectForKey:@"unseen_thread_count"]);
       PREF_SYNCHRONIZE;
     }
-    NSLog(@"\n\nupdating unseen %i %@", [self unseenThreadCountForNetwork:n], n);
+    //NSLog(@"\n\nupdating unseen %i %@", [self unseenThreadCountForNetwork:n], n);
   }
           
   
@@ -537,6 +568,9 @@ page:(id)page fetchToID:(id)toID networkID:(id)networkID unseenLeft:(id)unseenLe
     }
   }
   
+  NSMutableArray *loadedIds = [NSMutableArray arrayWithCapacity:[ret count]];
+  for (id _ in ret) [loadedIds addObject:[_ messageID]];
+  
   if ([target isEqual:YMMessageTargetFollowing] || [target isEqual:YMMessageTargetReceived]) {
     if (intv(unseenLeftCount) > 0 || (unseenCount && intv(unseenCount) > [ret count])) {
       YMMessage *lastFetched = [ret lastObject];
@@ -545,17 +579,20 @@ page:(id)page fetchToID:(id)toID networkID:(id)networkID unseenLeft:(id)unseenLe
                     ? nsni(intv(unseenLeftCount) - [ret count]) 
                     : nsni(intv(unseenCount) - [ret count])), @"unseenItemsLeftToFetch",
                    lastSeenID, @"lastSeenID",
-                   lastFetched.messageID, @"lastFetchedID");
+                   lastFetched.messageID, @"lastFetchedID",
+                   lastFetched.threadID, @"lastFetchedThreadID",
+                   loadedIds, @"loadedMessageIDs");
     }
   }
-  //if ([target isEqual:YMMessageTargetPrivate]) {
-    
-  if (olderAvailable && boolv(olderAvailable)) {
-    YMMessage *lastFetched = [ret lastObject];
-    return dict_(nsnb(YES), @"olderAvailable", lastFetched.messageID, @"lastFetchedID");
-  }
   
-  return EMPTY_DICT;
+  YMMessage *lastFetched = [ret lastObject];
+  if (olderAvailable && boolv(olderAvailable)) {
+    return dict_(nsnb(YES), @"olderAvailable", lastFetched.messageID, @"lastFetchedID",
+                 lastFetched.threadID, @"lastFetchedThreadID", loadedIds, @"loadedMessageIDs");
+  }
+
+  return dict_(nsnb(NO), @"olderAvailable", lastFetched.messageID, @"lastFetchedID",
+               lastFetched.threadID, @"lastFetchedThreadID", loadedIds, @"loadedMessageIDs");
 }
 
 - (id)messageWith:(YMMessage *)message fromDictionary:(NSDictionary *)m withReferences:(NSDictionary *)refs
@@ -637,8 +674,14 @@ page:(id)page fetchToID:(id)toID networkID:(id)networkID unseenLeft:(id)unseenLe
     }
     if (threadId && [[g objectForKey:@"type"] isEqual:@"thread"] 
                  && [[g objectForKey:@"id"] isEqual:threadId]) {
-//      NSLog(@"thread %@ %@", threadId, g);
       message.totalThreadCount = [[g objectForKey:@"stats"] objectForKey:@"updates"];
+      id _c = [[g objectForKey:@"stats"] objectForKey:@"latest_reply_at"];
+      if ([_c rangeOfString:@"/"].location == NSNotFound) {
+        message.threadLastUpdated = [formatterNew dateFromString:_c];
+      } else {
+        message.threadLastUpdated = [formatterOld dateFromString:_c];
+      }
+//      NSLog(@"message.threadLastUpdated %@ %@ %@ %@", message.target, message.targetID, message.bodyPlain, message.threadLastUpdated);
     }
     if ([[g objectForKey:@"type"] isEqual:@"group"]) {
       YMGroup *group;
@@ -804,6 +847,7 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches
       message.networkPK = networkPK;
       message.read = nsni(1);
       [message save];
+      results = message;
     }
   }
   [[NSNotificationCenter defaultCenter]
@@ -977,11 +1021,32 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches
     NSNumber *nextPage = nsni((intv(page)+1));
     NSLog(@"nextPage %@", nextPage);
     return dict_(nextPage, @"nextPage");
-  } else {
-    id k = [NSString stringWithFormat:@"YMGotFullContactsFor%@", curNetwork.networkID];
-    PREF_SET(k, nsnb(YES));
-  }
+  } else [self gotFullContactListForNetwork:curNetwork];
+  // else {
+//    id k = [NSString stringWithFormat:@"YMGotFullContactsFor%@%@", 
+//            curNetwork.networkID, PREF_KEY(@"YMPreviousBundleVersion")];
+//    PREF_SET(k, nsnb(YES));
+//    PREF_SYNCHRONIZE;
+//  }
+  
   return results;
+}
+
+- (void)gotFullContactListForNetwork:(YMNetwork *)network
+{
+  NSLog(@"setting did get full contact list %@", network);
+  PREF_SET(([NSString stringWithFormat:@"YMGotFullContactList%@%@", 
+             network.networkID, PREF_KEY(@"YMPreviousBundleVersion")]), nsnb(YES));
+}
+
+- (BOOL)didGetFullContactListForNetwork:(YMNetwork *)network
+{
+  id y = PREF_KEY(([NSString stringWithFormat:@"YMGotFullContactList%@%@", 
+                    network.networkID, PREF_KEY(@"YMPreviousBundleVersion")]));
+  if (y && [y respondsToSelector:@selector(boolValue)] && [y boolValue]) {
+    return YES;
+  }
+  return NO;
 }
 
 - (YMContact *)contactFromFullRepresentation:(NSDictionary *)u

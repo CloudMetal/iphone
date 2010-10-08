@@ -35,8 +35,10 @@
   
   NSString *repliedToSenderName, *directToSenderName, *senderName, *senderMugshot, *groupName;
   NSNumber *totalThreadCount, *unseenThreadCount, *numberOfParticipants;
+  NSDate *threadLastUpdated;
 }
 
+@property(nonatomic, readwrite, retain) NSDate *threadLastUpdated;
 @property(nonatomic, readwrite, retain) NSNumber *messageID;
 @property(nonatomic, readwrite, retain) NSNumber *totalThreadCount, *unseenThreadCount, *numberOfParticipants;
 @property(nonatomic, readwrite, retain) NSNumber *groupID;

@@ -1,3 +1,6 @@
 [submodule "Lib/SQLitePersistentObjects"]
 	path = Lib/SQLitePersistentObjects
 	url = git://github.com/samuraisam/SQLitePersistentObjects.git
+[submodule "scripts/yammer"]
+	path = scripts/yammer
+	url = http://github.com/lemonad/python-yammer-oauth.git

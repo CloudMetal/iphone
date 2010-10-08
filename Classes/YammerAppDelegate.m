@@ -108,6 +108,7 @@ didFailToRegisterForRemoteNotificationsWithError:(NSError *)error
 
 - (void) applicationWillEnterForeground:(UIApplication *)application
 {
+  
   [[UIApplication sharedApplication] registerForRemoteNotificationTypes:
    (UIRemoteNotificationTypeBadge | UIRemoteNotificationTypeSound | UIRemoteNotificationTypeAlert)];
 }

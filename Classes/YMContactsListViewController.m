@@ -26,7 +26,7 @@
 
 @implementation YMContactsListViewController
 
-@synthesize userAccount, filterText, rootNavController;
+@synthesize userAccount, filterText, rootNavController, isPicker, selected, onDone, canRemove;
 
 - (void)loadView
 {
@@ -75,9 +75,15 @@
 //      [NSIndexPath indexPathForRow:0 inSection:0] 
 //     atScrollPosition:UITableViewScrollPositionTop animated:NO];
   
-  self.navigationItem.rightBarButtonItem 
-    = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:
-        UIBarButtonSystemItemRefresh target:self action:@selector(doSync:)] autorelease];
+  if (self.isPicker) {
+    self.navigationItem.rightBarButtonItem = nil;
+//    [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:
+//      UIBarButtonSystemItemDone target:self action:@selector(done:)] autorelease];
+  } else {
+    self.navigationItem.rightBarButtonItem 
+      = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:
+          UIBarButtonSystemItemRefresh target:self action:@selector(doSync:)] autorelease];
+  }
   
 //  self.navigationItem.leftBarButtonItem =
 //  [[UIBarButtonItem alloc]
@@ -89,19 +95,24 @@
 {
   YMNetwork *network = (YMNetwork *)[YMNetwork findByPK:
                        intv(self.userAccount.activeNetworkPK)];
-  id k = [NSString stringWithFormat:@"YMGotFullContactsFor%@%@", 
-          network.networkID, PREF_KEY(@"YMPreviousBundleVersion")];
-  if (!PREF_KEY(k)) {
+//  id k = [NSString stringWithFormat:@"YMGotFullContactsFor%@%@", 
+//          network.networkID, PREF_KEY(@"YMPreviousBundleVersion")];
+//  id r = PREF_KEY(k);
+//  NSLog(@"DIDAPPEAR k:%@ %@", k, r);
+//  if (r == nil || !boolv(r)) {
+  if (![web didGetFullContactListForNetwork:network]) {
     [self doSync:nil];
-    UIImageView *v = [[UIImageView alloc] initWithImage:
-                      [UIImage imageNamed:@"syncing.png"]];
-    v.backgroundColor = [UIColor colorWithHexString:@"c2c2c2"];
-    v.contentMode = UIViewContentModeCenter;
-    v.autoresizingMask = (UIViewAutoresizingFlexibleHeight 
-                          | UIViewAutoresizingFlexibleWidth);
-    v.frame = self.view.frame;
-    lastView = [self.view retain];
-    self.view = v;
+    if (!contactPKs || ![contactPKs count]) {
+      UIImageView *v = [[UIImageView alloc] initWithImage:
+                        [UIImage imageNamed:@"syncing.png"]];
+      v.backgroundColor = [UIColor colorWithHexString:@"c2c2c2"];
+      v.contentMode = UIViewContentModeCenter;
+      v.autoresizingMask = (UIViewAutoresizingFlexibleHeight 
+                            | UIViewAutoresizingFlexibleWidth);
+      v.frame = self.view.frame;
+      lastView = [self.view retain];
+      self.view = v;
+    }
   }
   [super viewDidAppear:animated];
 }
@@ -110,6 +121,12 @@
 {
   [web writeCachedContactImages];
   [super viewWillDisappear:animated];
+}
+
+- (void)done:(id)s
+{
+  NSLog(@"done ? %@", self.onDone);
+  if (self.onDone) [self.onDone :self];
 }
 
 - (void)doSync:(id)sender
@@ -204,23 +221,28 @@
 
 - (id)_usersUpdated:(id)r
 {
+  NSLog(@"users Updated %@", self);
   if (![self.view isKindOfClass:[UITableView class]]) {
     self.view = lastView;
     [lastView release];
     lastView = nil;
   }
-
-  YMNetwork *network = (YMNetwork *)[YMNetwork findByPK:
-                                     intv(self.userAccount.activeNetworkPK)];
-  id k = [NSString stringWithFormat:@"YMGotFullContactsFor%@%@", 
-          network.networkID, PREF_KEY(@"YMPreviousBundleVersion")];
+//  YMNetwork *network = (YMNetwork *)[YMNetwork findByPK:
+//                 intv(self.userAccount.activeNetworkPK)];
+//  if (![web didGetFullContactListForNetwork:network])
+//    
+//  id k = [NSString stringWithFormat:@"YMGotFullContactsFor%@%@", 
+//          network.networkID, PREF_KEY(@"YMPreviousBundleVersion")];
+//  NSLog(@"k:%@", k);
   
   [self refreshContactPKs];
   [self.tableView reloadData];
   if (isDeferred(r))
     [r addCallback:callbackTS(self, _usersUpdated:)];
-  else
-    PREF_SET(k, nsnb(YES));
+//  else {
+//    PREF_SET(k, nsnb(YES));
+//    PREF_SYNCHRONIZE;
+//  }
   return r;
 }
 
@@ -290,7 +312,12 @@ cellForRowAtIndexPath:(NSIndexPath *)indexPath
   } else {
     cell.imageView.image = img;
   }
-  cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
+  if (self.isPicker) {
+    cell.accessoryType = [selected containsObject:[contactPKs objectAtIndex:idx]]
+        ? UITableViewCellAccessoryCheckmark : UITableViewCellAccessoryNone;
+  } else {
+    cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
+  }
   cell.textLabel.text = [names objectAtIndex:idx];
   return cell;
 }
@@ -301,6 +328,19 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath
   int idx = [self indexForIndexPath:indexPath];
   YMContact *contact = (YMContact *)[YMContact findByPK:
                         intv([contactPKs objectAtIndex:idx])];
+  if (self.isPicker) {
+//    if (self.canRemove && [selected containsObject:nsni(contact.pk)])
+//      [selected removeObject:nsni(contact.pk)];
+    [selected addObject:nsni(contact.pk)];
+    if (self.onDone) [self.onDone :self];
+//    [self.tableView reloadData];
+//    indexPath = [NSIndexPath indexPathForRow:idx inSection:0];
+//    [self.tableView deselectRowAtIndexPath:indexPath animated:YES];
+//    [self.tableView deselectRowAtIndexPath:indexPath animated:YES];
+//    [self.tableView reloadRowsAtIndexPaths:array_(indexPath)
+//                          withRowAnimation:UITableViewRowAnimationNone];
+    return;
+  }
   YMContactDetailViewController *c = [[[YMContactDetailViewController alloc] init] autorelease];
   c.userAccount = self.userAccount;
   c.contact = contact;

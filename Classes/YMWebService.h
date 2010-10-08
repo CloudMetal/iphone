@@ -36,6 +36,8 @@
 #define YMMessageTargetInGroup @"in_group"
 #define YMMessageTargetFavoritesOf @"favorites_of"
 #define YMMessageTargetInThread @"in_thread"
+#define YMMessageTargetLikedBy @"liked_by"
+//#define YMMessageTargetMentioned @"me
 
 #define YMSenderTypeUser @"user"
 #define YMSenderTypeBot @"bot"
@@ -84,6 +86,9 @@
 - (DKDeferred *)contactImageForURL:(NSString *)url;
 - (BOOL)didLoadContactImagesForUserAccount:(YMUserAccount *)acct;
 - (void)authorizeRequest:(NSMutableURLRequest *)req withAccount:(YMUserAccount *)acct;
+- (DKDeferred *)threadInfo:(NSString *)threadId forAccount:(YMUserAccount *)acct;
+- (void)gotFullContactListForNetwork:(YMNetwork *)network;
+- (BOOL)didGetFullContactListForNetwork:(YMNetwork *)network;
 
 /** 
  Takes a YMUserAccount and authenticates it against the yammer

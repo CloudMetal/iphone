@@ -113,9 +113,11 @@
 - (NSArray *) builtinFeeds 
 {
   return array_(
-    array_(YMMessageTargetAll, [NSNull null], @"All", @"world.png"),
-    array_(YMMessageTargetSent, [NSNull null], @"Sent", @"envelope.png"),
-    array_(YMMessageTargetFavoritesOf, network.userID, @"Bookmarks", @"heart.png"));
+    array_(YMMessageTargetAll, [NSNull null], @"All", @"all-iPad.png"),
+    array_(YMMessageTargetReceived, [NSNull null], @"Mentions", @"received-iPad.png"),
+    array_(YMMessageTargetLikedBy, [NSNull null], @"Liked", @"liked-iPad.png"),
+    array_(YMMessageTargetSent, [NSNull null], @"Sent", @"sent-iPad.png"),
+    array_(YMMessageTargetFavoritesOf, network.userID, @"Bookmarks", @"bookmarked-iPad.png"));
 }
 
 - (NSInteger) numberOfSectionsInTableView:(UITableView *)tableView
@@ -142,6 +144,8 @@ cellForRowAtIndexPath:(NSIndexPath *)indexPath
               initWithStyle:UITableViewCellStyleDefault reuseIdentifier:ident]
              autorelease];
     cell.textLabel.font = [UIFont systemFontOfSize:16];
+    cell.imageView.contentMode = UIViewContentModeCenter;
+    cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
 //    if (!builtin) {
 //      UIButton *b = [UIButton buttonWithType:UIButtonTypeCustom];
 //      b.frame = CGRectMake(250, 6, 60, 32);

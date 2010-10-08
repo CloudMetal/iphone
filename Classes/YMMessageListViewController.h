@@ -8,12 +8,15 @@
 
 #import <UIKit/UIKit.h>
 #import "YMTableViewController.h"
+#import "MBProgressHUD.h"
 
 @class YMWebService;
 @class YMUserAccount;
 @class YMNetwork;
 
-@interface YMMessageListViewController : YMTableViewController {
+@interface YMMessageListViewController : YMTableViewController 
+<UINavigationControllerDelegate, MBProgressHUDDelegate>
+{
   YMWebService *web;
   YMUserAccount *userAccount;
   YMNetwork *network;
@@ -34,6 +37,7 @@
   NSArray *privates;
   NSArray *groups;
   NSArray *unseenThreadCounts, *messageInThreadCounts, *numberOfParticipantCounts;
+  NSMutableArray *loadedIds;
   int totalUnseenThreads;
   
   // ui elements
@@ -59,13 +63,20 @@
   NSNumber *newerThan;
   NSNumber *threaded;
   NSNumber *remainingUnseenItems;
-  NSNumber *lastLoadedMessageID;
+  NSNumber *lastLoadedMessageID, *lastLoadedThreadID;
   NSNumber *lastSeenMessageID;
   
   // state specific stuffs
   BOOL wasInactive;
   int previousFontSize;
+  BOOL isPushing;
 
+  int currentRow;
+
+  NSDictionary *threadInfo;
+  UIView *moreButtonContainer;
+  NSIndexPath *currentlySelectedIndexPath; // a temporary variable
+  MBProgressHUD *HUD;
 }
 
 @property(nonatomic, assign) int limit, numberOfUnseenInThread;
@@ -78,7 +89,8 @@
 @property(nonatomic, readwrite, copy) NSNumber *newerThan;
 @property(nonatomic, readwrite, copy) NSNumber *threaded;
 @property(nonatomic, readwrite, copy) NSNumber *remainingUnseenItems;
-@property(nonatomic, readwrite, copy) NSNumber *lastLoadedMessageID, *lastSeenMessageID;
+@property(nonatomic, readwrite, copy) NSNumber 
+  *lastLoadedMessageID, *lastSeenMessageID, *lastLoadedThreadID;
 @property(nonatomic, assign) BOOL loadedAvatars, shouldUpdateBadge, privateThread;
 
 - (void)refreshFeed:(id)sender;

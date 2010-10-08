@@ -21,12 +21,13 @@
 
 @implementation YMMessageDetailViewController
 
-@synthesize message, userAccount, feedItems;
+@synthesize message, userAccount, feedItems, isPrivate;
 
 - (id)initWithStyle:(UITableViewStyle)style
 {
   if ((self = [super initWithStyle:style])) {
     loadingIndexSet = [[NSMutableIndexSet alloc] init];
+    isPrivate = NO;
     loadingPool = [[DKDeferredPool alloc] init];
   }
   return self;
@@ -167,6 +168,8 @@
   c.target = YMMessageTargetInThread;
   c.title = @"Thread";
   c.targetID = self.message.threadID;
+  c.navigationItem.rightBarButtonItem = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:
+    UIBarButtonSystemItemCompose target:c action:@selector(composeNew:)] autorelease];
   [self.navigationController pushViewController:c animated:YES];
   return nil;
 }
@@ -179,6 +182,8 @@
   c.network = (YMNetwork *)[YMNetwork findByPK:
                             intv(self.userAccount.activeNetworkPK)];
   c.inReplyTo = self.message;
+  c.isPrivate = self.isPrivate;
+  NSLog(@"isPrivate %i", c.isPrivate);
   [c showFromController:self animated:YES];
   return nil;
 }

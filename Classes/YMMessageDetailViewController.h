@@ -27,8 +27,10 @@
   NSArray *feedItems;
   BOOL refreshing;
   NSMutableIndexSet *loadingIndexSet;
+  BOOL isPrivate;
 }
 
+@property (nonatomic, assign) BOOL isPrivate;
 @property (nonatomic, readwrite, retain) NSArray *feedItems;
 @property (nonatomic, readwrite, retain) YMMessage *message;
 @property (nonatomic, readwrite, retain) YMUserAccount *userAccount;

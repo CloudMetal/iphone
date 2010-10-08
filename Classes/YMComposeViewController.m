@@ -27,12 +27,15 @@ static UIImagePickerController *__imagePicker = nil;
 @implementation YMComposeViewController
 
 @synthesize userAccount, network, inReplyTo, inGroup, directTo, onCompleteSend, draft;
+@synthesize inThread, isPrivate, recipients;
+@synthesize delegate, sendAction;
 
 - (id)init
 {
   if ((self = [super init])) {
     self.hidesBottomBarWhenPushed = YES;
     attachments = [[NSMutableArray alloc] init];
+    isPrivate = NO;
   }
   return self;
 }
@@ -105,10 +108,13 @@ static UIImagePickerController *__imagePicker = nil;
   [self refreshData];
 }
 
-////- (void)viewDidAppear:(BOOL)animated
-////{
-  ////[super viewDidAppear:animated];
-////}
+- (void)viewDidAppear:(BOOL)animated
+{
+  [super viewDidAppear:animated];
+
+  composeView.showParticipants = [recipients count];
+  NSLog(@"OMG %i", composeView.showParticipants);
+}
 
 - (BOOL)shouldAutorotateToInterfaceOrientation:
 (UIInterfaceOrientation)interfaceOrientation
@@ -184,11 +190,16 @@ static UIImagePickerController *__imagePicker = nil;
                                  [self.inReplyTo.groupID stringValue]
                                            forKey:YMGroupIDKey];
   }
+  if (self.inThread) {
+    [params setObject:[self.inThread.messageID stringValue] forKey:YMReplyToIDKey];
+  }
   if (self.inGroup)
     [params setObject:[self.inGroup.groupID stringValue] forKey:YMGroupIDKey];
   if (self.directTo)
     [params setObject:[self.directTo.userID stringValue] 
                forKey:YMDirectToIDKey];
+  if (isPrivate)
+    [params setObject:@"true" forKey:@"set_last_seen_in_thread"];
   NSMutableDictionary *attaches = [NSMutableDictionary dictionary];
   if ([attachments count]) {
     for (int i = 0; i < [attachments count]; i++) {
@@ -196,12 +207,14 @@ static UIImagePickerController *__imagePicker = nil;
        [NSString stringWithFormat:@"photo-%i.jpg", i + 1]];
     }
   }
-  //NSLog(@"params %@", params);
+  NSLog(@"params %@", params);
   DKDeferred *d = [web postMessage:self.userAccount 
                    body:textView.text replyOpts:params 
                        attachments:attaches];
   [[StatusBarNotifier sharedNotifier]
    flashLoading:@"Sending Message..." deferred:d];
+  if (delegate && sendAction != NULL && [delegate respondsToSelector:sendAction])
+    [delegate performSelector:sendAction withObject:d];
   
   self.navigationItem.leftBarButtonItem = nil;
   [self.navigationController.parentViewController
@@ -224,6 +237,13 @@ static UIImagePickerController *__imagePicker = nil;
    dismissModalViewControllerAnimated:YES];
 }
 
+- (void)setInThread:(YMMessage *)m
+{
+  if (inThread) [inThread release];
+  inThread = [m retain];
+  [self refreshData];
+}
+
 - (void)setInReplyTo:(YMMessage *)m
 {
   if (inReplyTo) [inReplyTo release];
@@ -236,6 +256,11 @@ static UIImagePickerController *__imagePicker = nil;
   if (!inReplyTo) {
     if (self.directTo)
       [[(id)self.view toTargetLabel] setText:self.directTo.fullName];
+
+    else if (self.inThread)
+      [[(id)self.view toTargetLabel] setText:@"Thread"];
+
+
     else if (!self.inGroup)
       [[(id)self.view toTargetLabel] setText:network.name];
     else
@@ -744,6 +769,7 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 
 - (void)dealloc
 {
+  self.inThread = nil;
   [text release];
   [attachments release];
   [usernames release];
