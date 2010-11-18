@@ -174,7 +174,6 @@
   = [UIColor colorWithRed:0.27 green:0.34 blue:0.39 alpha:1.0];
   self.navigationController.toolbar.tintColor 
   = [UIColor colorWithHexString:@"353535"];
-  self.selectedIndexPath = nil;
   viewHasAppeared = YES;
   if (![self.target isEqual:YMMessageTargetPrivate] 
       && ![self.target isEqual:YMMessageTargetFollowing])
@@ -822,7 +821,7 @@
 
 -(NSInteger) numberOfSectionsInTableView:(UITableView *)table
 {
-  if (privateThread && threadInfo) return 2;
+  if (privateThread) return 2;
   return 1;
 }
 
@@ -857,15 +856,15 @@ heightForRowAtIndexPath:(NSIndexPath *)indexPath
 - (NSInteger) tableView:(UITableView *)table
   numberOfRowsInSection:(NSInteger)section
 {
-  if (privateThread && threadInfo && section == 1) 
-    return [[threadInfo objectForKey:@"participants"] count];
+  if (privateThread && section == 1) 
+    return (threadInfo == nil) ? 1 : [[threadInfo objectForKey:@"participants"] count];
   return MAX(1, ([messagePKs count] + ((self.selectedIndexPath != nil) ? 1 : 0)));
 }
 
 - (UITableViewCell *) tableView:(UITableView *)table
 cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {  
-  if (indexPath.section == 1 && threadInfo && privateThread) {
+  if (indexPath.section == 1 && privateThread) {
     UITableViewCell *cell = [table dequeueReusableCellWithIdentifier:@"participant"];
     if (!cell) {
       //cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault
@@ -874,6 +873,9 @@ cellForRowAtIndexPath:(NSIndexPath *)indexPath
       cell = [[[NSBundle mainBundle] loadNibNamed:@"YMParticipantTableViewCell"
                                             owner:nil options:nil] objectAtIndex:0];
     }
+    [(UIActivityIndicatorView *)[cell viewWithTag:110] stopAnimating];
+    [cell viewWithTag:709].hidden = NO;
+    [cell viewWithTag:707].hidden = NO;
     NSDictionary *p = [participants objectAtIndex:indexPath.row];
     if (p) {
       //cell.textLabel.text = [p objectForKey:@"full_name"];
@@ -890,6 +892,11 @@ cellForRowAtIndexPath:(NSIndexPath *)indexPath
         }
       }
       imageView.image = img;
+    } else {
+      if (messagePKs && [messagePKs count])
+        [(UIActivityIndicatorView *)[cell viewWithTag:110] startAnimating];
+      [cell viewWithTag:709].hidden = YES;
+      [cell viewWithTag:707].hidden = YES;
     }
     return cell;
 
@@ -1002,7 +1009,6 @@ cellForRowAtIndexPath:(NSIndexPath *)indexPath
   else
     cell.group = [@"posted in " stringByAppendingString:
                   [groups objectAtIndex:idx]];
-  
   currentRow = idx;
   return cell;
 }
