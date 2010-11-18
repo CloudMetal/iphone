@@ -1,4 +1,4 @@
-    //
+//
 //  YMMessageListViewController.m
 //  Yammer
 //
@@ -182,11 +182,11 @@
   if (!messagePKs || ![messagePKs count]) {
     [self refreshMessagePKs];
     if (![messagePKs count] && !didGetFirstUpdate) {
-      if (HUD) [HUD release];
-      HUD = [[MBProgressHUD alloc] initWithView:self.navigationController.view];
-      [self.navigationController.view addSubview:HUD];
-      HUD.labelText = @"Loading";
-      [HUD show:YES];
+//      if (HUD) [HUD release];
+//      HUD = [[MBProgressHUD alloc] initWithView:self.navigationController.view];
+//      [self.navigationController.view addSubview:HUD];
+//      HUD.labelText = @"Loading";
+//      [HUD show:YES];
     }
     [self.tableView reloadData];
   }   
@@ -295,8 +295,9 @@
   
   self.olderThan = nil;
   if (![self.target isEqual:YMMessageTargetFollowing] 
-      && ![self.target isEqual:YMMessageTargetPrivate]) [self doReload:nil];
-  else [self.tableView reloadData];
+      && ![self.target isEqual:YMMessageTargetPrivate]) 
+    [self doReload:nil];
+  [self.tableView reloadData];
 
   int fontSize = 13;
   id p = PREF_KEY(@"fontsize");
@@ -306,7 +307,16 @@
     [YMFastMessageTableViewCell updateFontSize];
     [self.tableView reloadData];
   }
-  [self updateBadge];
+  [self performSelector:@selector(updateBadge) withObject:nil afterDelay:.1];
+}
+
+- (void)_updateReadLater
+{
+  NSLog(@"setting read %@", self.target);
+  [[SQLiteInstanceManager sharedManager] executeUpdateSQL:
+   [NSString stringWithFormat:
+    @"UPDATE y_m_message SET read=1 WHERE network_p_k=%i AND target='%@'",
+    self.network.pk, self.target]];
 }
 
 - (void)viewWillDisappear:(BOOL)animated
@@ -314,11 +324,7 @@
   viewHasAppeared = NO;
   if ([self.target isEqual:YMMessageTargetReceived] 
       || [self.target isEqual:YMMessageTargetFollowing]) {
-    NSLog(@"setting read %@", self.target);
-    [[SQLiteInstanceManager sharedManager] executeUpdateSQL:
-     [NSString stringWithFormat:
-      @"UPDATE y_m_message SET read=1 WHERE network_p_k=%i AND target='%@'",
-      self.network.pk, self.target]];
+    [self performSelector:@selector(_updateReadLater) withObject:nil afterDelay:.2];
   }
   [super viewWillDisappear:animated];
 }
@@ -482,18 +488,6 @@
   self.lastLoadedMessageID = [results objectForKey:@"lastFetchedID"];
   self.lastLoadedThreadID = [results objectForKey:@"lastFetchedThreadID"];
   
-  [self performSelectorInBackground:@selector(updateAppBadge:) withObject:nsni(networkBadgeCount)];
-  //network.unseenMessageCount = nsni(networkBadgeCount);
-  //[network save];
-  //[web updateUIApplicationBadge];
-  
-/*  if ([results objectForKey:@"olderAvailable"] && */
-      //[YMMessage countByCriteria:@"WHERE message_i_d=%@", 
-        //[results objectForKey:@"lastFetchedID"]]) {
-    //moreButton.hidden = NO;
-    //self.lastLoadedMessageID = [results objectForKey:@"lastFetchedID"];
-  /*} else moreButton.hidden = YES;*/
-  
   moreButton.hidden = !boolv([results objectForKey:@"olderAvailable"]); 
   NSLog(@"more available %@", results);
   
@@ -533,17 +527,6 @@
   [bottomLoadingView stopAnimating];
   [self dataSourceDidFinishLoadingNewData];
   return error;
-}
-
-- (void)updateAppBadge:(NSNumber *)currNetworkBadgeCount
-{
-  NSAutoreleasePool *p = [[NSAutoreleasePool alloc] init];
-  network.unseenMessageCount = currNetworkBadgeCount;
-  @synchronized(web) {
-    [network save];
-  }
-  [web updateUIApplicationBadge];
-  [p release];
 }
 
 - (NSString *)listCriteria
@@ -652,7 +635,7 @@
   
   [self updateBadge];
 
-  if ([messagePKs count]) {
+  if ([messagePKs count] && didGetFirstUpdate) {
     if ([self.target isEqual:YMMessageTargetInThread] && self.privateThread) {
       YMMessage *first = (YMMessage *)[YMMessage findByPK:intv([messagePKs objectAtIndex:0])];
       [web resetSeenCountForThread:first forUserAccount:self.userAccount];
@@ -720,8 +703,19 @@
 - (id)_gotThreadInfo:(id)r
 {
   NSLog(@"%@ gotThreadInfo %@", self, r);
-  if (threadInfo)[threadInfo release];
+  if (threadInfo) [threadInfo release];
   threadInfo = [r retain];
+  if (participants) [participants release];
+  participants = [NSMutableArray new];
+  for (NSDictionary *d in [threadInfo objectForKey:@"participants"]) {
+    for (NSDictionary *p in [threadInfo objectForKey:@"references"]) {
+      if ([[d objectForKey:@"type"] isEqual:@"user"] 
+          && [[p objectForKey:@"id"] isEqual:[d objectForKey:@"id"]]) {
+        [participants addObject:p];
+        break;
+      }
+    }
+  }
   [self.tableView reloadData];
   return r;
 }
@@ -729,17 +723,9 @@
 - (void)updateBadge
 {
   if ([self.target isEqual:YMMessageTargetPrivate]) {
-    //if (self.tabBarItem) 
-      //self.tabBarItem.badgeValue = [NSString stringWithFormat:@"%i", totalUnseenThreads];
-    //return;
     int u = [web unseenThreadCountForNetwork:self.network];
-    //self.network.unseenPrivateCount = nsni(u);
-    //[self.network save];
-    //NSLog(@"unseenForNetwork %i", u);
-    [self performSelectorInBackground:@selector(updateAppBadge:) withObject:nsni(u)];
     if (self.tabBarItem)
       self.tabBarItem.badgeValue = (u > 0) ? [NSString stringWithFormat:@"%i", u] : nil;
-    [web updateUIApplicationBadge];
     return;
   }
   if (!shouldUpdateBadge) return;
@@ -888,14 +874,7 @@ cellForRowAtIndexPath:(NSIndexPath *)indexPath
       cell = [[[NSBundle mainBundle] loadNibNamed:@"YMParticipantTableViewCell"
                                             owner:nil options:nil] objectAtIndex:0];
     }
-    NSDictionary *p = nil;
-    for (NSDictionary *d in [threadInfo objectForKey:@"references"]) {
-      if ([[d objectForKey:@"id"] isEqual:[[[threadInfo objectForKey:
-          @"participants"] objectAtIndex:indexPath.row] objectForKey:@"id"]]
-                     && [[d objectForKey:@"type"] isEqual:@"user"]) {
-        p = d;
-      }
-    }
+    NSDictionary *p = [participants objectAtIndex:indexPath.row];
     if (p) {
       //cell.textLabel.text = [p objectForKey:@"full_name"];
       [(UILabel *)[cell viewWithTag:709] setText:[p objectForKey:@"full_name"]];
@@ -954,7 +933,21 @@ cellForRowAtIndexPath:(NSIndexPath *)indexPath
 //    cell.swipeSelector = @selector(cellDidSwipe:);
   }
   if (![messagePKs count]) {
-    cell.body = @"      No messages in this feed.";
+    if (didGetFirstUpdate) {
+      cell.body = @"      No messages in this feed.";
+    } else cell.body = @"           Loading Messages";
+    cell.avatar = nil;
+    cell.title= @"";
+    cell.dm = NO;
+    cell.numberOfParticipants = 0;
+    cell.messagesInThread = 0;
+    cell.unreadInThread = 0;
+    cell.unread = NO;
+    cell.isPrivate = NO;
+    cell.group = @"";
+    cell.liked = NO;
+    cell.hasAttachments = NO;
+    cell.date = @"";
     return cell;
   }
   
@@ -1058,6 +1051,8 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 - (NSIndexPath *)tableView:(UITableView *)table
 willSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
+  if (!messagePKs || ![messagePKs count] 
+      || currentlySelectedIndexPath || isPushing) return nil;
   if (selectedIndexPath) {
     if (selectedIndexPath.row + 1 == indexPath.row) return nil;
     if (selectedIndexPath.row == indexPath.row) {
@@ -1067,7 +1062,6 @@ willSelectRowAtIndexPath:(NSIndexPath *)indexPath
       return nil;
     }
   }
-  if (currentlySelectedIndexPath || isPushing) return nil;
   currentlySelectedIndexPath = [indexPath copy];
   NSArray *v = [self.tableView indexPathsForVisibleRows];
   int idx = [v indexOfObject:indexPath];
@@ -1203,17 +1197,17 @@ willSelectRowAtIndexPath:(NSIndexPath *)indexPath
     c.numberOfUnseenInThread = intv(m.unseenThreadCount);
   else c.numberOfUnseenInThread = 0;
   if ([self.target isEqual:YMMessageTargetPrivate]) {
-    NSString *k = [NSString stringWithFormat:@"%@%@-unseenthreads", self.network.userID, self.network.networkID];
-    int n = [web unseenThreadCountForNetwork:self.network];
-    n--;
-    if (n >= 0) {
-      PREF_SET(k, nsni(n));
-      PREF_SYNCHRONIZE;
-      if (self.tabBarItem)
-        self.tabBarItem.badgeValue = n ? [NSString stringWithFormat:@"%i", n] : nil;
-      self.network.unseenPrivateCount = nsni(n);
-      [self.network save];
-    }
+//    NSString *k = [NSString stringWithFormat:@"%@%@-unseenthreads", self.network.userID, self.network.networkID];
+//    int n = [web unseenThreadCountForNetwork:self.network];
+//    n--;
+//    if (n >= 0) {
+//      PREF_SET(k, nsni(n));
+//      PREF_SYNCHRONIZE;
+//      if (self.tabBarItem)
+//        self.tabBarItem.badgeValue = n ? [NSString stringWithFormat:@"%i", n] : nil;
+//      self.network.unseenPrivateCount = nsni(n);
+//      [self.network save];
+//    }
     c.privateThread = YES; 
     [(NSMutableArray *)unseenThreadCounts replaceObjectAtIndex:idx withObject:nsni(0)];
   }
@@ -1291,6 +1285,7 @@ willSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
   [[NSNotificationCenter defaultCenter]
    removeObserver:self];
+  [participants release];
   [bodies release];
   [threadInfo release];
   [unseenThreadCounts release];

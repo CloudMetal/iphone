@@ -61,8 +61,6 @@
      deferred:[DKDeferred gatherResults:ops]]
     addCallback:callbackTS(self, doneUpdatingAccounts:)]
    addBoth:callbackTS(self, _resetUpdatingNetworks:)];
-  //[[NSNotificationCenter defaultCenter] addObserver:self selector:
-   //@selector(didBecomeActive:) name:UIApplicationDidBecomeActiveNotification object:nil];
 }
 
 - (id)_resetUpdatingNetworks:(id)r
@@ -360,8 +358,6 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath
                        intv([networkPKs objectAtIndex:indexPath.row])];
   PREF_SET(@"lastNetworkPK", nsni(network.pk));
   PREF_SYNCHRONIZE;
-  
-  [web updateUIApplicationBadge];
   
   if (onChooseNetwork)
     [onChooseNetwork :network];

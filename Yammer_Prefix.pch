@@ -16,6 +16,6 @@
 #define nsstrf(...) [NSString stringWithFormat:__VA_ARGS__]
 #define urlenc(__arg) [__arg stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]
 
-#define doAbsolutelyNothing(...) (__VA_ARGS__)
+#define doAbsolutelyNothing(...) do{}while(0)
 
-//#define NSLog doAbsolutelyNothing
+#define NSLog doAbsolutelyNothing

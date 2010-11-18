@@ -54,7 +54,6 @@
 		15BFEEA4121CA0EE00F7B704 /* sent-iPad.png in Resources */ = {isa = PBXBuildFile; fileRef = 15BFEE9C121CA0EE00F7B704 /* sent-iPad.png */; };
 		15BFEEBC121CA5EF00F7B704 /* contacts-iPad.png in Resources */ = {isa = PBXBuildFile; fileRef = 15BFEEBB121CA5EF00F7B704 /* contacts-iPad.png */; };
 		15C763D811F02CF800E660BE /* YMSettingsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 15C763D711F02CF800E660BE /* YMSettingsViewController.m */; };
-		15CAFE3E1219EA7700B51153 /* YMSplitViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 15CAFE3D1219EA7700B51153 /* YMSplitViewController.m */; };
 		15E1BB8712548F170087F58D /* participants.png in Resources */ = {isa = PBXBuildFile; fileRef = 15E1BB8612548F170087F58D /* participants.png */; };
 		15E1BB96125490CC0087F58D /* mention.png in Resources */ = {isa = PBXBuildFile; fileRef = 15E1BB95125490CC0087F58D /* mention.png */; };
 		15E1BC1C1254999E0087F58D /* blueArrow.png in Resources */ = {isa = PBXBuildFile; fileRef = 15E1BC1B1254999E0087F58D /* blueArrow.png */; };
@@ -296,8 +295,6 @@
 		15BFEEBB121CA5EF00F7B704 /* contacts-iPad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "contacts-iPad.png"; path = "Resources-iPad/contacts-iPad.png"; sourceTree = "<group>"; };
 		15C763D611F02CF800E660BE /* YMSettingsViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = YMSettingsViewController.h; path = Classes/YMSettingsViewController.h; sourceTree = "<group>"; };
 		15C763D711F02CF800E660BE /* YMSettingsViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = YMSettingsViewController.m; path = Classes/YMSettingsViewController.m; sourceTree = "<group>"; };
-		15CAFE3C1219EA7700B51153 /* YMSplitViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YMSplitViewController.h; sourceTree = "<group>"; };
-		15CAFE3D1219EA7700B51153 /* YMSplitViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = YMSplitViewController.m; sourceTree = "<group>"; };
 		15E1BB8612548F170087F58D /* participants.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = participants.png; sourceTree = "<group>"; };
 		15E1BB95125490CC0087F58D /* mention.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = mention.png; sourceTree = "<group>"; };
 		15E1BC1B1254999E0087F58D /* blueArrow.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = blueArrow.png; path = Resources/blueArrow.png; sourceTree = "<group>"; };
@@ -699,8 +696,6 @@
 				2233D86F11C475C2002DCDFB /* YMSimpleWebView.xib */,
 				15C763D611F02CF800E660BE /* YMSettingsViewController.h */,
 				15C763D711F02CF800E660BE /* YMSettingsViewController.m */,
-				15CAFE3C1219EA7700B51153 /* YMSplitViewController.h */,
-				15CAFE3D1219EA7700B51153 /* YMSplitViewController.m */,
 				15BFEE92121C8C4900F7B704 /* YMMenuController.h */,
 				15BFEE93121C8C4900F7B704 /* YMMenuController.m */,
 			);
@@ -1329,7 +1324,6 @@
 				150BF1091210C9E9002BC81E /* UIImage+DKDeferred.m in Sources */,
 				150BF11B1210CD29002BC81E /* DKSimpleMemoryCache.m in Sources */,
 				15460B991213D3FB00350BB7 /* YMDraft.m in Sources */,
-				15CAFE3E1219EA7700B51153 /* YMSplitViewController.m in Sources */,
 				15BFEE94121C8C4900F7B704 /* YMMenuController.m in Sources */,
 				15A7EDCD1230582600F75009 /* MBProgressHUD.m in Sources */,
 				15A7EE8C12307DA300F75009 /* UIImage+ProportionalFill.m in Sources */,
@@ -1365,15 +1359,16 @@
 		00B4E9CF10696619000F0651 /* Store */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = NO;
+				ALWAYS_SEARCH_USER_PATHS = YES;
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				CODE_SIGN_IDENTITY = "iPhone Distribution: Geni, Inc.";
 				COPY_PHASE_STRIP = NO;
 				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_OPTIMIZATION_LEVEL = s;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = Yammer_Prefix.pch;
 				GCC_VERSION = com.apple.compilers.llvmgcc42;
+				HEADER_SEARCH_PATHS = "";
 				INFOPLIST_FILE = "Yammer-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 3.1.2;
 				OTHER_LDFLAGS = (
@@ -1382,8 +1377,8 @@
 					"-ObjC",
 				);
 				PRODUCT_NAME = Yammer;
-				PROVISIONING_PROFILE = "720DC109-4428-4C31-B4CB-9DD85CE70B32";
-				SDKROOT = iphoneos4.1;
+				PROVISIONING_PROFILE = "614D4C84-C99E-4D55-8D3A-819C61C87EF0";
+				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Store;
@@ -1414,7 +1409,7 @@
 		00BAC2BC10485AFF00F1D5F8 /* AdHoc */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = NO;
+				ALWAYS_SEARCH_USER_PATHS = YES;
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				CODE_SIGN_IDENTITY = "iPhone Distribution: Geni, Inc.";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution: Geni, Inc.";
@@ -1424,6 +1419,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = Yammer_Prefix.pch;
 				GCC_VERSION = com.apple.compilers.llvmgcc42;
+				HEADER_SEARCH_PATHS = "";
 				INFOPLIST_FILE = "Yammer-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 3.1.2;
 				OTHER_LDFLAGS = (
@@ -1432,9 +1428,9 @@
 					"-ObjC",
 				);
 				PRODUCT_NAME = Yammer;
-				PROVISIONING_PROFILE = "6562A075-87CF-46F4-B2BF-B97F88693DB2";
-				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "6562A075-87CF-46F4-B2BF-B97F88693DB2";
-				SDKROOT = iphoneos4.1;
+				PROVISIONING_PROFILE = "720DC109-4428-4C31-B4CB-9DD85CE70B32";
+				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "720DC109-4428-4C31-B4CB-9DD85CE70B32";
+				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = AdHoc;
@@ -1442,7 +1438,7 @@
 		1D6058940D05DD3E006BFB54 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = NO;
+				ALWAYS_SEARCH_USER_PATHS = YES;
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				CODE_SIGN_IDENTITY = "iPhone Developer: Samuel Sutch (27FP3L7KH9)";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer: Samuel Sutch (27FP3L7KH9)";
@@ -1454,16 +1450,16 @@
 				GCC_VERSION = com.apple.compilers.llvmgcc42;
 				HEADER_SEARCH_PATHS = "";
 				INFOPLIST_FILE = "Yammer-Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 3.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 3.1.2;
 				OTHER_LDFLAGS = (
 					"-fnested-functions",
 					"-licucore",
 					"-ObjC",
 				);
 				PRODUCT_NAME = Yammer;
-				PROVISIONING_PROFILE = "61C60CFE-97BC-4685-9758-8F09D9ABB3A6";
-				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "61C60CFE-97BC-4685-9758-8F09D9ABB3A6";
-				SDKROOT = iphoneos4.1;
+				PROVISIONING_PROFILE = "87A262DF-5CF7-448A-BA59-E86DAA7D6431";
+				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "87A262DF-5CF7-448A-BA59-E86DAA7D6431";
+				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;

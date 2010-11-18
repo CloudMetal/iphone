@@ -7,7 +7,7 @@
 //
 
 @interface YammerAppDelegate : NSObject 
-<UIApplicationDelegate, UISplitViewControllerDelegate> 
+<UIApplicationDelegate> 
 { }
 @end
 

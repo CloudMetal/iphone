@@ -24,29 +24,15 @@ static NSDateFormatter *dateFormatter2 = nil;
 
 @implementation NSDate(SQLitePersistence)
 + (id)objectWithSqlColumnRepresentation:(NSString *)columnData;
-{
-#ifdef TARGET_OS_COCOTRON
-  NSDateFormatter *dateFormatter = [[[NSDateFormatter alloc] initWithDateFormat:@"%Y-%m-%d %H:%M:%S.%F" allowNaturalLanguage:NO] autorelease];
-  NSDate *d;
-  BOOL cvt = [dateFormatter getObjectValue:&d forString:columnData errorDescription:nil];
-  assert(cvt);
-  return d;
-#else
-  
+{ 
   if (!dateFormatter1) {
     dateFormatter1 = [[[NSDateFormatter alloc] init] retain];
     [dateFormatter1 setDateFormat:@"yyyy-MM-dd HH:mm:ss.SSSS"];
   }
   return [dateFormatter1 dateFromString:columnData];
-#endif
 }
 - (NSString *)sqlColumnRepresentationOfSelf
 {
-#ifdef TARGET_OS_COCOTRON
-  NSDateFormatter *dateFormatter = [[[NSDateFormatter alloc] initWithDateFormat:@"%Y-%m-%d %H:%M:%S.%F" allowNaturalLanguage:NO] autorelease];
-  return [dateFormatter stringForObjectValue:self];
-#else
-  
   if (!dateFormatter2) {
     dateFormatter2 = [[[NSDateFormatter alloc] init] retain];
     [dateFormatter2 setDateFormat:@"yyyy-MM-dd HH:mm:ss.SSSS"];
@@ -55,7 +41,6 @@ static NSDateFormatter *dateFormatter2 = nil;
   NSString *formattedDateString = [dateFormatter2 stringFromDate:self];
   
   return formattedDateString;
-#endif
 }
 + (BOOL)canBeStoredInSQLite
 {

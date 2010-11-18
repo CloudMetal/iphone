@@ -50,8 +50,11 @@
   networksController = [[YMNetworksViewController alloc] initWithStyle:UITableViewStyleGrouped];
   networksController.onChooseNetwork = callbackTS(self, _didChooseNetwork:);
   networksNavController = [[UINavigationController alloc] initWithRootViewController:networksController];
-  networksPopController = [[UIPopoverController alloc] initWithContentViewController:networksNavController];
-  networksPopController.delegate = self;
+  Class c = NSClassFromString(@"UIPopoverController");
+  if (c) {
+    networksPopController = [[c alloc] initWithContentViewController:networksNavController];
+    [networksPopController setDelegate:self];
+  } else networksPopController = nil;
   messagesController = [[YMMessageListViewController alloc] init];
   messagesNavController = [[UINavigationController alloc] initWithRootViewController:
                            messagesController];
@@ -206,7 +209,7 @@
   [networksPopController setPopoverContentSize:CGSizeMake(320, 400) animated:YES];
 }
 
-- (BOOL)popoverControllerShouldDismissPopover:(UIPopoverController *)popoverController
+- (BOOL)popoverControllerShouldDismissPopover:(id)popoverController
 {
   return !!network;
 }

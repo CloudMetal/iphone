@@ -10,7 +10,6 @@
 #import "YMWebService.h"
 #import "YMNetworksViewController.h"
 #import "SQLiteInstanceManager.h"
-#import "YMSplitViewController.h"
 #import "YMAccountsViewController.h"
 #import "YMMenuController.h"
 
@@ -50,11 +49,17 @@
   if ([prevVersion isEqual:@"3.1.0.968"]) { // 3.1 => 3.1.1 upgrade path 
     [[DKDeferred cache] deleteAllValues];
   }
+  if (![prevVersion isEqual:version]) {
+    [[SQLiteInstanceManager sharedManager] executeUpdateSQL:@"DELETE FROM y_m_message;"];
+    [[SQLiteInstanceManager sharedManager] executeUpdateSQL:@"DELETE FROM y_m_attachment;"];
+    [[SQLiteInstanceManager sharedManager] executeUpdateSQL:@"DELETE FROM y_m_group;"];
+  }
   
   [defs setObject:version forKey:@"YMPreviousBundleVersion"];
   [defs synchronize];
   
   [[YMWebService sharedWebService] setShouldUpdateBadgeIcon:YES];
+  [[YMWebService sharedWebService] trimMessageCache];
   
   [[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
   UIWindow *mainWindow = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
@@ -63,13 +68,13 @@
   [mainWindow makeKeyAndVisible];
   
   if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
-    YMSplitViewController *sc = [[YMSplitViewController alloc] init];
-    YMMenuController *menu = [[[YMMenuController alloc] initWithStyle:
-                               UITableViewStyleGrouped] autorelease];
-    sc.viewControllers = array_([[[UINavigationController alloc] 
-                                  initWithRootViewController:menu] autorelease], 
-                                [menu viewControllerForSecondPane]);
-    [mainWindow addSubview:sc.view];
+//    id sc = [[YMSplitViewController alloc] init];
+//    YMMenuController *menu = [[[YMMenuController alloc] initWithStyle:
+//                               UITableViewStyleGrouped] autorelease];
+//    sc.viewControllers = array_([[[UINavigationController alloc] 
+//                                  initWithRootViewController:menu] autorelease], 
+//                                [menu viewControllerForSecondPane]);
+//    [mainWindow addSubview:sc.view];
   } 
   else {
     UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:
@@ -126,6 +131,7 @@ didFailToRegisterForRemoteNotificationsWithError:(NSError *)error
 //      NSLog(@"unseenMessageCount %@", n.unseenMessageCount);
 //    }
 //  }
+  [[YMWebService sharedWebService] trimMessageCache];
   [[YMWebService sharedWebService] updateUIApplicationBadge];
   [[DKDeferred cache] purgeMemoryCache];
 }

@@ -19,6 +19,7 @@
 #import "UIImage+RoundedCorner.h"
 #import "UIImage+DKDeferred.h"
 #import "UIImage+ProportionalFill.h"
+#import "NSDate-SQLitePersistence.h"
 
 static YMWebService *__sharedWebService;
 
@@ -153,6 +154,25 @@ id _nil(id r)
   return r;
 }
 
+- (void)trimMessageCache
+{
+  [self performSelectorInBackground:@selector(_trimMessageCache) withObject:nil];
+}
+
+- (void)_trimMessageCache
+{
+  NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+  NSDate *cutoffDate = [NSDate dateWithTimeIntervalSinceNow:-(86400*5)]; // remove all messages older than a week
+  @synchronized(self) {
+    if ([YMMessage count] > 200) {
+      [[SQLiteInstanceManager sharedManager] executeUpdateSQL:
+       [NSString stringWithFormat:@"DELETE FROM y_m_message WHERE created_at < '%@'",
+        [cutoffDate sqlColumnRepresentationOfSelf]]];
+    }
+  }
+  [pool release];
+}
+
 #pragma mark -
 #pragma mark User Accounts
 
@@ -194,10 +214,22 @@ id _nil(id r)
 
 - (int)unseenThreadCountForNetwork:(YMNetwork *)network
 {
-  id t = PREF_KEY(([NSString stringWithFormat:@"%@%@-unseenthreads", network.userID, network.networkID]));
-  if (t) return intv(t);
-  return 0;
+//  id t = PREF_KEY(([NSString stringWithFormat:@"%@%@-unseenthreads", network.userID, network.networkID]));
+//  if (t) return intv(t);
+//  return 0;
+  return intv(network.unseenPrivateCount);
 }
+
+- (int)unseenMessagecountForNetwork:(YMNetwork *)network
+{
+  return intv(network.unseenMessageCount);
+}
+
+- (int)totalUnseenForNetwork:(YMNetwork *)network
+{
+  return intv(network.unseenMessageCount) + intv(network.unseenPrivateCount);
+}
+
 - (id)_gotAccessToken:(YMUserAccount *)acct :(id)result 
 {
 //  NSLog(@"_gotAccessToken: %@ %@", result, [[result URLResponse] allHeaderFields]);
@@ -316,8 +348,8 @@ id _nil(id r)
         n.networkID = [d objectForKey:@"id"];
         n.unseenPrivateCount = [d objectForKey:@"private_unseen_thread_count"];
         n.unseenMessageCount = [d objectForKey:@"unseen_message_count"];
-        PREF_SET([d objectForKey:@"private_unseen_thread_count"], 
-          ([NSString stringWithFormat:@"%@%@-unseenthreads", [ad objectForKey:@"user_id"], [d objectForKey:@"id"]]));
+//        PREF_SET([d objectForKey:@"private_unseen_thread_count"], 
+//          ([NSString stringWithFormat:@"%@%@-unseenthreads", [ad objectForKey:@"user_id"], [d objectForKey:@"id"]]));
         n.token = [ad objectForKey:@"token"];
         n.secret = [ad objectForKey:@"secret"];
         n.userID = [ad objectForKey:@"user_id"];
@@ -367,16 +399,44 @@ id _nil(id r)
     account:acct defaults:dict_(m.threadID, @"thread_id", m.messageID, @"message_id")];
   id d = [[[DKDeferredURLConnection alloc] initWithRequest:req pauseFor:0 
                                             decodeFunction:nil] autorelease];
-  return [d addBoth:callbackTS(self, _gotSeenCountsReset:)];
+  return [d addBoth:curryTS(self, @selector(_gotSeenCountsResetForNetworkPK:results:),
+                            [acct.activeNetworkPK copy])];
 }
 
-- (id)_gotSeenCountsReset:(id)r
+- (id)_seenCountsThread:networkPk results:r
 {
-//  if ([r isKindOfClass:[NSData class]])
-//    NSLog(@"GotSeenCountsReset %@", [[[NSString alloc] initWithData:r encoding:NSUTF8StringEncoding] autorelease]);
+  if ([r isKindOfClass:[NSData class]]) {
+    NSString *shit = [[[NSString alloc] initWithData:r encoding:NSUTF8StringEncoding] autorelease];
+    if (shit && [[shit stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]] length]) {
+      shit = [shit stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+      if ([[shit substringToIndex:1] isEqualToString:@"{"]) {
+        r = [shit JSONValue];
+      }
+    }
+  }
+  if (isDeferred(r))
+    return [r addBoth:curryTS(self, 
+                              @selector(_gotSeenCountsResetForNetworkPK:results:), networkPk)];
+  if ([r isKindOfClass:[NSDictionary class]]) {
+    NSLog(@"last_seen_in_thread response %@", r);
+    YMNetwork *n = (YMNetwork *)[YMNetwork findFirstByCriteria:@"WHERE pk=%@", networkPk];
+    n.unseenPrivateCount = [r objectForKey:@"private_unseen_thread_count"];
+    [n save];
+  }
   return r;
 }
 
+- (id)_gotSeenCountsResetForNetworkPK:(NSNumber *)networkPk results:(id)r
+{
+  return [DKDeferred deferInThread:
+          curryTS(self, @selector(_seenCountsThread:results:), 
+                  networkPk) withObject:r];
+}
+
+- (void)_updateBadgeThread:(id)o
+{
+  [self updateUIApplicationBadge];
+}
 
 - (DKDeferred *)threadInfo:(NSString *)threadId forAccount:(YMUserAccount *)acct;
 {
@@ -384,13 +444,12 @@ id _nil(id r)
             account:acct defaults:EMPTY_DICT];
   return [[[[DKDeferredURLConnection alloc] initWithRequest:req pauseFor:0
                                              decodeFunction:callbackP(__decodeJSON)] autorelease]
-          addCallback:curryTS(self, @selector(_gotThreadDetailsForAccount:results:), acct)];
+          addCallback:curryTS(self, @selector(_gotThreadDetailsForAccount:alexTrebek:results:), acct, 
+                              [[acct.activeNetworkPK copy] autorelease])];
 }
 
-- (id)_gotThreadDetailsForAccount:(YMUserAccount *)acct results:(id)r
+- (id)_gotThreadDetailsForAccount:(YMUserAccount *)acct alexTrebek:(NSNumber *)TREBEK results:(id)r
 {
-
-//  NSLog(@"_gotThreadDetailsForAccount:%@ results %@", acct, r);
   return r;
 }
 
@@ -457,9 +516,11 @@ page:(id)page fetchToID:(id)toID networkID:(id)networkID unseenLeft:(id)unseenLe
   if (isPrivate) {
     YMNetwork *n = (YMNetwork *)[YMNetwork findByPK:intv(networkID)];
     if (n && [[results objectForKey:@"meta"] objectForKey:@"unseen_thread_count"]) {
-      PREF_SET(([NSString stringWithFormat:@"%@%@-unseenthreads", n.userID, n.networkID]),
-                   [[results objectForKey:@"meta"] objectForKey:@"unseen_thread_count"]);
-      PREF_SYNCHRONIZE;
+//      PREF_SET(([NSString stringWithFormat:@"%@%@-unseenthreads", n.userID, n.networkID]),
+//                   [[results objectForKey:@"meta"] objectForKey:@"unseen_thread_count"]);
+//      PREF_SYNCHRONIZE;
+      n.unseenPrivateCount = [[results objectForKey:@"meta"] objectForKey:@"unseen_thread_count"];
+      [n save];
     }
     //NSLog(@"\n\nupdating unseen %i %@", [self unseenThreadCountForNetwork:n], n);
   }
@@ -1474,11 +1535,16 @@ replyOpts:(NSDictionary *)replyOpts attachments:(NSDictionary *)attaches
 - (int)totalUnseen
 {
   NSArray *counts = [YMNetwork pairedArraysForProperties:
-                     array_(@"unseenMessageCount")];
+                     array_(@"unseenMessageCount", @"unseenPrivateCount")];
   //NSLog(@"counts %@", counts);
   int totalUnseen = 0;
   for (NSNumber *unseenCount in [counts objectAtIndex:1]) {
-    totalUnseen += intv(unseenCount);
+    if ([unseenCount isKindOfClass:[NSString class]])
+      totalUnseen += intv(unseenCount);
+  }
+  for (NSNumber *unseenCount in [counts objectAtIndex:2]) {
+    if ([unseenCount isKindOfClass:[NSString class]])
+      totalUnseen += intv(unseenCount);
   }
   return totalUnseen;
 }

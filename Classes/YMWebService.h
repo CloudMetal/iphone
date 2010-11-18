@@ -78,6 +78,8 @@
 - (void)updateUIApplicationBadge;
 - (void)subtractUnseenCount:(int)ct fromNetwork:(YMNetwork *)network;
 - (int)unseenThreadCountForNetwork:(YMNetwork *)network;
+- (int)unseenMessagecountForNetwork:(YMNetwork *)network;
+- (int)totalUnseenForNetwork:(YMNetwork *)network;
 - (DKDeferred *)resetSeenCountForThread:(YMMessage *)m forUserAccount:(YMUserAccount *)acct;
 - (DKDeferred *)loadCachedContactImagesForUserAccount:(YMUserAccount *)acct;
 - (void)purgeCachedContactImages;
@@ -89,6 +91,7 @@
 - (DKDeferred *)threadInfo:(NSString *)threadId forAccount:(YMUserAccount *)acct;
 - (void)gotFullContactListForNetwork:(YMNetwork *)network;
 - (BOOL)didGetFullContactListForNetwork:(YMNetwork *)network;
+- (void)trimMessageCache;
 
 /** 
  Takes a YMUserAccount and authenticates it against the yammer

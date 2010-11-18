@@ -38,6 +38,7 @@
   NSArray *groups;
   NSArray *unseenThreadCounts, *messageInThreadCounts, *numberOfParticipantCounts;
   NSMutableArray *loadedIds;
+  NSMutableArray *participants;
   int totalUnseenThreads;
   
   // ui elements

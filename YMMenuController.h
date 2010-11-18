@@ -11,7 +11,7 @@
 @class YMWebService, YMNetwork, YMUserAccount, YMNetworksViewController,
        YMMessageListViewController, YMContactsListViewController;
 
-@interface YMMenuController : UITableViewController <UIPopoverControllerDelegate>
+@interface YMMenuController : UITableViewController
 {
   NSArray *builtins;
   NSMutableArray *feeds;
@@ -22,7 +22,7 @@
   UINavigationController *networksNavController;
   YMMessageListViewController *messagesController;
   UINavigationController *messagesNavController;
-  UIPopoverController *networksPopController;
+  id networksPopController;
   NSIndexPath *activeFeed;
   YMContactsListViewController *contactsController;
   UINavigationController *contactsNavController;
